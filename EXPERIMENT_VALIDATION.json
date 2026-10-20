@@ -37,5 +37,6 @@
   "random_celebrations": true,
   "immediate_sound_repeats": false,
   "daily_record_celebration": "Once per date, strictly exceeds best prior production day; persisted across restart",
-  "statistics_focused_layout": true
+  "statistics_focused_layout": true,
+  "follow_up_validation": "Full 28-group run after panel sizing correction; layout also checked at 150% and 200% Qt scaling. Windows Actions rerun pending."
 }

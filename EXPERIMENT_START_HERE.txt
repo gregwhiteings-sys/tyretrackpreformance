@@ -145,3 +145,7 @@ New best daily total: once per date when it exceeds the best PRIOR production da
 Ties, the first day without a prior record, and video tests do not trigger daily celebrations.
 Record markers survive restart. Simultaneous hour/day records use one combined celebration.
 Operational alarms take priority. Physical speaker playback requires a Windows check.
+
+LAYOUT SIZING CORRECTION
+Camera panel no longer inherits long label width hints. Statistics retain the wider panel.
+Status text wraps; camera controls use two compact rows. Verified at 1280,1366,1450 widths and 150%/200% Qt scaling locally.

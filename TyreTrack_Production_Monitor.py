@@ -2597,9 +2597,13 @@ class Main(QMainWindow):
         body = QHBoxLayout()
         outer.addLayout(body, 1)
 
-        left = QVBoxLayout()
+        self.camera_panel = QWidget()
+        self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+        self.camera_panel.setMinimumWidth(320)
+        left = QVBoxLayout(self.camera_panel)
+        left.setContentsMargins(0,0,0,0)
         left.setSpacing(6)
-        body.addLayout(left, 2)
+        body.addWidget(self.camera_panel, 2)
 
         self.video = VideoLabel()
         self.video.fullscreen_requested.connect(
@@ -2610,9 +2614,11 @@ class Main(QMainWindow):
         )
         self.video.bounds_dragged.connect(self.drag_bounds_changed)
         self.video.span_dragged.connect(self.drag_span_changed)
+        self.video.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         self.video.setObjectName("cameraViewport")
         self.test_transport=QLabel("OAK CAMERA / LIVE VIEW")
         self.test_transport.setObjectName("transport")
+        self.test_transport.setWordWrap(True)
         left.addWidget(self.test_transport)
         self.test_progress=QProgressBar();self.test_progress.setRange(0,1000)
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
@@ -2638,10 +2644,13 @@ class Main(QMainWindow):
         run_row.addWidget(self.start_btn)
         run_row.addWidget(self.stop_btn)
         left.addLayout(run_row)
+        tools_row=QHBoxLayout()
+        left.addLayout(tools_row)
 
         self.status_lbl = QLabel(
             "OAK-D auto-connect · counting follows Brisbane production hours"
         )
+        self.status_lbl.setWordWrap(True)
         self.status_lbl.setObjectName("status")
         left.addWidget(self.status_lbl)
 
@@ -2678,11 +2687,11 @@ class Main(QMainWindow):
         run_row.addWidget(admin_btn)
         video_test_btn=QPushButton("Upload video test")
         video_test_btn.clicked.connect(self.open_video_test)
-        run_row.addWidget(video_test_btn)
+        tools_row.addWidget(video_test_btn)
         self.edit_bounds_btn=QPushButton("Adjust lines")
         self.edit_bounds_btn.setCheckable(True)
         self.edit_bounds_btn.toggled.connect(self.toggle_bounds_edit)
-        run_row.addWidget(self.edit_bounds_btn)
+        tools_row.addWidget(self.edit_bounds_btn)
         self.show_fixed_lines = QCheckBox("Show fixed lines")
         self.show_fixed_lines.hide()
         self.celebration_mute = QCheckBox("Mute celebrations")
@@ -2690,6 +2699,7 @@ class Main(QMainWindow):
         self.celebration_mute.toggled.connect(lambda checked:set_state("mute_celebrations","1" if checked else "0"))
         self.celebration_mute.hide()
         self.celebration_banner = QLabel("")
+        self.celebration_banner.setWordWrap(True)
         left.addWidget(self.celebration_banner)
         self._celebrated_hours = set()
 
