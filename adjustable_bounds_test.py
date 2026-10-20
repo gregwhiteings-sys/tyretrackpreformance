@@ -64,7 +64,12 @@ def ui_check():
   app.sendEvent(w.video,QMouseEvent(QEvent.MouseMove,QPointF(nx,cy),Qt.NoButton,Qt.LeftButton,Qt.NoModifier))
   QTest.mouseRelease(w.video,Qt.LeftButton,pos=QPoint(nx,cy));app.processEvents()
   assert abs(w.left_span_slider.value()-20)<=1,w.left_span_slider.value()
-  assert json.loads((Path(folder)/'geometry.request.json').read_text())['left']==.2
+  request=json.loads((Path(folder)/'geometry.request.json').read_text())
+  # Integer screen pixels may round the intended 20% drag to 19% or 21%.
+  # The replay must receive exactly the value displayed by the slider.
+  assert request['left']==w.left_span_slider.value()/100,request
+  assert abs(request['left']-.2)<=.011,request
+  assert request['right']==w.right_span_slider.value()/100,request
   w._replay_process=None;w.close()
  print('PASS: real on-screen top-line drag, sliders, connected geometry and live replay control request')
 if __name__=='__main__':
