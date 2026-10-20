@@ -21,7 +21,7 @@ with DatabaseTemporaryDirectory() as folder:
   time.sleep(.015)
  else:
   w.stop_video_test();raise AssertionError('Real replay did not finish within 60 seconds')
- assert seen,'No video frame reached the dashboard'
+ assert seen,'No video frame reached the dashboard: '+(w._replay_output/'replay_log.txt').read_text()[-8000:]
  assert 'COMPLETE' in w.test_transport.text(),w.video_test_status.text()
  assert w.test_progress.value()==1000
  summary=json.loads((w._replay_output/'test_summary.json').read_text())
