@@ -1,4 +1,5 @@
 """PCM resource checks and Windows audio-call behavior; does not claim speaker testing."""
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,tempfile,wave,array
 from pathlib import Path
 from unittest.mock import Mock
@@ -14,7 +15,7 @@ for key,(label,name) in m.CELEBRATION_SOUNDS.items():
   duration=source.getnframes()/source.getframerate();samples=array.array('h',source.readframes(source.getnframes()))
   assert 1<duration<=8.1 and max(abs(x) for x in samples)>1000
  print('PASS: valid non-silent PCM audio',name,round(duration,2),'seconds')
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
  m.DB=Path(folder)/'test.db';m.init_db();w=m.Main();w.clock.stop();w.alarm_state={'latched':False}
  backend=types.SimpleNamespace(SND_FILENAME=1,SND_ASYNC=2,SND_NODEFAULT=4,PlaySound=Mock())
  for key in m.CELEBRATION_SOUNDS:

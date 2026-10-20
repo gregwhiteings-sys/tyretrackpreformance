@@ -1,4 +1,5 @@
 """Exercise actual capture threads with independent camera and AI packet sequences."""
+from test_resources import DatabaseTemporaryDirectory
 import os,time,threading
 os.environ['QT_QPA_PLATFORM']='offscreen'
 import numpy as np
@@ -61,7 +62,7 @@ class RecordingDevice(Device):
   self.queues['recording']=Q([EncodedPacket(i,p) for i,p in enumerate(encoded)])
 original_folder=m.OAK_RECORDINGS
 try:
- with tempfile.TemporaryDirectory() as folder:
+ with DatabaseTemporaryDirectory() as folder:
   m.OAK_RECORDINGS=Path(folder);m.RECORD_OAK_VIDEO=True;m.dai.Device=RecordingDevice
   source=m.OakSource('')
   deadline=time.monotonic()+2

@@ -1,4 +1,5 @@
 """Offline schedule and metric checks. No camera, SMTP, or production data."""
+from test_resources import DatabaseTemporaryDirectory
 import ast
 import sqlite3
 import tempfile
@@ -23,7 +24,7 @@ ns = dict(sqlite3=sqlite3, datetime=datetime, timedelta=timedelta, timezone=time
 exec(compile(ast.Module(body=functions, type_ignores=[]), '<helpers>', 'exec'), ns)
 # SQLite's transaction context commits/rolls back but does not close the handle.
 # Close every test connection before TemporaryDirectory removes test.db on Windows.
-with tempfile.TemporaryDirectory() as folder, ExitStack() as connections:
+with DatabaseTemporaryDirectory() as folder, ExitStack() as connections:
     def tracked_connect(*args, **kwargs):
         connection = sqlite3.connect(*args, **kwargs)
         connections.callback(connection.close)

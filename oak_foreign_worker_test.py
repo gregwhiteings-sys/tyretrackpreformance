@@ -1,4 +1,5 @@
 """Exercise real counter worker + foreign alarm and authenticated GUI reset with fake packets."""
+from test_resources import DatabaseTemporaryDirectory
 import os,time,tempfile
 os.environ['QT_QPA_PLATFORM']='offscreen'
 import numpy as np
@@ -34,7 +35,7 @@ for class_id in (0,1):
 print('PASS: real OAK counter worker uses compiled foreign outputs without CPU YOLO; each class triggers once; OAK ignores PC-only frame interval')
 # Reset must remain authenticated and persistent; no actual alarm sound in this test.
 m.Main.tick=lambda self:None
-with tempfile.TemporaryDirectory() as tmp:
+with DatabaseTemporaryDirectory() as tmp:
  window=m.Main();window.clock.stop();window.alarm_timer.stop() if hasattr(window,'alarm_timer') else None
  window.alarm_state_path=Path(tmp)/'state.json';window.admin_path=Path(tmp)/'admin.json'
  window.alarm_state={'latched':True};window.worker=None

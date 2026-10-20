@@ -132,3 +132,6 @@ its defaults use a 4-pixel perpendicular margin and a 12-processed-frame maximum
 observation gap; the original single-line worker used 5 pixels / 20 frames.
 Database-upgrade tests preserve existing records and site state. Real camera,
 network, Windows packaging and speaker playback still require the site tests.
+
+WINDOWS CI CLEANUP FIX
+Temporary database fixtures now explicitly close SQLite handles before directory deletion, including exceptional exits. Audio validation and operational source behavior remain unchanged. Re-run the Windows Actions workflow after replacing source files.

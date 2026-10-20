@@ -1,4 +1,5 @@
 """Offline confirmation/region/auth tests; no model, camera, audio or SMTP."""
+from test_resources import DatabaseTemporaryDirectory
 import ast,json,tempfile
 from pathlib import Path
 from foreign_alarm import Confirmation,in_region,set_password,verify_password,write_json,read_json
@@ -18,7 +19,7 @@ assert c.update([detection()],10) is None
 assert in_region((280,160,360,220),640,360,.03,.98,.18,.82)
 assert not in_region((0,100,30,140),640,360,.03,.98,.18,.82)
 assert not in_region((280,0,320,5),640,360,.03,.98,.18,.82)
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
  p=Path(folder)/'admin.json';set_password(p,'testpass')
  assert verify_password(p,'testpass') and not verify_password(p,'wrongpass')
  assert 'testpass' not in p.read_text()

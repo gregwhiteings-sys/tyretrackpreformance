@@ -1,4 +1,5 @@
 """Actual JPEG transport and Qt screen preview; no production counts or camera."""
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,tempfile
 from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
@@ -9,7 +10,7 @@ import TyreTrack_Production_Monitor as m
 from offline_replay import PreviewWriter
 m.Main.tick=lambda self:None;m.Main._confirm_admin_pin=lambda *args:True
 app=QApplication.instance() or QApplication([])
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
  root=Path(folder);m.DB=root/'production.db';m.init_db()
  w=m.Main();w.clock.stop();w.resize(1280,720);w.show()
  app.processEvents()

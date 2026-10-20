@@ -1,4 +1,5 @@
 """Decode stream-copy output to verify playable MP4, keyframe rotation and recovery."""
+from test_resources import DatabaseTemporaryDirectory
 from pathlib import Path
 from datetime import datetime,timedelta
 import tempfile
@@ -25,29 +26,29 @@ def inspect(folder, expected):
     assert not list(Path(folder).rglob('*.h264'))
 
 now=datetime(2026,10,16,5)
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
     recorder=EncodedRecorder(folder,print,segment_seconds=1)
     for i,p in enumerate(packets): recorder.feed(p,now+timedelta(seconds=i/15),i)
     recorder.close(); inspect(folder,[15,15,15])
 print('PASS: keyframe-aligned segments, 45 decoded frames, correct dimensions and increasing timestamps')
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
     recorder=EncodedRecorder(folder,print)
     for i,p in enumerate(packets):
         if i==7: continue
         recorder.feed(p,now+timedelta(seconds=i/15),i)
     recorder.close(); inspect(folder,[7,30]); assert recorder.gaps==1
 print('PASS: dropped packet ends segment; recording resumes at next decodable keyframe')
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
     recorder=EncodedRecorder(folder,print)
     for i,p in enumerate(packets): recorder.feed(p,now+timedelta(seconds=i/15),i,enabled=(i>=16))
     recorder.close(); inspect(folder,[15])
 print('PASS: enabling midstream waits for a keyframe')
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
     recorder=EncodedRecorder(folder,print)
     for i,p in enumerate(packets): recorder.feed(p,now+timedelta(seconds=i/15),i,enabled=False)
     assert not list(Path(folder).rglob('*'))
 print('PASS: recording disabled creates no files')
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
     recorder=EncodedRecorder(folder,lambda message:None)
     for i,p in enumerate(packets[:15]): recorder.feed(p,now+timedelta(seconds=i/15),i)
     original=av.open

@@ -1,4 +1,5 @@
 """Dedicated video test works without a camera, suspends reconnects and isolates results."""
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,tempfile,json
 from pathlib import Path
 from unittest.mock import patch,Mock
@@ -8,7 +9,7 @@ from PyQt5.QtWidgets import QApplication
 import TyreTrack_Production_Monitor as m
 m.Main.tick=lambda self:None;m.Main._confirm_admin_pin=lambda *args:True
 app=QApplication.instance() or QApplication([])
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
  root=Path(folder);m.DB=root/'production.db';m.REPORTS=root/'reports';m.REPORTS.mkdir();m.init_db()
  w=m.Main();w.clock.stop();w.open_video_test();app.processEvents()
  assert w.video_test_dialog.isVisible()

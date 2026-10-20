@@ -1,10 +1,11 @@
 """Windows CRLF checkout must pass, but changed model/config content must fail."""
+from test_resources import DatabaseTemporaryDirectory
 from pathlib import Path
 import tempfile,shutil
 import depthai as dai
 from oak_rvc2 import validate_models
 ROOT=Path(__file__).resolve().parent
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
     base=Path(folder)
     shutil.copy2(ROOT/'tyre_detector_oak.blob',base/'tyre_detector_oak.blob')
     models=base/'rvc2_models';shutil.copytree(ROOT/'rvc2_models',models)

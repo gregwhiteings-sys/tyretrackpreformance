@@ -1,3 +1,4 @@
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,tempfile,json,unittest
 from pathlib import Path
 from three_line import ThreeLineCounter,line_segments
@@ -37,7 +38,7 @@ def ui_check():
  import TyreTrack_Production_Monitor as m
  m.Main.tick=lambda self:None;m.Main._confirm_admin_pin=lambda *args:True
  app=QApplication.instance() or QApplication([])
- with tempfile.TemporaryDirectory() as folder:
+ with DatabaseTemporaryDirectory() as folder:
   m.DB=Path(folder)/'db.sqlite';m.init_db();w=m.Main();w.resize(1280,720);w.show()
   w.display_frame(np.zeros((270,480,3),np.uint8));app.processEvents()
   w.top_line_slider.setValue(10);w.bottom_line_slider.setValue(90)

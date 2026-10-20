@@ -1,4 +1,5 @@
 """Daily record celebration fires once per hour; later hours and days can win."""
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,tempfile,shutil
 from pathlib import Path
 from datetime import datetime,timedelta,timezone
@@ -8,7 +9,7 @@ from PyQt5.QtWidgets import QApplication
 import TyreTrack_Production_Monitor as m
 qt=QApplication.instance() or QApplication([])
 m.Main.tick=lambda self:None;m.Main._confirm_admin_pin=lambda *a:True
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
  m.DB=Path(folder)/'test.db';m.init_db()
  w=m.Main();w.clock.stop();w.celebration_mute.setChecked(True)
  now=datetime(2026,10,19,7,10,tzinfo=timezone(timedelta(hours=10)))

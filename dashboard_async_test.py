@@ -1,4 +1,5 @@
 """Verify real dashboard collection stays off the GUI thread and applies the result."""
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,time,tempfile,threading,sqlite3
 os.environ['QT_QPA_PLATFORM']='offscreen'
 stub=types.ModuleType('ultralytics');stub.YOLO=object;sys.modules['ultralytics']=stub
@@ -10,7 +11,7 @@ qt=QApplication([]);m.Main.tick=lambda self:None
 entered=threading.Event();release=threading.Event();thread_ids=[]
 original=m.production_snapshot
 window=None
-with tempfile.TemporaryDirectory() as temp:
+with DatabaseTemporaryDirectory() as temp:
  from pathlib import Path
  m.DB=Path(temp)/'dashboard.db';m.init_db()
  def slow_snapshot(*a,**k):

@@ -1,4 +1,5 @@
 """Run the real video-test subprocess and observe its frames in the real Qt window."""
+from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,time,tempfile,json
 from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
@@ -7,7 +8,7 @@ from PyQt5.QtWidgets import QApplication
 import TyreTrack_Production_Monitor as m
 m.Main.tick=lambda self:None;m.Main._confirm_admin_pin=lambda *args:True
 app=QApplication.instance() or QApplication([])
-with tempfile.TemporaryDirectory() as folder:
+with DatabaseTemporaryDirectory() as folder:
  root=Path(folder);m.DB=root/'production.db';m.REPORTS=root/'reports';m.REPORTS.mkdir();m.init_db()
  w=m.Main();w.clock.stop();w.show();w.open_video_test()
  w.video_test_file.setText(str(Path(__file__).with_name('test_data')/'oak_h264_sample.h264'))

@@ -1,3 +1,4 @@
+from test_resources import DatabaseTemporaryDirectory
 import sqlite3
 import tempfile
 import unittest
@@ -6,7 +7,7 @@ from no_count_replies import create_incident, close_incident, summary, parse_rep
 
 class NoCountReplyTests(unittest.TestCase):
     def test_lifecycle_and_duplicate(self):
-        with tempfile.TemporaryDirectory() as d:
+        with DatabaseTemporaryDirectory() as d:
             db=Path(d)/'test.db'
             create_incident(db,'NC-20261019-104200','2026-10-19 10:42:00','2026-10-19 10:52:00')
             parsed=parse_reply('Re: TYRETRACK NO COUNT NC-20261019-104200','Reason: Waiting for tyres\nSupervisor: John\nComments: Truck late\n\nOn Monday wrote:\n> Reason: Fake')
