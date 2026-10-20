@@ -9,7 +9,7 @@ def run(app_module, output):
     if os.environ.get("TYRETRACK_SMOKE_LEVEL") == "quick":
         try:
             print("SMOKE: checking bundled resources", flush=True)
-            resources = ["celebration.wav", "celebration_short.wav", "celebration_chime.wav", "tyre_detector.pt", "tyre_detector_oak.blob",
+            resources = ["celebration.wav", "celebration_short.wav", "celebration_chime.wav", "celebration_aussie_1.wav", "celebration_aussie_2.wav", "celebration_aussie_3.wav", "celebration_aussie_4.wav", "tyre_detector.pt", "tyre_detector_oak.blob",
                          "foreign_model/foreign_object.pt", "rvc2_models/sha256.json"]
             for name in resources:
                 path = Path(app_module.resource_path(name))

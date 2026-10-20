@@ -26,6 +26,7 @@ for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
  for _ in range(5):app.processEvents()
  assert w.width()==width,(w.width(),width)
+ assert w.counters_panel.width()>w.video.width(),(w.counters_panel.width(),w.video.width())
  for control in w.findChildren(QPushButton):
   if control.isVisible():
    at=control.mapTo(w,control.rect().topLeft());assert at.x()>=0 and at.x()+control.width()<=w.width()

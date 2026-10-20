@@ -24,6 +24,14 @@ with DatabaseTemporaryDirectory() as folder:
   assert w.play_celebration_sound(preview=True,backend=backend)
   assert backend.PlaySound.call_args.args[0].endswith(m.CELEBRATION_SOUNDS[key][1])
   assert backend.PlaySound.call_args.args[1]==7
+ w.celebration_sound_combo.setCurrentIndex(w.celebration_sound_combo.findData("random"))
+ previous=None;seen=set()
+ for _ in range(30):
+  assert w.play_celebration_sound(preview=True,backend=backend)
+  filename=backend.PlaySound.call_args.args[0]
+  assert filename!=previous
+  seen.add(filename);previous=filename
+ assert len(seen)>1
  w.celebration_mute.setChecked(True);backend.PlaySound.reset_mock()
  assert not w.play_celebration_sound(backend=backend);backend.PlaySound.assert_not_called()
  assert w.play_celebration_sound(preview=True,backend=backend)

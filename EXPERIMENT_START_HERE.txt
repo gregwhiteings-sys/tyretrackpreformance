@@ -135,3 +135,13 @@ network, Windows packaging and speaker playback still require the site tests.
 
 WINDOWS CI CLEANUP FIX
 Temporary database fixtures now explicitly close SQLite handles before directory deletion, including exceptional exits. Audio validation and operational source behavior remain unchanged. Re-run the Windows Actions workflow after replacing source files.
+
+CREW PERFORMANCE DASHBOARD
+Larger statistics and smaller video; fullscreen video remains available for setup.
+Random celebrations are the default for this update; seven choices, no immediate repeats.
+Admin > Performance: choose Random or a fixed clip, Test, Stop and Mute.
+New best hour: once per qualifying hour when it exceeds today's completed hours.
+New best daily total: once per date when it exceeds the best PRIOR production day.
+Ties, the first day without a prior record, and video tests do not trigger daily celebrations.
+Record markers survive restart. Simultaneous hour/day records use one combined celebration.
+Operational alarms take priority. Physical speaker playback requires a Windows check.

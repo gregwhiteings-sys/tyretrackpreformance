@@ -18,6 +18,7 @@ import sqlite3
 import sys
 import threading
 import queue
+import random
 import time
 import traceback
 from datetime import datetime, timedelta, timezone
@@ -128,6 +129,10 @@ CELEBRATION_SOUNDS={
     "cheer":("Crowd cheer · 8 seconds","celebration.wav"),
     "applause":("Short applause · 3 seconds","celebration_short.wav"),
     "chime":("Victory chime · 2 seconds","celebration_chime.wav"),
+    "aussie_1":("Aussie clip · My Movie","celebration_aussie_1.wav"),
+    "aussie_2":("Aussie clip · Train Lover","celebration_aussie_2.wav"),
+    "aussie_3":("Aussie clip · Loud Aussie Music","celebration_aussie_3.wav"),
+    "aussie_4":("Waltzing Matilda · short","celebration_aussie_4.wav"),
 }
 OAK_NAME = "OAK-D S2 PoE / CAT5"
 OAK_TEST_NAME = "OAK-D S2 / MANUAL TEST"
@@ -2524,16 +2529,16 @@ class Main(QMainWindow):
 
         self.counters_panel = QFrame()
         self.counters_panel.setObjectName("metricRail")
-        self.counters_panel.setFixedWidth(238)
+        self.counters_panel.setMinimumWidth(570)
         counters_layout=QVBoxLayout(self.counters_panel)
         counters_layout.setContentsMargins(0,0,0,0)
         counters_layout.setSpacing(5)
-        self.rail_heading=QLabel("PRODUCTION  /  SAVED TOTALS")
+        self.rail_heading=QLabel("CREW PERFORMANCE  /  BRISBANE")
         self.rail_heading.setObjectName("railHeading")
         counters_layout.addWidget(self.rail_heading)
         daily=metric_card("TODAY / TYRES",self.day_lbl,"#40ead7")
-        daily.setFixedHeight(76)
-        self.day_lbl.setStyleSheet("color:#40ead7;font:900 40px 'Consolas';")
+        daily.setFixedHeight(85)
+        self.day_lbl.setStyleSheet("color:#40ead7;font:900 48px 'Consolas';")
         counters_layout.addWidget(daily)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
@@ -2541,12 +2546,17 @@ class Main(QMainWindow):
         self.best_hour_card.setToolTip("Highest completed production hour, Brisbane time")
         self.best_daily_lbl=QLabel("0 tyres")
         self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#ac93ff")
-        self.best_daily_lbl.setStyleSheet("color:#ac93ff;font:700 13px 'Consolas';")
+        self.best_daily_lbl.setStyleSheet("color:#ac93ff;font:700 24px 'Consolas';")
         self.best_daily_lbl.setWordWrap(True)
         alltime=metric_card("ALL TIME",self.total_lbl,"#e4edff")
         for r,c,card in ((0,0,hour),(0,1,self.best_hour_card),(1,0,self.best_daily_card),(1,1,alltime)):
-            card.setFixedHeight(62);grid.addWidget(card,r,c)
+            card.setFixedHeight(82);grid.addWidget(card,r,c)
+            if card is not self.best_daily_card: card.findChild(QLabel,"metricValue").setStyleSheet("font:900 44px 'Consolas';color:#c2b0ff;")
         counters_layout.addLayout(grid)
+        self.record_progress=QLabel("Build the next best hour")
+        self.record_progress.setStyleSheet("color:#40ead7;font:700 16px 'Segoe UI';")
+        self.record_progress.setWordWrap(True)
+        counters_layout.addWidget(self.record_progress)
         flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#40ead7")
         flow_card.setFixedHeight(57);counters_layout.addWidget(flow_card)
         classes=QHBoxLayout();classes.setSpacing(5)
@@ -2556,7 +2566,7 @@ class Main(QMainWindow):
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
         averages.setFixedHeight(67)
-        self.production_average.setStyleSheet("color:#91bfff;font:700 16px 'Consolas';")
+        self.production_average.setStyleSheet("color:#91bfff;font:700 22px 'Consolas';")
         counters_layout.addWidget(averages)
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
@@ -2589,7 +2599,7 @@ class Main(QMainWindow):
 
         left = QVBoxLayout()
         left.setSpacing(6)
-        body.addLayout(left, 3)
+        body.addLayout(left, 2)
 
         self.video = VideoLabel()
         self.video.fullscreen_requested.connect(
@@ -2608,7 +2618,7 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         left.addWidget(self.video, 1)
-        body.addWidget(self.counters_panel)
+        body.addWidget(self.counters_panel, 3)
 
         run_row = QHBoxLayout()
 
@@ -2710,8 +2720,12 @@ class Main(QMainWindow):
         self.celebration_mute.show()
         hours_tab.addWidget(QLabel("Celebration sound"))
         self.celebration_sound_combo=QComboBox()
+        self.celebration_sound_combo.addItem("Random celebration · all sounds", "random")
         for key,(label,filename) in CELEBRATION_SOUNDS.items():self.celebration_sound_combo.addItem(label,key)
-        selected=self.celebration_sound_combo.findData(get_state("celebration_sound","cheer"))
+        if get_state("celebration_policy","legacy")!="random_records_v1":
+            set_state("celebration_sound","random")
+            set_state("celebration_policy","random_records_v1")
+        selected=self.celebration_sound_combo.findData(get_state("celebration_sound","random"))
         self.celebration_sound_combo.setCurrentIndex(max(0,selected))
         self.celebration_sound_combo.currentIndexChanged.connect(lambda index:set_state("celebration_sound",self.celebration_sound_combo.currentData()))
         hours_tab.addWidget(self.celebration_sound_combo)
@@ -3681,11 +3695,24 @@ class Main(QMainWindow):
             log("Incident persistence failed:\n"+traceback.format_exc())
             self.foreign_status_lbl.setText("ALARM active; incident could not be saved — check disk")
 
+    def claim_daily_record(self, total, previous_best, day):
+        """One record celebration per production date, persisted across restarts."""
+        if previous_best <= 0 or total <= previous_best:
+            return False
+        key="celebrated_daily_"+day
+        if get_state(key,"0")=="1":return False
+        set_state(key,"1")
+        return True
+
     def play_celebration_sound(self, preview=False, backend=None):
         if self.alarm_state.get("latched"):
             self.celebration_sound_status.setText("Operational alarm active · celebration audio blocked.");return False
         if not preview and self.celebration_mute.isChecked():return False
         key=self.celebration_sound_combo.currentData()
+        if key == "random":
+            choices=[k for k in CELEBRATION_SOUNDS if k != getattr(self,"_last_celebration_sound",None)]
+            key=random.choice(choices or list(CELEBRATION_SOUNDS))
+        self._last_celebration_sound=key
         label,filename=CELEBRATION_SOUNDS.get(key,CELEBRATION_SOUNDS["cheer"])
         path=resource_path(filename)
         if not path.is_file():
@@ -4427,6 +4454,7 @@ class Main(QMainWindow):
         completed_slots = [slot for slot in slots if slot['completed']]
         average = (sum(slot['count'] for slot in completed_slots) / len(completed_slots)) if completed_slots else 0.0
         self.production_average.setText(f"{average:,.1f} / hour\n{average/60:,.2f} / minute")
+        achievements=[]
         if not test_mode:
             now = brisbane_now()
             current = next((slot for slot in slots if slot['start'] <= now < slot['end']), None)
@@ -4437,9 +4465,19 @@ class Main(QMainWindow):
                 state_key = "celebrated_" + key
                 if get_state(state_key, "0") != "1":
                     set_state(state_key, "1")
-                    self.celebration_banner.setText("★ NEW BEST HOUR TODAY! ★")
-                    QTimer.singleShot(12000, lambda: self.celebration_banner.setText(""))
-                    self.play_celebration_sound()
+                    achievements.append("NEW BEST HOUR TODAY!")
+            metrics=self._dashboard_cache.get('metrics',{})
+            prior=self._dashboard_cache.get('prior_best',(None,0))[1]
+            daily=int(metrics.get('daily',0))
+            if current and self.claim_daily_record(daily,prior,now.date().isoformat()):
+                achievements.append("NEW BEST DAILY TOTAL!")
+            if achievements:
+                self.celebration_banner.setText("★ " + "  ·  ".join(achievements) + " ★")
+                QTimer.singleShot(12000, lambda: self.celebration_banner.setText(""))
+                self.play_celebration_sound()
+            benchmark=max((slot['count'] for slot in completed_slots),default=0)
+            remaining=max(0,benchmark-int(current['count'])+1) if current else 0
+            self.record_progress.setText((f"{remaining:,} tyres to beat today's best hour" if remaining else "New best hour pace — keep it going!") if current and completed_slots else "Next shift: build the next best hour")
         # Best sustained flow measured across completed hourly slots, including zero-count hours.
         flow = max((slot['count'] / self._slot_minutes(slot)
                     for slot in completed_slots), default=0.0)
@@ -4501,8 +4539,13 @@ class Main(QMainWindow):
                         (OAK_NAME,metrics['day_start'].timestamp(),min(now,metrics['day_end']).timestamp())).fetchall()
                     hourly = hourly_snapshot(con, source=OAK_NAME)
                 best = best_daily_record()
+                day_key=now.date().isoformat()
+                if getattr(self,"_prior_best_date",None)!=day_key:
+                    self._prior_best_value=best_daily_record(now.replace(hour=0,minute=0,second=0,microsecond=0))
+                    self._prior_best_date=day_key
+                prior_best=self._prior_best_value
                 self.dashboard_ready.emit(dict(metrics=metrics, types=types, hourly=hourly,
-                    best=best, collect_ms=(time.monotonic()-started)*1000))
+                    best=best, prior_best=prior_best, collect_ms=(time.monotonic()-started)*1000))
             self._dashboard_loader = CoalescedExport(collect,
                 lambda exc: log(f"Dashboard background refresh failed: {exc}"))
         self._dashboard_loader.request()

@@ -14,7 +14,7 @@ with DatabaseTemporaryDirectory() as folder:
  root=Path(folder);m.DB=root/'production.db';m.init_db()
  w=m.Main();w.clock.stop();w.resize(1280,720);w.show()
  app.processEvents()
- assert w.video.height()>=480 and w.video.width()>=970,(w.video.width(),w.video.height())
+ assert w.video.height()>=480 and w.video.width()>=350,(w.video.width(),w.video.height())
  w.offline_testing=True;w._replay_output=root;w.test_progress.show()
  frame=np.zeros((270,480,3),dtype=np.uint8);frame[:]=(40,60,80)
  cv2.line(frame,(0,210),(479,60),(0,255,255),2)

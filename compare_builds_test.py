@@ -19,7 +19,7 @@ report=dict(baseline=contract['baseline'],status='source compatibility checks pa
  unchanged_function_or_class_contracts=len(contract['unchanged_top_level_nodes']),
  unchanged_model_module_or_dependency_files=len(contract['unchanged_files']),
  checks=['Original camera capture class unchanged','OAK pipelines, model weights and recording unchanged','Email/report and count-write functions unchanged','Windows dependency pins unchanged'],
- intentional_changes=['Camera stays connected outside shift; count gate remains weekday 05:00–17:05 Brisbane','Experimental shared three-line counter with adjustable top/bottom and horizontal span','OAK-only production input and separate on-screen video tester','Compact dashboard, class colours, daily celebration and audio selector','Additive database indexes and shift-only dashboard query'],
+ intentional_changes=['Camera stays connected outside shift; count gate remains weekday 05:00–17:05 Brisbane','Experimental shared three-line counter with adjustable top/bottom and horizontal span','OAK-only production input and separate on-screen video tester','Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total','Additive database indexes and shift-only dashboard query'],
  physical_site_validation=False,windows_exe_built_in_this_environment=False,speaker_playback_verified=False,
  limitations=['Host-side count logic changed; counting accuracy must be compared with a hand count.','Source checks cannot guarantee camera, network, Windows DLL or speaker behavior on the yard PC.'])
 (ROOT/'BUILD_COMPARISON.json').write_text(json.dumps(report,indent=2))

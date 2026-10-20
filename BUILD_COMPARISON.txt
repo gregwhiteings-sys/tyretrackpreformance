@@ -9,7 +9,7 @@ INTENTIONAL CHANGES
 Camera stays connected outside shift; count gate remains weekday 05:00–17:05 Brisbane
 Experimental shared three-line counter with adjustable top/bottom and horizontal span
 OAK-only production input and separate on-screen video tester
-Compact dashboard, class colours, daily celebration and audio selector
+Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total
 Additive database indexes and shift-only dashboard query
 
 READINESS

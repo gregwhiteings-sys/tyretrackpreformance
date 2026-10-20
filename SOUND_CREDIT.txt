@@ -6,3 +6,11 @@ No Australian audience or chant provenance is claimed.
 
 celebration_short.wav: three-second faded edit of the same public-domain recording.
 celebration_chime.wav: original synthesised ascending chime generated for this build.
+
+USER-SUPPLIED CELEBRATION CLIPS (20 October 2026)
+celebration_aussie_1.wav: my-movie_25.mp3
+celebration_aussie_2.wav: aussie-train-lover.mp3 (first eight seconds)
+celebration_aussie_3.wav: loud-aussie-music.mp3
+celebration_aussie_4.wav: waltzing-matilda-short.mp3
+Converted to mono 22050 Hz 16-bit PCM, level adjusted with short fades.
+Provided by the user for inclusion; original recording licences/provenance not independently verified.
