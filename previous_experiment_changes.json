@@ -1,0 +1,20 @@
+{
+  "baseline": "previous delivered source ZIP",
+  "changed_files": [
+    ".github/workflows/windows-portable.yml",
+    "BUILD_WINDOWS.py",
+    "EXPERIMENT_START_HERE.txt",
+    "README_START_HERE.txt",
+    "RUN_OAK_HARDWARE_TEST.bat",
+    "SOUND_CREDIT.txt",
+    "TyreTrack_Production_Monitor.py",
+    "adjustable_bounds_test.py",
+    "build_support/smoke_test.py",
+    "experiment_dashboard_1280.png",
+    "offline_replay.py",
+    "run_ci_tests.py",
+    "three_line.py",
+    "video_preview_integration_test.py",
+    "video_test_ui_test.py"
+  ]
+}

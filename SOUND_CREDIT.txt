@@ -1,0 +1,8 @@
+celebration.wav: eight-second faded excerpt of Clapping hurray by starlite
+(metadata also credits Zack and friends), released into the public domain.
+https://commons.wikimedia.org/wiki/File:Clapping_hurray.ogg
+https://upload.wikimedia.org/wikipedia/commons/a/a8/Clapping_hurray.ogg
+No Australian audience or chant provenance is claimed.
+
+celebration_short.wav: three-second faded edit of the same public-domain recording.
+celebration_chime.wav: original synthesised ascending chime generated for this build.

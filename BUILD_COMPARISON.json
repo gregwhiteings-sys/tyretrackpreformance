@@ -1,0 +1,26 @@
+{
+  "baseline": "TyreTrack_Stability_Fixed_20261018(3).zip",
+  "status": "source compatibility checks passed",
+  "unchanged_function_or_class_contracts": 35,
+  "unchanged_model_module_or_dependency_files": 16,
+  "checks": [
+    "Original camera capture class unchanged",
+    "OAK pipelines, model weights and recording unchanged",
+    "Email/report and count-write functions unchanged",
+    "Windows dependency pins unchanged"
+  ],
+  "intentional_changes": [
+    "Camera stays connected outside shift; count gate remains weekday 05:00\u201317:05 Brisbane",
+    "Experimental shared three-line counter with adjustable top/bottom and horizontal span",
+    "OAK-only production input and separate on-screen video tester",
+    "Compact dashboard, class colours, daily celebration and audio selector",
+    "Additive database indexes and shift-only dashboard query"
+  ],
+  "physical_site_validation": false,
+  "windows_exe_built_in_this_environment": false,
+  "speaker_playback_verified": false,
+  "limitations": [
+    "Host-side count logic changed; counting accuracy must be compared with a hand count.",
+    "Source checks cannot guarantee camera, network, Windows DLL or speaker behavior on the yard PC."
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "build": "TyreTrack Production / Video Test",
+  "source_checks": "passed",
+  "test_groups": 28,
+  "video_upload_test_section": true,
+  "onscreen_test_preview": true,
+  "adjustable_connected_bounds": true,
+  "adjustable_horizontal_span": true,
+  "sound_choices": 3,
+  "comparison_passed": true,
+  "speaker_playback_verified": false,
+  "zigzag_unit_tests": 11,
+  "physical_oak_tested": false,
+  "windows_executable_built": false,
+  "windows_packaged_smoke_tested": false,
+  "local_runtime_versions": {
+    "torch": "2.14.1+cpu",
+    "torchvision": "0.29.1+cpu",
+    "ultralytics": "8.4.183",
+    "depthai": "2.33.0.0",
+    "PyQt5": "5.15.11",
+    "numpy": "2.5.4",
+    "av": "19.0.1"
+  },
+  "windows_pinned_runtime": "Preserved requirements-windows.txt; Windows workflow will run checks on those versions.",
+  "offline_replay_smoke": {
+    "frames": 45,
+    "fixture": "test_data/oak_h264_sample.h264",
+    "production_writes": false,
+    "accuracy_verified": false
+  },
+  "celebration_audio": "Generic public-domain cheering/applause; Australian crowd/chant not verified.",
+  "limitations": [
+    "Long occlusions, tracker resets or camera reconnects may still split tyre identities.",
+    "No independent real-conveyor accuracy or live performance measurement completed."
+  ]
+}

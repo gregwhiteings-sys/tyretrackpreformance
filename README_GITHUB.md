@@ -1,0 +1,1 @@
+Extract this source ZIP into the repository root, including .github/workflows/windows-portable.yml. Run Actions → TyreTrack Three-Line Experiment (OAK Only). See EXPERIMENT_START_HERE.txt for operation and testing.
