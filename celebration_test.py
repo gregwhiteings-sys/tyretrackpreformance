@@ -42,7 +42,8 @@ with DatabaseTemporaryDirectory() as folder:
  now=now.replace(day=22,hour=7,minute=10)
  populate({0:10,1:20,2:21})
  w._dashboard_cache.update(metrics={'daily':21},prior_best=('2026-10-21',20))
- w.play_celebration_sound=Mock()
+ w.celebration_mute.setChecked(False)
+ w.play_celebration_sound=Mock(return_value=True)
  w.refresh_production_hours()
  assert 'NEW BEST DAILY TOTAL' in w.celebration_banner.text()
  assert 'NEW BEST HOUR' in w.celebration_banner.text()
@@ -50,6 +51,41 @@ with DatabaseTemporaryDirectory() as folder:
  w.celebration_banner.clear();w.refresh_production_hours()
  assert not w.celebration_banner.text()
  w.play_celebration_sound.assert_called_once_with()
+ # First completed hour establishes a record, caught at the hour boundary.
+ now=now.replace(day=23,hour=6,minute=0,second=0)
+ populate({0:12,1:0});w.play_celebration_sound.reset_mock()
+ w.refresh_production_hours();w.play_celebration_sound.assert_called_once_with()
+ assert 'NEW BEST HOUR' in w.celebration_banner.text()
+ w.celebration_banner.clear();w.refresh_production_hours()
+ assert not w.celebration_banner.text()
+ now=now.replace(hour=7);populate({0:12,1:12});w.refresh_production_hours()
+ w.play_celebration_sound.assert_called_once_with()
+ now=now.replace(hour=8);populate({0:12,1:12,2:13})
+ w.play_celebration_sound.reset_mock();w.refresh_production_hours()
+ w.play_celebration_sound.assert_called_once_with()
+ # Daily total crossed on the last frame still celebrates at the cutoff.
+ now=now.replace(hour=17,minute=5);populate({0:12})
+ w._dashboard_cache.update(metrics={'daily':51},prior_best=('2026-10-22',50))
+ w.play_celebration_sound.reset_mock();w.refresh_production_hours()
+ assert 'NEW BEST DAILY TOTAL' in w.celebration_banner.text()
+ w.play_celebration_sound.assert_called_once_with()
+ # Failed audio is retried; success clears the pending record.
+ w.play_celebration_sound=Mock(side_effect=[False,True])
+ w.deliver_record_celebration(['TEST RECORD'])
+ assert w._pending_record_sound['attempts']==1
+ w._pending_record_sound['next_attempt']=0
+ w.deliver_record_celebration()
+ assert w._pending_record_sound is None and w.play_celebration_sound.call_count==2
+ w.play_celebration_sound.reset_mock();w.celebration_mute.setChecked(True)
+ w.deliver_record_celebration(['MUTED RECORD'])
+ w.play_celebration_sound.assert_not_called()
+ assert 'MUTED' in w.celebration_indicator.text()
+ w.celebration_mute.setChecked(False);w.alarm_state={'latched':True}
+ w.deliver_record_celebration(['DEFERRED RECORD'])
+ w.play_celebration_sound.assert_not_called()
+ assert w._pending_record_sound
+ w.alarm_state={'latched':False};w.play_celebration_sound=Mock(return_value=True)
+ w.deliver_record_celebration();w.play_celebration_sound.assert_called_once_with()
  w.close()
 print('PASS: daily records require a prior day, beat ties, persist across restart, and reset next day')
-print('PASS: once per qualifying hour, no repeated banner per tyre, later-hour records and next-day reset')
+print('PASS: first completed hour, late crossings at rollover, daily cutoff, no duplicate records, mute/alarm priority and failed-playback retry')

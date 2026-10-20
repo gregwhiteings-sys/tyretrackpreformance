@@ -26,6 +26,9 @@ for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
  for _ in range(5):app.processEvents()
  assert w.width()==width,(w.width(),width)
+ assert len(w.dashboard_hour_blocks)==13 and w.hourly_strip.isVisible()
+ assert w.hourly_strip.mapTo(w,w.hourly_strip.rect().bottomRight()).y()<w.height()
+ assert "18px" in w.current_hour_card.findChild(m.QLabel,"metricName").styleSheet()
  assert w.counters_panel.width()>w.video.width(),(w.counters_panel.width(),w.video.width())
  assert w.video.width()>=320 and w.video.height()>=360
  for control in w.findChildren(QPushButton):

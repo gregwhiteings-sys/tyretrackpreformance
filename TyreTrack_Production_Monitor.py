@@ -18,6 +18,7 @@ import sqlite3
 import sys
 import threading
 import queue
+import json
 import random
 import time
 import traceback
@@ -2542,6 +2543,7 @@ class Main(QMainWindow):
         counters_layout.addWidget(daily)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
+        self.current_hour_card=hour
         self.best_hour_card=metric_card("BEST HOUR",self.session_lbl,"#ac93ff")
         self.best_hour_card.setToolTip("Highest completed production hour, Brisbane time")
         self.best_daily_lbl=QLabel("0 tyres")
@@ -2552,6 +2554,10 @@ class Main(QMainWindow):
         for r,c,card in ((0,0,hour),(0,1,self.best_hour_card),(1,0,self.best_daily_card),(1,1,alltime)):
             card.setFixedHeight(82);grid.addWidget(card,r,c)
             if card is not self.best_daily_card: card.findChild(QLabel,"metricValue").setStyleSheet("font:900 44px 'Consolas';color:#c2b0ff;")
+        for card,label in ((hour,self.hour_lbl),(self.best_hour_card,self.session_lbl)):
+            card.setFixedHeight(108)
+            card.findChild(QLabel,"metricName").setStyleSheet("color:#f3f7ff;font-size:18px;font-weight:900;letter-spacing:1px;")
+            label.setStyleSheet("font:900 54px 'Consolas';color:#c2b0ff;")
         counters_layout.addLayout(grid)
         self.record_progress=QLabel("Build the next best hour")
         self.record_progress.setStyleSheet("color:#40ead7;font:700 16px 'Segoe UI';")
@@ -2596,6 +2602,24 @@ class Main(QMainWindow):
 
         body = QHBoxLayout()
         outer.addLayout(body, 1)
+        self.hourly_strip=QFrame()
+        strip_layout=QVBoxLayout(self.hourly_strip)
+        strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
+        strip_layout.addWidget(QLabel("HOURLY TOTALS · BRISBANE · 05:00–17:05"))
+        blocks=QGridLayout();blocks.setSpacing(4)
+        self.dashboard_hour_blocks=[]
+        for index in range(13):
+            end="17:05" if index==12 else f"{index+6:02d}:00"
+            label=QLabel(f"{index+5:02d}:00–{end}\n—")
+            label.setAlignment(Qt.AlignCenter)
+            label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+            label.setMinimumWidth(0);label.setFixedHeight(62)
+            label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;font-size:12px;")
+            blocks.addWidget(label,0,index);blocks.setColumnStretch(index,1)
+            self.dashboard_hour_blocks.append(label)
+        strip_layout.addLayout(blocks)
+        self.hourly_strip.setFixedHeight(86)
+        outer.addWidget(self.hourly_strip)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -2624,7 +2648,13 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         left.addWidget(self.video, 1)
-        body.addWidget(self.counters_panel, 3)
+        self.stats_scroll=QScrollArea()
+        self.stats_scroll.setWidgetResizable(True)
+        self.stats_scroll.setFrameShape(QFrame.NoFrame)
+        self.stats_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.stats_scroll.setMinimumWidth(0)
+        self.stats_scroll.setWidget(self.counters_panel)
+        body.addWidget(self.stats_scroll, 3)
 
         run_row = QHBoxLayout()
 
@@ -2698,6 +2728,11 @@ class Main(QMainWindow):
         self.celebration_mute.setChecked(get_state("mute_celebrations","0")=="1")
         self.celebration_mute.toggled.connect(lambda checked:set_state("mute_celebrations","1" if checked else "0"))
         self.celebration_mute.hide()
+        self.celebration_indicator=QLabel()
+        self.celebration_indicator.setWordWrap(True)
+        left.addWidget(self.celebration_indicator)
+        self.celebration_mute.toggled.connect(self.update_celebration_indicator)
+        self.update_celebration_indicator()
         self.celebration_banner = QLabel("")
         self.celebration_banner.setWordWrap(True)
         left.addWidget(self.celebration_banner)
@@ -3334,6 +3369,25 @@ class Main(QMainWindow):
             QLineEdit,QComboBox {background:#0d1b2e;border:1px solid #2b445e;border-radius:5px;padding:7px;color:#dce9ff;}
         """)
 
+        self.counters_panel.setStyleSheet("""
+            QFrame#metric {background:#0e1b2c;border:1px solid #21334d;border-radius:9px;}
+            QLabel {background:transparent;border:none;}
+            QLabel#metricName {color:#8aa3be;font-size:9px;letter-spacing:1px;}
+            QLabel#railHeading {color:#61849c;font-size:9px;letter-spacing:2px;}
+        """)
+        self.stats_scroll.setStyleSheet("""
+            QScrollArea {border:none;background:#060b15;}
+            #metricRail {background:#060b15;border:none;}
+            QFrame#metric {background:#0e1b2c;border:1px solid #21334d;border-radius:9px;}
+            QLabel {background:transparent;border:none;color:#e1edff;}
+            #metricName {font-size:9px;color:#8aa3be;letter-spacing:1px;font-weight:600;}
+            #metricValue {font:700 23px 'Consolas';color:#e9f3ff;}
+            #railHeading {font-size:9px;letter-spacing:2px;color:#61849c;}
+            QScrollBar:vertical {background:#0a1423;width:9px;}
+            QScrollBar::handle:vertical {background:#29465d;min-height:24px;border-radius:4px;}
+            QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {height:0;}
+        """)
+
     def count_geometry_changed(self, _index=None):
         mode=self.line_mode.currentData()
         set_state("count_geometry",mode)
@@ -3705,6 +3759,48 @@ class Main(QMainWindow):
             log("Incident persistence failed:\n"+traceback.format_exc())
             self.foreign_status_lbl.setText("ALARM active; incident could not be saved — check disk")
 
+    def update_celebration_indicator(self, *_args):
+        muted=self.celebration_mute.isChecked()
+        self.celebration_indicator.setText("Celebrations: MUTED · enable in Admin → Performance" if muted else "Celebrations: ON · random / selected sound")
+        self.celebration_indicator.setStyleSheet("color:#eeb85a;font-size:11px;" if muted else "color:#7295b3;font-size:11px;")
+
+    def deliver_record_celebration(self, achievements=None):
+        """Persist a short-lived retry when Windows cannot start the sound."""
+        pending=getattr(self,"_pending_record_sound",None)
+        if not hasattr(self,"_pending_record_sound"):
+            try:pending=json.loads(get_state("pending_record_sound","null"))
+            except (ValueError,TypeError):pending=None
+        if achievements:
+            pending=dict(created=time.time(),attempts=0,next_attempt=0,text=" · ".join(achievements))
+            log("Celebration record reached: "+pending['text'])
+        self._pending_record_sound=pending
+        if not pending:return
+        if self.celebration_mute.isChecked():
+            self.celebration_sound_status.setText("Record reached, but automatic celebrations are muted.")
+            log("Celebration skipped: muted")
+            pending=None
+        elif time.time()-pending['created']>120:
+            log("Celebration retry expired")
+            pending=None
+        elif self.alarm_state.get("latched"):
+            self.celebration_sound_status.setText("Celebration waiting: operational alarm has priority.")
+        elif time.time()>=pending['next_attempt']:
+            pending['attempts']+=1
+            if self.play_celebration_sound():
+                log("Automatic celebration sound started")
+                self.update_celebration_indicator()
+                pending=None
+            elif pending['attempts']>=3:
+                log("Automatic celebration sound failed after three attempts; check Admin > Performance")
+                self.celebration_indicator.setText("Celebration sound failed · check Admin → Performance")
+                pending=None
+            else:
+                self.celebration_indicator.setText("Celebration sound retry pending · check Windows audio")
+                pending['next_attempt']=time.time()+5
+                log("Automatic celebration sound unavailable; retry scheduled")
+        self._pending_record_sound=pending
+        set_state("pending_record_sound",json.dumps(pending))
+
     def claim_daily_record(self, total, previous_best, day):
         """One record celebration per production date, persisted across restarts."""
         if previous_best <= 0 or total <= previous_best:
@@ -3717,7 +3813,9 @@ class Main(QMainWindow):
     def play_celebration_sound(self, preview=False, backend=None):
         if self.alarm_state.get("latched"):
             self.celebration_sound_status.setText("Operational alarm active · celebration audio blocked.");return False
-        if not preview and self.celebration_mute.isChecked():return False
+        if not preview and self.celebration_mute.isChecked():
+            self.celebration_sound_status.setText("Automatic celebrations are muted. Uncheck Mute celebrations to enable.")
+            return False
         key=self.celebration_sound_combo.currentData()
         if key == "random":
             choices=[k for k in CELEBRATION_SOUNDS if k != getattr(self,"_last_celebration_sound",None)]
@@ -4468,23 +4566,30 @@ class Main(QMainWindow):
         if not test_mode:
             now = brisbane_now()
             current = next((slot for slot in slots if slot['start'] <= now < slot['end']), None)
-            key = current['start'].isoformat() if current else None
-            if (current and completed_slots and current['count'] > max(slot['count'] for slot in completed_slots)
-                    and key not in self._celebrated_hours):
-                self._celebrated_hours.add(key)
-                state_key = "celebrated_" + key
-                if get_state(state_key, "0") != "1":
-                    set_state(state_key, "1")
-                    achievements.append("NEW BEST HOUR TODAY!")
+            # Catch records crossed in the final frame of an hour, and establish
+            # the first non-empty completed hour as today's first benchmark.
+            for candidate in slots:
+                recent=candidate['completed'] and 0 <= (now-candidate['end']).total_seconds() <= 120
+                is_current=candidate is current
+                earlier=[slot for slot in completed_slots if slot['start']<candidate['start']]
+                qualifies=(recent or (is_current and earlier)) and candidate['count']>max((slot['count'] for slot in earlier),default=0)
+                key=candidate['start'].isoformat()
+                if qualifies and key not in self._celebrated_hours:
+                    self._celebrated_hours.add(key)
+                    state_key="celebrated_"+key
+                    if get_state(state_key,"0")!="1":
+                        set_state(state_key,"1")
+                        achievements.append("NEW BEST HOUR TODAY!")
             metrics=self._dashboard_cache.get('metrics',{})
             prior=self._dashboard_cache.get('prior_best',(None,0))[1]
             daily=int(metrics.get('daily',0))
-            if current and self.claim_daily_record(daily,prior,now.date().isoformat()):
+            recent_close=any(slot['completed'] and 0 <= (now-slot['end']).total_seconds() <= 120 for slot in slots)
+            if (current or recent_close) and self.claim_daily_record(daily,prior,now.date().isoformat()):
                 achievements.append("NEW BEST DAILY TOTAL!")
             if achievements:
                 self.celebration_banner.setText("★ " + "  ·  ".join(achievements) + " ★")
                 QTimer.singleShot(12000, lambda: self.celebration_banner.setText(""))
-                self.play_celebration_sound()
+            self.deliver_record_celebration(achievements)
             benchmark=max((slot['count'] for slot in completed_slots),default=0)
             remaining=max(0,benchmark-int(current['count'])+1) if current else 0
             self.record_progress.setText((f"{remaining:,} tyres to beat today's best hour" if remaining else "New best hour pace — keep it going!") if current and completed_slots else "Next shift: build the next best hour")
@@ -4533,6 +4638,17 @@ class Main(QMainWindow):
             else:
                 self.production_slots[index].setToolTip(
                     f"{slot['start']:%H:%M:%S}–{slot['end']:%H:%M:%S}")
+            if index < len(self.dashboard_hour_blocks):
+                block=self.dashboard_hour_blocks[index]
+                if test_mode:
+                    a=5*3600+slot['start'];b=5*3600+slot['end']
+                    period=f"{int(a//3600):02d}:{int(a%3600//60):02d}–{int(b//3600):02d}:{int(b%3600//60):02d}"
+                else:
+                    period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
+                amount=f"{slot['count']:,}" if completed or current else "—"
+                block.setText(f'<span style="font-size:10px">{period}</span><br><span style="font-size:22px;font-weight:900">{amount}</span>')
+                block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
+                block.setToolTip(("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming"))
             if completed or current:
                 active = index
         self.production_scroll.ensureWidgetVisible(self.production_slots[active])

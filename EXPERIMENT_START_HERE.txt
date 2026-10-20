@@ -149,3 +149,14 @@ Operational alarms take priority. Physical speaker playback requires a Windows c
 LAYOUT SIZING CORRECTION
 Camera panel no longer inherits long label width hints. Statistics retain the wider panel.
 Status text wraps; camera controls use two compact rows. Verified at 1280,1366,1450 widths and 150%/200% Qt scaling locally.
+
+HOURLY BLOCKS / AUTOMATIC CELEBRATIONS UPDATE (21 October)
+13 hourly blocks are always visible along the bottom, including the 17:00–17:05 final slot.
+This Hour and Best Hour have larger, brighter headings and larger values.
+The statistics panel scrolls on small screens; the hourly blocks remain visible.
+The first non-empty completed hour establishes today's record and celebrates once.
+Records reached at the hour boundary are caught within two minutes, including the daily cutoff.
+Automatic audio follows Mute celebrations; preview tests intentionally bypass mute.
+The main dashboard displays Celebrations ON/MUTED. Uncheck Mute in Admin > Performance.
+A Windows playback failure is retried up to three times, five seconds apart; pending audio expires after two minutes.
+An operational alarm defers celebration audio. Tests/videos never set production record markers.

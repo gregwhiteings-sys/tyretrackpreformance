@@ -1,5 +1,5 @@
 {
-  "build": "TyreTrack Crew Performance / Random Celebrations",
+  "build": "TyreTrack Hourly Dashboard / Celebration Trigger Fix",
   "source_checks": "passed",
   "test_groups": 28,
   "video_upload_test_section": true,
@@ -38,5 +38,9 @@
   "immediate_sound_repeats": false,
   "daily_record_celebration": "Once per date, strictly exceeds best prior production day; persisted across restart",
   "statistics_focused_layout": true,
-  "follow_up_validation": "Full 28-group run after panel sizing correction; layout also checked at 150% and 200% Qt scaling. Windows Actions rerun pending."
+  "follow_up_validation": "28 regression groups passed; expanded rollover/cutoff/retry tests and final visual-style UI checks passed separately. Windows CI and physical automatic audio require site verification.",
+  "hourly_dashboard_blocks": 13,
+  "enlarged_hour_headings": true,
+  "automatic_audio_retry": true,
+  "celebration_mute_indicator": true
 }
