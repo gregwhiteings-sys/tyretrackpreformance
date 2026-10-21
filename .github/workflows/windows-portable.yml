@@ -1,4 +1,4 @@
-name: TyreTrack Production (OAK + Video Test)
+name: TyreTrack Truck Dashboard Trial
 
 on:
   workflow_dispatch:
