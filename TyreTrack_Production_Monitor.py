@@ -2042,7 +2042,7 @@ class CounterWorker(QThread):
 
 def tyre_total_text(value):
     """Visible units without making long totals overflow their cards."""
-    return f'{int(value):,} <span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
+    return f'{int(value):,}<br><span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
 
 
 class ScrollingRecordLabel(QLabel):
@@ -2478,6 +2478,8 @@ class Main(QMainWindow):
         self.stop_btn.setText("Pause")
         self.setWindowTitle("TyreTrack · Production Monitor")
         self.apply_2070_theme()
+        from truck_dashboard import install
+        install(self,resource_path)
         self.tick()
 
     def card(self, heading):
@@ -4711,6 +4713,8 @@ class Main(QMainWindow):
             if completed or current:
                 active = index
         self.production_scroll.ensureWidgetVisible(self.production_slots[active])
+        from truck_dashboard import sync
+        sync(self)
 
     def request_dashboard_data(self):
         if not hasattr(self, "_dashboard_loader"):
@@ -4818,6 +4822,8 @@ class Main(QMainWindow):
         if getattr(self, "_last_dashboard_snapshot", 0) + 30 < time.monotonic():
             self._last_dashboard_snapshot = time.monotonic()
             self.grab().save(str(DASHBOARD_SNAPSHOT), "PNG")
+        from truck_dashboard import sync
+        sync(self)
 
     def set_flow_rate(self, rate):
         self.flow_lbl.setText(f"{rate:.1f}")
@@ -4830,11 +4836,15 @@ class Main(QMainWindow):
             self.flow_flash_timer.stop()
             self._flow_flash_red = False
             self.flow_lbl.setStyleSheet("")
+        from truck_dashboard import sync
+        sync(self)
 
     def flash_low_flow(self):
         self._flow_flash_red = not self._flow_flash_red
         self.flow_lbl.setStyleSheet(
             "color:#FF5C68;font-size:22px;font-weight:900;" if self._flow_flash_red else "")
+        from truck_dashboard import sync
+        sync(self)
 
     def reset_session(self):
         if (

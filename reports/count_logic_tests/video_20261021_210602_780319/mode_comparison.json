@@ -1,0 +1,60 @@
+{
+  "shared_detections": true,
+  "geometry_changes": [
+    {
+      "frame": 1,
+      "top": 0.22,
+      "bottom": 0.78,
+      "middle": 0.59,
+      "left": 0.0,
+      "right": 1.0
+    }
+  ],
+  "results": {
+    "horizontal": {
+      "final_unique_total": 14,
+      "crossings": [
+        10,
+        12,
+        10
+      ],
+      "recoveries": [
+        0,
+        2,
+        2
+      ],
+      "hand_count": null,
+      "difference": null
+    },
+    "zigzag": {
+      "final_unique_total": 14,
+      "crossings": [
+        10,
+        12,
+        10
+      ],
+      "recoveries": [
+        0,
+        2,
+        2
+      ],
+      "hand_count": null,
+      "difference": null
+    },
+    "zigzag_reverse": {
+      "final_unique_total": 14,
+      "crossings": [
+        10,
+        11,
+        10
+      ],
+      "recoveries": [
+        0,
+        2,
+        2
+      ],
+      "hand_count": null,
+      "difference": null
+    }
+  }
+}

@@ -9,7 +9,7 @@ def run(app_module, output):
     if os.environ.get("TYRETRACK_SMOKE_LEVEL") == "quick":
         try:
             print("SMOKE: checking bundled resources", flush=True)
-            resources = ["celebration.wav", "celebration_short.wav", "celebration_chime.wav", "celebration_aussie_1.wav", "celebration_aussie_2.wav", "celebration_aussie_3.wav", "celebration_aussie_4.wav", "tyre_detector.pt", "tyre_detector_oak.blob",
+            resources = ["truck_metal.png", "tyrecycle_logo.png", "celebration.wav", "celebration_short.wav", "celebration_chime.wav", "celebration_aussie_1.wav", "celebration_aussie_2.wav", "celebration_aussie_3.wav", "celebration_aussie_4.wav", "tyre_detector.pt", "tyre_detector_oak.blob",
                          "foreign_model/foreign_object.pt", "rvc2_models/sha256.json"]
             for name in resources:
                 path = Path(app_module.resource_path(name))
@@ -100,6 +100,8 @@ def run(app_module, output):
             assert window.video._pix.width()==480, 'Keep native frame size'
             assert window.video._pix.toImage().pixelColor(240,135).red()>245, 'BGR rendering colour error'
 
+            window.truck_admin_dialog.resize(1000,650)
+            window.truck_admin_dialog.show();window.controls_tabs.show();qt.processEvents()
             for index in range(window.controls_tabs.count()):
                 window.controls_tabs.setCurrentIndex(index)
                 # Allow layout/scrollbar resize events to settle, then check real geometry.
@@ -114,7 +116,7 @@ def run(app_module, output):
                         x=control.mapTo(scroll.widget(),control.rect().topLeft()).x()
                         assert x>=0 and x+control.width()<=scroll.widget().width(), (
                             f"Clipped control in {name}: {type(control).__name__} x={x} width={control.width()}")
-            assert window.best_daily_card.geometry().top()==window.best_hour_card.geometry().top()
+            assert window.truck_dashboard_ready and len(window.dashboard_hour_blocks)==13
             window.close();qt.processEvents()
         finally:app_module.Main.tick=original_tick
         payload={'status':'passed','torch':torch.__version__,'torchvision':torchvision.__version__,

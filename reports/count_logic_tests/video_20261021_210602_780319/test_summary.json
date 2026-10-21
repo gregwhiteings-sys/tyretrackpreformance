@@ -1,0 +1,39 @@
+{
+  "stopped_early": true,
+  "mode": "offline PC replay",
+  "video": "C:\\Users\\admin\\Music\\training videos\\OAK_RGB_20261019_072942_957030.mp4",
+  "model": "C:\\Users\\admin\\Downloads\\TyreTrack_Truck_Dashboard_Source_Fixed\\tyre_detector.pt",
+  "frames": 762,
+  "middle": 0.59,
+  "top": 0.22,
+  "bottom": 0.78,
+  "left": 0.0,
+  "right": 1.0,
+  "geometry_changes": [
+    {
+      "frame": 1,
+      "top": 0.22,
+      "bottom": 0.78,
+      "middle": 0.59,
+      "left": 0.0,
+      "right": 1.0
+    }
+  ],
+  "direction": "Bottom to Top",
+  "count_geometry": "zigzag",
+  "crossings": [
+    10,
+    12,
+    10
+  ],
+  "recoveries": [
+    0,
+    2,
+    2
+  ],
+  "final_unique_total": 14,
+  "hand_count": null,
+  "difference": null,
+  "production_totals_modified": false,
+  "note": "Same count logic; CPU PT inference can differ from compiled OAK inference and live frame skips."
+}

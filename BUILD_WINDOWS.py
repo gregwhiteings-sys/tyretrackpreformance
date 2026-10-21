@@ -55,6 +55,8 @@ def main():
              '--copy-metadata','torch','--copy-metadata','ultralytics',
              '--exclude-module','tensorflow','--exclude-module','keras','--exclude-module','tkinter',
              '--add-data',str(ROOT/'celebration.wav')+';.',
+             '--add-data',str(ROOT/'truck_metal.png')+';.',
+             '--add-data',str(ROOT/'tyrecycle_logo.png')+';.',
              '--add-data',str(ROOT/'celebration_short.wav')+';.',
              '--add-data',str(ROOT/'celebration_chime.wav')+';.',
              '--add-data',str(ROOT/'celebration_aussie_1.wav')+';.',

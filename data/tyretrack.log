@@ -1,44 +1,781 @@
-2026-10-21T05:33:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
-2026-10-21T05:33:44 PERF GUI stages: dashboard_apply_avg_ms=590.0, dashboard_apply_max_ms=3488.0, dashboard_collect_background_avg_ms=502.0, dashboard_collect_background_max_ms=2989.2, dashboard_refresh_avg_ms=114.4, dashboard_refresh_max_ms=551.0, preview_callback_interval_avg_ms=80.1, preview_callback_interval_max_ms=582.8, image_paint_max_ms=11.4
-2026-10-21T05:33:51 Counter worker failed:
+2026-10-21T17:22:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:22:45 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:22:50 PERF GUI stages: dashboard_apply_avg_ms=262.1, dashboard_apply_max_ms=2289.5, dashboard_collect_background_avg_ms=429.7, dashboard_collect_background_max_ms=1898.7, dashboard_refresh_avg_ms=8.1, dashboard_refresh_max_ms=12.9, preview_callback_interval_avg_ms=73.1, preview_callback_interval_max_ms=579.6, image_paint_max_ms=6.7
+2026-10-21T17:22:52 Counter worker failed:
 Traceback (most recent call last):
-  File "C:\Users\admin\Downloads\TyreTrack_Production_Source (6)\TyreTrack_Production_Monitor.py", line 1673, in run
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
     source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
-  File "C:\Users\admin\Downloads\TyreTrack_Production_Source (6)\TyreTrack_Production_Monitor.py", line 1172, in __init__
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
     self.device = dai.Device(pipeline)
                   ~~~~~~~~~~^^^^^^^^^^
 RuntimeError: No available devices
 
-2026-10-21T05:33:54 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=11.8, dashboard_collect_background_avg_ms=4.6, dashboard_collect_background_max_ms=7.8, dashboard_refresh_avg_ms=9.6, dashboard_refresh_max_ms=27.2, preview_callback_interval_avg_ms=73.7, preview_callback_interval_max_ms=553.3, image_paint_max_ms=0.2
-2026-10-21T05:34:04 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.9, dashboard_collect_background_avg_ms=4.1, dashboard_collect_background_max_ms=5.0, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=11.3, image_paint_max_ms=0.4
-2026-10-21T05:34:14 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.9, dashboard_collect_background_avg_ms=47.3, dashboard_collect_background_max_ms=431.5, dashboard_refresh_avg_ms=51.7, dashboard_refresh_max_ms=445.9, image_paint_max_ms=0.3
-2026-10-21T05:34:24 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=9.1, dashboard_refresh_avg_ms=9.7, dashboard_refresh_max_ms=18.0, image_paint_max_ms=0.3
-2026-10-21T05:34:34 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=4.9, dashboard_collect_background_max_ms=6.1, dashboard_refresh_avg_ms=8.4, dashboard_refresh_max_ms=12.2, image_paint_max_ms=0.2
-2026-10-21T05:34:34 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
-2026-10-21T05:34:40 Counter worker failed:
+2026-10-21T17:23:00 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=12.3, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=10.1, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=12.7, preview_callback_interval_avg_ms=62.3, preview_callback_interval_max_ms=73.1, image_paint_max_ms=0.2
+2026-10-21T17:23:10 PERF GUI stages: dashboard_apply_avg_ms=8.8, dashboard_apply_max_ms=11.9, dashboard_collect_background_avg_ms=5.3, dashboard_collect_background_max_ms=6.8, dashboard_refresh_avg_ms=8.5, dashboard_refresh_max_ms=11.2, image_paint_max_ms=0.0
+2026-10-21T17:23:20 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.0, dashboard_collect_background_avg_ms=56.4, dashboard_collect_background_max_ms=518.7, dashboard_refresh_avg_ms=61.4, dashboard_refresh_max_ms=530.6, image_paint_max_ms=0.2
+2026-10-21T17:23:30 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=6.0, dashboard_collect_background_max_ms=7.9, dashboard_refresh_avg_ms=10.4, dashboard_refresh_max_ms=17.2, image_paint_max_ms=0.0
+2026-10-21T17:23:40 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=6.2, dashboard_refresh_avg_ms=7.8, dashboard_refresh_max_ms=9.9, image_paint_max_ms=0.0
+2026-10-21T17:23:40 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:23:40 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:23:45 Counter worker failed:
 Traceback (most recent call last):
-  File "C:\Users\admin\Downloads\TyreTrack_Production_Source (6)\TyreTrack_Production_Monitor.py", line 1673, in run
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
     source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
-  File "C:\Users\admin\Downloads\TyreTrack_Production_Source (6)\TyreTrack_Production_Monitor.py", line 1172, in __init__
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
     self.device = dai.Device(pipeline)
                   ~~~~~~~~~~^^^^^^^^^^
 RuntimeError: No available devices
 
-2026-10-21T05:34:44 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.6, dashboard_collect_background_avg_ms=20.1, dashboard_collect_background_max_ms=123.3, dashboard_refresh_avg_ms=22.1, dashboard_refresh_max_ms=142.3, preview_callback_interval_avg_ms=673.2, preview_callback_interval_max_ms=43323.1, image_paint_max_ms=0.2
-2026-10-21T05:34:54 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=11.0, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=6.0, dashboard_refresh_avg_ms=9.0, dashboard_refresh_max_ms=12.0, image_paint_max_ms=0.0
-2026-10-21T05:35:04 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=11.0, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=13.6, dashboard_refresh_avg_ms=11.7, dashboard_refresh_max_ms=19.6, image_paint_max_ms=0.3
-2026-10-21T05:35:15 PERF GUI stages: dashboard_apply_avg_ms=10.6, dashboard_apply_max_ms=14.8, dashboard_collect_background_avg_ms=15.5, dashboard_collect_background_max_ms=109.5, dashboard_refresh_avg_ms=22.2, dashboard_refresh_max_ms=131.1, image_paint_max_ms=0.2
-2026-10-21T05:35:25 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=8.7, dashboard_collect_background_avg_ms=4.1, dashboard_collect_background_max_ms=6.5, dashboard_refresh_avg_ms=7.7, dashboard_refresh_max_ms=11.3, image_paint_max_ms=0.0
-2026-10-21T05:35:35 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=6.0, dashboard_collect_background_max_ms=21.3, dashboard_refresh_avg_ms=9.7, dashboard_refresh_max_ms=15.9, image_paint_max_ms=0.0
-2026-10-21T05:35:35 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
-2026-10-21T05:35:40 Counter worker failed:
+2026-10-21T17:23:50 PERF GUI stages: dashboard_apply_avg_ms=9.8, dashboard_apply_max_ms=14.5, dashboard_collect_background_avg_ms=55.6, dashboard_collect_background_max_ms=540.3, dashboard_refresh_avg_ms=63.0, dashboard_refresh_max_ms=551.4, preview_callback_interval_avg_ms=755.2, preview_callback_interval_max_ms=48194.7, image_paint_max_ms=0.2
+2026-10-21T17:24:00 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.3, dashboard_collect_background_avg_ms=5.8, dashboard_collect_background_max_ms=8.4, dashboard_refresh_avg_ms=11.4, dashboard_refresh_max_ms=18.3, image_paint_max_ms=0.0
+2026-10-21T17:24:10 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=6.8, dashboard_refresh_avg_ms=9.2, dashboard_refresh_max_ms=14.2, image_paint_max_ms=0.0
+2026-10-21T17:24:20 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=10.5, dashboard_collect_background_avg_ms=60.8, dashboard_collect_background_max_ms=559.6, dashboard_refresh_avg_ms=65.4, dashboard_refresh_max_ms=571.1, image_paint_max_ms=0.1
+2026-10-21T17:24:30 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.2, dashboard_collect_background_avg_ms=5.0, dashboard_collect_background_max_ms=5.7, dashboard_refresh_avg_ms=9.2, dashboard_refresh_max_ms=14.3, image_paint_max_ms=0.0
+2026-10-21T17:24:40 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=7.6, dashboard_collect_background_max_ms=24.5, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=15.8, image_paint_max_ms=0.0
+2026-10-21T17:24:40 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:24:40 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:24:46 Counter worker failed:
 Traceback (most recent call last):
-  File "C:\Users\admin\Downloads\TyreTrack_Production_Source (6)\TyreTrack_Production_Monitor.py", line 1673, in run
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
     source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
-  File "C:\Users\admin\Downloads\TyreTrack_Production_Source (6)\TyreTrack_Production_Monitor.py", line 1172, in __init__
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
     self.device = dai.Device(pipeline)
                   ~~~~~~~~~~^^^^^^^^^^
 RuntimeError: No available devices
 
-2026-10-21T05:35:45 PERF GUI stages: dashboard_apply_avg_ms=8.3, dashboard_apply_max_ms=14.3, dashboard_collect_background_avg_ms=15.9, dashboard_collect_background_max_ms=102.5, dashboard_refresh_avg_ms=20.4, dashboard_refresh_max_ms=118.8, preview_callback_interval_avg_ms=804.8, preview_callback_interval_max_ms=55055.6, image_paint_max_ms=0.2
-2026-10-21T05:35:55 PERF GUI stages: dashboard_apply_avg_ms=8.2, dashboard_apply_max_ms=11.8, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=17.3, dashboard_refresh_avg_ms=10.7, dashboard_refresh_max_ms=25.8, image_paint_max_ms=0.1
+2026-10-21T17:24:50 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.7, dashboard_collect_background_avg_ms=50.1, dashboard_collect_background_max_ms=517.3, dashboard_refresh_avg_ms=61.1, dashboard_refresh_max_ms=529.1, preview_callback_interval_avg_ms=846.1, preview_callback_interval_max_ms=54730.5, image_paint_max_ms=0.2
+2026-10-21T17:25:00 PERF GUI stages: dashboard_apply_avg_ms=8.4, dashboard_apply_max_ms=12.1, dashboard_collect_background_avg_ms=7.9, dashboard_collect_background_max_ms=27.6, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=18.9, image_paint_max_ms=0.0
+2026-10-21T17:25:10 PERF GUI stages: dashboard_apply_avg_ms=8.7, dashboard_apply_max_ms=14.1, dashboard_collect_background_avg_ms=5.1, dashboard_collect_background_max_ms=5.9, dashboard_refresh_avg_ms=8.8, dashboard_refresh_max_ms=11.5, image_paint_max_ms=0.0
+2026-10-21T17:25:20 PERF GUI stages: dashboard_apply_avg_ms=8.3, dashboard_apply_max_ms=11.5, dashboard_collect_background_avg_ms=59.4, dashboard_collect_background_max_ms=537.5, dashboard_refresh_avg_ms=65.9, dashboard_refresh_max_ms=548.7, image_paint_max_ms=0.2
+2026-10-21T17:25:30 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=12.5, dashboard_collect_background_avg_ms=9.4, dashboard_collect_background_max_ms=25.9, dashboard_refresh_avg_ms=13.9, dashboard_refresh_max_ms=22.2, image_paint_max_ms=0.0
+2026-10-21T17:25:40 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=14.7, dashboard_refresh_avg_ms=11.8, dashboard_refresh_max_ms=20.9, image_paint_max_ms=0.0
+2026-10-21T17:25:40 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:25:40 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:25:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:25:50 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=9.9, dashboard_collect_background_avg_ms=49.3, dashboard_collect_background_max_ms=520.3, dashboard_refresh_avg_ms=60.9, dashboard_refresh_max_ms=531.6, preview_callback_interval_avg_ms=826.2, preview_callback_interval_max_ms=54773.9, image_paint_max_ms=0.2
+2026-10-21T17:26:01 PERF GUI stages: dashboard_apply_avg_ms=8.0, dashboard_apply_max_ms=11.5, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=7.7, dashboard_refresh_avg_ms=10.6, dashboard_refresh_max_ms=20.4, image_paint_max_ms=0.0
+2026-10-21T17:26:11 PERF GUI stages: dashboard_apply_avg_ms=8.2, dashboard_apply_max_ms=12.8, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=11.5, dashboard_refresh_avg_ms=12.2, dashboard_refresh_max_ms=20.8, image_paint_max_ms=0.0
+2026-10-21T17:26:21 PERF GUI stages: dashboard_apply_avg_ms=358.2, dashboard_apply_max_ms=3154.8, dashboard_collect_background_avg_ms=8.1, dashboard_collect_background_max_ms=26.0, dashboard_refresh_avg_ms=9.0, dashboard_refresh_max_ms=13.6, image_paint_max_ms=0.2
+2026-10-21T17:26:31 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=13.2, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=10.3, dashboard_refresh_avg_ms=11.1, dashboard_refresh_max_ms=21.3, image_paint_max_ms=0.0
+2026-10-21T17:26:40 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:26:40 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:26:41 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.0, dashboard_collect_background_avg_ms=7.6, dashboard_collect_background_max_ms=23.3, dashboard_refresh_avg_ms=9.7, dashboard_refresh_max_ms=16.1, preview_callback_interval_avg_ms=6920.6, preview_callback_interval_max_ms=54496.7, image_paint_max_ms=0.1
+2026-10-21T17:26:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:26:51 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=59.6, dashboard_collect_background_max_ms=545.7, dashboard_refresh_avg_ms=65.5, dashboard_refresh_max_ms=558.5, preview_callback_interval_avg_ms=70.8, preview_callback_interval_max_ms=606.0, image_paint_max_ms=0.2
+2026-10-21T17:27:01 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=11.7, dashboard_refresh_avg_ms=11.1, dashboard_refresh_max_ms=20.9, image_paint_max_ms=0.0
+2026-10-21T17:27:11 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.9, dashboard_collect_background_avg_ms=8.0, dashboard_collect_background_max_ms=26.9, dashboard_refresh_avg_ms=11.3, dashboard_refresh_max_ms=18.9, image_paint_max_ms=0.0
+2026-10-21T17:27:21 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.0, dashboard_collect_background_avg_ms=60.6, dashboard_collect_background_max_ms=478.1, dashboard_refresh_avg_ms=63.3, dashboard_refresh_max_ms=488.8, image_paint_max_ms=0.1
+2026-10-21T17:27:31 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=6.4, dashboard_collect_background_max_ms=11.1, dashboard_refresh_avg_ms=10.7, dashboard_refresh_max_ms=20.6, image_paint_max_ms=0.0
+2026-10-21T17:27:40 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:27:40 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:27:41 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=20.5, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=10.2, preview_callback_interval_avg_ms=6950.4, preview_callback_interval_max_ms=54734.0, image_paint_max_ms=0.2
+2026-10-21T17:27:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:27:51 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=11.3, dashboard_collect_background_avg_ms=48.6, dashboard_collect_background_max_ms=483.0, dashboard_refresh_avg_ms=57.8, dashboard_refresh_max_ms=495.6, preview_callback_interval_avg_ms=69.3, preview_callback_interval_max_ms=543.4, image_paint_max_ms=0.2
+2026-10-21T17:28:01 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.3, dashboard_collect_background_avg_ms=6.4, dashboard_collect_background_max_ms=19.0, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=10.0, image_paint_max_ms=0.0
+2026-10-21T17:28:11 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=6.8, dashboard_refresh_avg_ms=7.8, dashboard_refresh_max_ms=12.8, image_paint_max_ms=0.0
+2026-10-21T17:28:21 PERF GUI stages: dashboard_apply_avg_ms=6.5, dashboard_apply_max_ms=7.6, dashboard_collect_background_avg_ms=52.0, dashboard_collect_background_max_ms=475.8, dashboard_refresh_avg_ms=56.0, dashboard_refresh_max_ms=492.9, image_paint_max_ms=0.1
+2026-10-21T17:28:32 PERF GUI stages: dashboard_apply_avg_ms=6.5, dashboard_apply_max_ms=7.3, dashboard_collect_background_avg_ms=5.0, dashboard_collect_background_max_ms=7.3, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=10.4, image_paint_max_ms=0.0
+2026-10-21T17:28:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:28:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:28:42 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=9.8, dashboard_collect_background_max_ms=32.8, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=19.4, preview_callback_interval_avg_ms=2360.7, preview_callback_interval_max_ms=54780.2, image_paint_max_ms=0.1
+2026-10-21T17:28:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:28:52 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=13.3, dashboard_collect_background_avg_ms=50.8, dashboard_collect_background_max_ms=506.4, dashboard_refresh_avg_ms=60.0, dashboard_refresh_max_ms=517.6, preview_callback_interval_avg_ms=73.2, preview_callback_interval_max_ms=549.4, image_paint_max_ms=0.2
+2026-10-21T17:29:02 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=4.9, dashboard_collect_background_max_ms=5.7, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=9.0, image_paint_max_ms=0.0
+2026-10-21T17:29:12 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.7, dashboard_collect_background_avg_ms=6.4, dashboard_collect_background_max_ms=12.6, dashboard_refresh_avg_ms=10.4, dashboard_refresh_max_ms=23.3, image_paint_max_ms=0.0
+2026-10-21T17:29:23 PERF GUI stages: dashboard_apply_avg_ms=55.3, dashboard_apply_max_ms=493.6, dashboard_collect_background_avg_ms=5.8, dashboard_collect_background_max_ms=9.5, dashboard_refresh_avg_ms=10.3, dashboard_refresh_max_ms=17.8, image_paint_max_ms=0.1
+2026-10-21T17:29:33 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=5.6, dashboard_collect_background_max_ms=8.4, dashboard_refresh_avg_ms=9.8, dashboard_refresh_max_ms=16.6, image_paint_max_ms=0.0
+2026-10-21T17:29:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:29:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:29:43 PERF GUI stages: dashboard_apply_avg_ms=8.2, dashboard_apply_max_ms=12.0, dashboard_collect_background_avg_ms=8.8, dashboard_collect_background_max_ms=19.8, dashboard_refresh_avg_ms=11.1, dashboard_refresh_max_ms=18.9, preview_callback_interval_avg_ms=2360.0, preview_callback_interval_max_ms=54704.5, image_paint_max_ms=0.1
+2026-10-21T17:29:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:29:53 PERF GUI stages: dashboard_apply_avg_ms=10.1, dashboard_apply_max_ms=17.8, dashboard_collect_background_avg_ms=59.0, dashboard_collect_background_max_ms=541.7, dashboard_refresh_avg_ms=64.3, dashboard_refresh_max_ms=552.6, preview_callback_interval_avg_ms=72.9, preview_callback_interval_max_ms=614.5, image_paint_max_ms=0.3
+2026-10-21T17:30:03 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=5.8, dashboard_collect_background_max_ms=9.6, dashboard_refresh_avg_ms=11.0, dashboard_refresh_max_ms=19.9, image_paint_max_ms=0.0
+2026-10-21T17:30:13 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=5.9, dashboard_collect_background_max_ms=7.4, dashboard_refresh_avg_ms=13.4, dashboard_refresh_max_ms=22.1, image_paint_max_ms=0.0
+2026-10-21T17:30:23 PERF GUI stages: dashboard_apply_avg_ms=8.6, dashboard_apply_max_ms=11.5, dashboard_collect_background_avg_ms=60.4, dashboard_collect_background_max_ms=486.0, dashboard_refresh_avg_ms=58.7, dashboard_refresh_max_ms=496.2, image_paint_max_ms=0.1
+2026-10-21T17:30:33 PERF GUI stages: dashboard_apply_avg_ms=8.2, dashboard_apply_max_ms=13.6, dashboard_collect_background_avg_ms=8.0, dashboard_collect_background_max_ms=24.4, dashboard_refresh_avg_ms=11.9, dashboard_refresh_max_ms=14.2, image_paint_max_ms=0.0
+2026-10-21T17:30:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:30:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:30:43 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=8.4, dashboard_collect_background_max_ms=20.9, dashboard_refresh_avg_ms=13.2, dashboard_refresh_max_ms=21.2, preview_callback_interval_avg_ms=2361.3, preview_callback_interval_max_ms=54810.6, image_paint_max_ms=0.2
+2026-10-21T17:30:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:30:53 PERF GUI stages: dashboard_apply_avg_ms=8.1, dashboard_apply_max_ms=14.6, dashboard_collect_background_avg_ms=55.5, dashboard_collect_background_max_ms=502.6, dashboard_refresh_avg_ms=62.4, dashboard_refresh_max_ms=515.7, preview_callback_interval_avg_ms=72.0, preview_callback_interval_max_ms=546.7, image_paint_max_ms=0.2
+2026-10-21T17:31:03 PERF GUI stages: dashboard_apply_avg_ms=10.2, dashboard_apply_max_ms=17.1, dashboard_collect_background_avg_ms=7.3, dashboard_collect_background_max_ms=14.1, dashboard_refresh_avg_ms=12.2, dashboard_refresh_max_ms=21.4, image_paint_max_ms=0.0
+2026-10-21T17:31:13 PERF GUI stages: dashboard_apply_avg_ms=8.7, dashboard_apply_max_ms=12.6, dashboard_collect_background_avg_ms=5.8, dashboard_collect_background_max_ms=7.3, dashboard_refresh_avg_ms=12.6, dashboard_refresh_max_ms=17.4, image_paint_max_ms=0.0
+2026-10-21T17:31:23 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=55.9, dashboard_collect_background_max_ms=483.0, dashboard_refresh_avg_ms=60.7, dashboard_refresh_max_ms=494.8, image_paint_max_ms=0.1
+2026-10-21T17:31:33 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.5, dashboard_collect_background_avg_ms=8.0, dashboard_collect_background_max_ms=12.5, dashboard_refresh_avg_ms=15.7, dashboard_refresh_max_ms=23.4, image_paint_max_ms=0.0
+2026-10-21T17:31:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:31:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:31:43 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=11.8, dashboard_collect_background_avg_ms=10.7, dashboard_collect_background_max_ms=40.5, dashboard_refresh_avg_ms=16.9, dashboard_refresh_max_ms=21.2, preview_callback_interval_avg_ms=2362.6, preview_callback_interval_max_ms=54827.3, image_paint_max_ms=0.1
+2026-10-21T17:31:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:31:53 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=54.5, dashboard_collect_background_max_ms=480.3, dashboard_refresh_avg_ms=61.1, dashboard_refresh_max_ms=493.2, preview_callback_interval_avg_ms=71.7, preview_callback_interval_max_ms=541.5, image_paint_max_ms=0.1
+2026-10-21T17:32:03 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=8.9, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=9.2, dashboard_refresh_avg_ms=12.0, dashboard_refresh_max_ms=18.3, image_paint_max_ms=0.0
+2026-10-21T17:32:13 PERF GUI stages: dashboard_apply_avg_ms=8.8, dashboard_apply_max_ms=11.5, dashboard_collect_background_avg_ms=8.2, dashboard_collect_background_max_ms=18.8, dashboard_refresh_avg_ms=14.2, dashboard_refresh_max_ms=18.7, image_paint_max_ms=0.0
+2026-10-21T17:32:23 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.5, dashboard_collect_background_avg_ms=57.2, dashboard_collect_background_max_ms=506.8, dashboard_refresh_avg_ms=65.1, dashboard_refresh_max_ms=524.2, image_paint_max_ms=0.1
+2026-10-21T17:32:33 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=8.9, dashboard_refresh_avg_ms=14.4, dashboard_refresh_max_ms=18.2, image_paint_max_ms=0.0
+2026-10-21T17:32:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:32:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:32:43 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.3, dashboard_collect_background_avg_ms=7.6, dashboard_collect_background_max_ms=21.0, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=17.0, preview_callback_interval_avg_ms=2365.3, preview_callback_interval_max_ms=54853.8, image_paint_max_ms=0.1
+2026-10-21T17:32:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:32:53 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=55.6, dashboard_collect_background_max_ms=491.6, dashboard_refresh_avg_ms=62.3, dashboard_refresh_max_ms=503.1, preview_callback_interval_avg_ms=73.4, preview_callback_interval_max_ms=566.8, image_paint_max_ms=0.2
+2026-10-21T17:33:03 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=10.0, dashboard_collect_background_avg_ms=8.2, dashboard_collect_background_max_ms=28.1, dashboard_refresh_avg_ms=11.6, dashboard_refresh_max_ms=20.1, image_paint_max_ms=0.0
+2026-10-21T17:33:13 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=14.7, dashboard_collect_background_avg_ms=8.9, dashboard_collect_background_max_ms=17.1, dashboard_refresh_avg_ms=14.0, dashboard_refresh_max_ms=23.8, image_paint_max_ms=0.0
+2026-10-21T17:33:23 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=11.4, dashboard_collect_background_avg_ms=54.6, dashboard_collect_background_max_ms=486.7, dashboard_refresh_avg_ms=60.3, dashboard_refresh_max_ms=498.5, image_paint_max_ms=0.1
+2026-10-21T17:33:33 PERF GUI stages: dashboard_apply_avg_ms=11.0, dashboard_apply_max_ms=37.2, dashboard_collect_background_avg_ms=5.9, dashboard_collect_background_max_ms=11.2, dashboard_refresh_avg_ms=10.6, dashboard_refresh_max_ms=22.7, image_paint_max_ms=0.0
+2026-10-21T17:33:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:33:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:33:43 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=8.2, dashboard_collect_background_max_ms=26.9, dashboard_refresh_avg_ms=11.6, dashboard_refresh_max_ms=20.5, preview_callback_interval_avg_ms=2360.6, preview_callback_interval_max_ms=54774.7, image_paint_max_ms=0.2
+2026-10-21T17:33:46 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:33:53 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=62.5, dashboard_collect_background_max_ms=610.8, dashboard_refresh_avg_ms=71.1, dashboard_refresh_max_ms=622.5, preview_callback_interval_avg_ms=77.8, preview_callback_interval_max_ms=654.3, image_paint_max_ms=0.2
+2026-10-21T17:34:03 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=7.6, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=10.5, dashboard_refresh_avg_ms=10.7, dashboard_refresh_max_ms=20.7, image_paint_max_ms=0.0
+2026-10-21T17:34:13 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=11.9, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=10.9, dashboard_refresh_avg_ms=12.5, dashboard_refresh_max_ms=26.8, image_paint_max_ms=0.0
+2026-10-21T17:34:23 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=8.2, dashboard_collect_background_avg_ms=64.6, dashboard_collect_background_max_ms=579.5, dashboard_refresh_avg_ms=71.2, dashboard_refresh_max_ms=591.3, image_paint_max_ms=0.2
+2026-10-21T17:34:33 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=6.3, dashboard_collect_background_max_ms=12.2, dashboard_refresh_avg_ms=10.0, dashboard_refresh_max_ms=19.6, image_paint_max_ms=0.0
+2026-10-21T17:34:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:34:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:34:43 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=10.0, dashboard_collect_background_avg_ms=6.9, dashboard_collect_background_max_ms=20.6, dashboard_refresh_avg_ms=10.5, dashboard_refresh_max_ms=15.3, preview_callback_interval_avg_ms=2384.0, preview_callback_interval_max_ms=55338.9, image_paint_max_ms=0.1
+2026-10-21T17:34:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:34:53 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=7.8, dashboard_collect_background_avg_ms=52.0, dashboard_collect_background_max_ms=474.8, dashboard_refresh_avg_ms=57.7, dashboard_refresh_max_ms=485.9, preview_callback_interval_avg_ms=72.6, preview_callback_interval_max_ms=533.6, image_paint_max_ms=0.1
+2026-10-21T17:35:03 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=11.7, dashboard_collect_background_avg_ms=6.3, dashboard_collect_background_max_ms=12.7, dashboard_refresh_avg_ms=11.9, dashboard_refresh_max_ms=23.5, image_paint_max_ms=0.0
+2026-10-21T17:35:13 PERF GUI stages: dashboard_apply_avg_ms=9.4, dashboard_apply_max_ms=14.2, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=11.2, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=20.3, image_paint_max_ms=0.0
+2026-10-21T17:35:23 PERF GUI stages: dashboard_apply_avg_ms=9.8, dashboard_apply_max_ms=14.6, dashboard_collect_background_avg_ms=60.4, dashboard_collect_background_max_ms=555.7, dashboard_refresh_avg_ms=67.4, dashboard_refresh_max_ms=567.7, image_paint_max_ms=0.2
+2026-10-21T17:35:33 PERF GUI stages: dashboard_apply_avg_ms=11.6, dashboard_apply_max_ms=18.3, dashboard_collect_background_avg_ms=12.0, dashboard_collect_background_max_ms=27.5, dashboard_refresh_avg_ms=15.0, dashboard_refresh_max_ms=34.7, image_paint_max_ms=0.0
+2026-10-21T17:35:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:35:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:35:43 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=9.2, dashboard_collect_background_max_ms=21.7, dashboard_refresh_avg_ms=13.6, dashboard_refresh_max_ms=25.0, preview_callback_interval_avg_ms=2361.4, preview_callback_interval_max_ms=54800.2, image_paint_max_ms=0.1
+2026-10-21T17:35:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:35:53 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.5, dashboard_collect_background_avg_ms=57.3, dashboard_collect_background_max_ms=514.7, dashboard_refresh_avg_ms=62.6, dashboard_refresh_max_ms=526.3, preview_callback_interval_avg_ms=73.3, preview_callback_interval_max_ms=587.8, image_paint_max_ms=0.2
+2026-10-21T17:36:03 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=7.7, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=7.2, dashboard_refresh_avg_ms=10.1, dashboard_refresh_max_ms=14.6, image_paint_max_ms=0.0
+2026-10-21T17:36:13 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=5.3, dashboard_collect_background_max_ms=6.5, dashboard_refresh_avg_ms=9.5, dashboard_refresh_max_ms=18.6, image_paint_max_ms=0.0
+2026-10-21T17:36:23 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=12.3, dashboard_collect_background_avg_ms=56.4, dashboard_collect_background_max_ms=484.6, dashboard_refresh_avg_ms=60.5, dashboard_refresh_max_ms=497.9, image_paint_max_ms=0.2
+2026-10-21T17:36:33 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=11.8, dashboard_collect_background_avg_ms=5.4, dashboard_collect_background_max_ms=8.2, dashboard_refresh_avg_ms=9.9, dashboard_refresh_max_ms=18.2, image_paint_max_ms=0.0
+2026-10-21T17:36:41 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:36:41 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:36:43 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=20.5, dashboard_refresh_avg_ms=8.3, dashboard_refresh_max_ms=11.0, preview_callback_interval_avg_ms=2363.9, preview_callback_interval_max_ms=54848.7, image_paint_max_ms=0.2
+2026-10-21T17:36:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:36:53 PERF GUI stages: dashboard_apply_avg_ms=8.4, dashboard_apply_max_ms=21.9, dashboard_collect_background_avg_ms=52.6, dashboard_collect_background_max_ms=470.5, dashboard_refresh_avg_ms=60.8, dashboard_refresh_max_ms=489.0, preview_callback_interval_avg_ms=73.6, preview_callback_interval_max_ms=553.2, image_paint_max_ms=0.1
+2026-10-21T17:37:04 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=7.7, dashboard_collect_background_max_ms=12.2, dashboard_refresh_avg_ms=15.2, dashboard_refresh_max_ms=20.5, image_paint_max_ms=0.0
+2026-10-21T17:37:14 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=8.9, dashboard_collect_background_max_ms=32.1, dashboard_refresh_avg_ms=11.1, dashboard_refresh_max_ms=20.3, image_paint_max_ms=0.0
+2026-10-21T17:37:24 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.6, dashboard_collect_background_avg_ms=60.4, dashboard_collect_background_max_ms=485.3, dashboard_refresh_avg_ms=61.7, dashboard_refresh_max_ms=496.7, image_paint_max_ms=0.1
+2026-10-21T17:37:34 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=8.9, dashboard_collect_background_avg_ms=7.1, dashboard_collect_background_max_ms=10.5, dashboard_refresh_avg_ms=13.5, dashboard_refresh_max_ms=20.1, image_paint_max_ms=0.0
+2026-10-21T17:37:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:37:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:37:44 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=9.3, dashboard_collect_background_max_ms=28.7, dashboard_refresh_avg_ms=13.9, dashboard_refresh_max_ms=20.6, preview_callback_interval_avg_ms=2367.5, preview_callback_interval_max_ms=54927.9, image_paint_max_ms=0.2
+2026-10-21T17:37:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:37:54 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=10.1, dashboard_collect_background_avg_ms=54.2, dashboard_collect_background_max_ms=489.9, dashboard_refresh_avg_ms=55.3, dashboard_refresh_max_ms=500.5, preview_callback_interval_avg_ms=71.4, preview_callback_interval_max_ms=516.6, image_paint_max_ms=0.1
+2026-10-21T17:38:04 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=7.9, dashboard_collect_background_max_ms=25.7, dashboard_refresh_avg_ms=10.6, dashboard_refresh_max_ms=19.2, image_paint_max_ms=0.0
+2026-10-21T17:38:14 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=18.1, dashboard_refresh_avg_ms=9.8, dashboard_refresh_max_ms=19.3, image_paint_max_ms=0.0
+2026-10-21T17:38:24 PERF GUI stages: dashboard_apply_avg_ms=55.4, dashboard_apply_max_ms=483.0, dashboard_collect_background_avg_ms=6.0, dashboard_collect_background_max_ms=9.0, dashboard_refresh_avg_ms=10.1, dashboard_refresh_max_ms=18.2, image_paint_max_ms=0.1
+2026-10-21T17:38:34 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=11.5, dashboard_refresh_avg_ms=14.5, dashboard_refresh_max_ms=22.0, image_paint_max_ms=0.0
+2026-10-21T17:38:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:38:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:38:44 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=10.5, dashboard_collect_background_max_ms=25.2, dashboard_refresh_avg_ms=14.6, dashboard_refresh_max_ms=29.3, preview_callback_interval_avg_ms=2358.0, preview_callback_interval_max_ms=54703.5, image_paint_max_ms=0.1
+2026-10-21T17:38:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:38:54 PERF GUI stages: dashboard_apply_avg_ms=8.4, dashboard_apply_max_ms=18.1, dashboard_collect_background_avg_ms=50.9, dashboard_collect_background_max_ms=468.3, dashboard_refresh_avg_ms=61.1, dashboard_refresh_max_ms=485.9, preview_callback_interval_avg_ms=72.1, preview_callback_interval_max_ms=502.3, image_paint_max_ms=0.1
+2026-10-21T17:39:04 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.0, dashboard_collect_background_avg_ms=6.3, dashboard_collect_background_max_ms=10.5, dashboard_refresh_avg_ms=11.3, dashboard_refresh_max_ms=19.2, image_paint_max_ms=0.0
+2026-10-21T17:39:14 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=7.5, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=18.2, image_paint_max_ms=0.0
+2026-10-21T17:39:24 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=12.1, dashboard_collect_background_avg_ms=55.1, dashboard_collect_background_max_ms=488.1, dashboard_refresh_avg_ms=62.1, dashboard_refresh_max_ms=499.4, image_paint_max_ms=0.1
+2026-10-21T17:39:34 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=9.9, dashboard_refresh_avg_ms=12.5, dashboard_refresh_max_ms=21.1, image_paint_max_ms=0.0
+2026-10-21T17:39:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:39:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:39:44 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=10.2, dashboard_collect_background_max_ms=28.0, dashboard_refresh_avg_ms=14.4, dashboard_refresh_max_ms=21.5, preview_callback_interval_avg_ms=2364.3, preview_callback_interval_max_ms=54866.8, image_paint_max_ms=0.2
+2026-10-21T17:39:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:39:54 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=54.3, dashboard_collect_background_max_ms=473.7, dashboard_refresh_avg_ms=58.2, dashboard_refresh_max_ms=484.9, preview_callback_interval_avg_ms=71.9, preview_callback_interval_max_ms=515.3, image_paint_max_ms=0.2
+2026-10-21T17:40:04 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=10.2, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=19.9, image_paint_max_ms=0.0
+2026-10-21T17:40:14 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.4, dashboard_collect_background_avg_ms=6.9, dashboard_collect_background_max_ms=12.2, dashboard_refresh_avg_ms=11.2, dashboard_refresh_max_ms=18.0, image_paint_max_ms=0.0
+2026-10-21T17:40:24 PERF GUI stages: dashboard_apply_avg_ms=8.4, dashboard_apply_max_ms=12.4, dashboard_collect_background_avg_ms=52.8, dashboard_collect_background_max_ms=472.1, dashboard_refresh_avg_ms=59.1, dashboard_refresh_max_ms=489.8, image_paint_max_ms=0.1
+2026-10-21T17:40:34 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=8.8, dashboard_collect_background_max_ms=30.5, dashboard_refresh_avg_ms=13.0, dashboard_refresh_max_ms=19.5, image_paint_max_ms=0.0
+2026-10-21T17:40:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:40:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:40:44 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=8.0, dashboard_collect_background_max_ms=25.2, dashboard_refresh_avg_ms=10.6, dashboard_refresh_max_ms=18.1, preview_callback_interval_avg_ms=2268.7, preview_callback_interval_max_ms=54777.0, image_paint_max_ms=0.1
+2026-10-21T17:40:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:40:54 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=64.9, dashboard_collect_background_max_ms=534.8, dashboard_refresh_avg_ms=63.5, dashboard_refresh_max_ms=545.4, preview_callback_interval_avg_ms=73.8, preview_callback_interval_max_ms=608.6, image_paint_max_ms=0.2
+2026-10-21T17:41:04 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=9.3, dashboard_refresh_avg_ms=11.3, dashboard_refresh_max_ms=19.2, image_paint_max_ms=0.0
+2026-10-21T17:41:14 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=6.7, dashboard_refresh_avg_ms=10.7, dashboard_refresh_max_ms=16.7, image_paint_max_ms=0.0
+2026-10-21T17:41:24 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=55.6, dashboard_collect_background_max_ms=485.7, dashboard_refresh_avg_ms=59.3, dashboard_refresh_max_ms=497.1, image_paint_max_ms=0.1
+2026-10-21T17:41:34 PERF GUI stages: dashboard_apply_avg_ms=6.7, dashboard_apply_max_ms=7.4, dashboard_collect_background_avg_ms=112.0, dashboard_collect_background_max_ms=1056.2, dashboard_refresh_avg_ms=11.5, dashboard_refresh_max_ms=18.7, image_paint_max_ms=0.0
+2026-10-21T17:41:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:41:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:41:44 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=8.1, dashboard_collect_background_max_ms=20.4, dashboard_refresh_avg_ms=11.1, dashboard_refresh_max_ms=18.5, preview_callback_interval_avg_ms=2359.7, preview_callback_interval_max_ms=54742.3, image_paint_max_ms=0.2
+2026-10-21T17:41:47 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:41:54 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=53.5, dashboard_collect_background_max_ms=476.4, dashboard_refresh_avg_ms=58.4, dashboard_refresh_max_ms=487.6, preview_callback_interval_avg_ms=71.9, preview_callback_interval_max_ms=535.8, image_paint_max_ms=0.2
+2026-10-21T17:42:04 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.7, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=9.5, dashboard_refresh_avg_ms=14.3, dashboard_refresh_max_ms=18.0, image_paint_max_ms=0.0
+2026-10-21T17:42:14 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=7.9, dashboard_collect_background_max_ms=23.1, dashboard_refresh_avg_ms=10.0, dashboard_refresh_max_ms=13.3, image_paint_max_ms=0.0
+2026-10-21T17:42:24 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.9, dashboard_collect_background_avg_ms=49.3, dashboard_collect_background_max_ms=481.9, dashboard_refresh_avg_ms=58.9, dashboard_refresh_max_ms=492.6, image_paint_max_ms=0.1
+2026-10-21T17:42:34 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.1, dashboard_collect_background_avg_ms=5.6, dashboard_collect_background_max_ms=7.5, dashboard_refresh_avg_ms=11.5, dashboard_refresh_max_ms=17.8, image_paint_max_ms=0.0
+2026-10-21T17:42:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:42:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:42:44 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=7.6, dashboard_collect_background_avg_ms=7.3, dashboard_collect_background_max_ms=19.7, dashboard_refresh_avg_ms=9.9, dashboard_refresh_max_ms=17.7, preview_callback_interval_avg_ms=2272.1, preview_callback_interval_max_ms=54871.2, image_paint_max_ms=0.2
+2026-10-21T17:42:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:42:54 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=60.4, dashboard_collect_background_max_ms=495.9, dashboard_refresh_avg_ms=60.7, dashboard_refresh_max_ms=513.9, preview_callback_interval_avg_ms=73.2, preview_callback_interval_max_ms=577.9, image_paint_max_ms=0.1
+2026-10-21T17:43:04 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=7.3, dashboard_collect_background_avg_ms=7.8, dashboard_collect_background_max_ms=21.7, dashboard_refresh_avg_ms=13.3, dashboard_refresh_max_ms=22.7, image_paint_max_ms=0.0
+2026-10-21T17:43:14 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=7.6, dashboard_collect_background_avg_ms=7.2, dashboard_collect_background_max_ms=15.9, dashboard_refresh_avg_ms=11.6, dashboard_refresh_max_ms=19.3, image_paint_max_ms=0.0
+2026-10-21T17:43:24 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=55.2, dashboard_collect_background_max_ms=490.5, dashboard_refresh_avg_ms=60.8, dashboard_refresh_max_ms=501.6, image_paint_max_ms=0.1
+2026-10-21T17:43:34 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=5.4, dashboard_collect_background_max_ms=6.9, dashboard_refresh_avg_ms=8.1, dashboard_refresh_max_ms=9.9, image_paint_max_ms=0.0
+2026-10-21T17:43:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:43:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:43:44 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=11.0, dashboard_collect_background_avg_ms=8.4, dashboard_collect_background_max_ms=27.2, dashboard_refresh_avg_ms=10.5, dashboard_refresh_max_ms=19.6, preview_callback_interval_avg_ms=2359.9, preview_callback_interval_max_ms=54769.5, image_paint_max_ms=0.1
+2026-10-21T17:43:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:43:54 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=54.3, dashboard_collect_background_max_ms=523.2, dashboard_refresh_avg_ms=62.6, dashboard_refresh_max_ms=535.3, preview_callback_interval_avg_ms=73.1, preview_callback_interval_max_ms=567.6, image_paint_max_ms=0.2
+2026-10-21T17:44:04 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=8.0, dashboard_refresh_avg_ms=9.8, dashboard_refresh_max_ms=16.0, image_paint_max_ms=0.0
+2026-10-21T17:44:14 PERF GUI stages: dashboard_apply_avg_ms=6.5, dashboard_apply_max_ms=7.3, dashboard_collect_background_avg_ms=6.9, dashboard_collect_background_max_ms=12.6, dashboard_refresh_avg_ms=12.9, dashboard_refresh_max_ms=20.7, image_paint_max_ms=0.0
+2026-10-21T17:44:24 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.5, dashboard_collect_background_avg_ms=48.2, dashboard_collect_background_max_ms=470.4, dashboard_refresh_avg_ms=57.9, dashboard_refresh_max_ms=487.6, image_paint_max_ms=0.1
+2026-10-21T17:44:34 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.5, dashboard_collect_background_avg_ms=6.1, dashboard_collect_background_max_ms=7.5, dashboard_refresh_avg_ms=12.0, dashboard_refresh_max_ms=18.5, image_paint_max_ms=0.0
+2026-10-21T17:44:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:44:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:44:44 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.6, dashboard_collect_background_avg_ms=9.1, dashboard_collect_background_max_ms=28.7, dashboard_refresh_avg_ms=10.3, dashboard_refresh_max_ms=18.2, preview_callback_interval_avg_ms=2462.3, preview_callback_interval_max_ms=54761.5, image_paint_max_ms=0.1
+2026-10-21T17:44:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:44:54 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=12.4, dashboard_collect_background_avg_ms=53.9, dashboard_collect_background_max_ms=476.8, dashboard_refresh_avg_ms=59.4, dashboard_refresh_max_ms=487.9, preview_callback_interval_avg_ms=71.6, preview_callback_interval_max_ms=535.7, image_paint_max_ms=0.3
+2026-10-21T17:45:04 PERF GUI stages: dashboard_apply_avg_ms=8.2, dashboard_apply_max_ms=12.5, dashboard_collect_background_avg_ms=6.1, dashboard_collect_background_max_ms=8.7, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=18.9, image_paint_max_ms=0.0
+2026-10-21T17:45:14 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=7.1, dashboard_refresh_avg_ms=8.6, dashboard_refresh_max_ms=12.1, image_paint_max_ms=0.0
+2026-10-21T17:45:24 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=52.2, dashboard_collect_background_max_ms=470.8, dashboard_refresh_avg_ms=57.3, dashboard_refresh_max_ms=487.8, image_paint_max_ms=0.1
+2026-10-21T17:45:34 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=7.7, dashboard_collect_background_max_ms=28.0, dashboard_refresh_avg_ms=11.0, dashboard_refresh_max_ms=23.9, image_paint_max_ms=0.0
+2026-10-21T17:45:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:45:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:45:44 PERF GUI stages: dashboard_apply_avg_ms=6.4, dashboard_apply_max_ms=7.4, dashboard_collect_background_avg_ms=7.0, dashboard_collect_background_max_ms=23.1, dashboard_refresh_avg_ms=10.2, dashboard_refresh_max_ms=17.9, preview_callback_interval_avg_ms=2463.1, preview_callback_interval_max_ms=54781.1, image_paint_max_ms=0.1
+2026-10-21T17:45:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:45:54 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=52.5, dashboard_collect_background_max_ms=477.9, dashboard_refresh_avg_ms=56.1, dashboard_refresh_max_ms=488.8, preview_callback_interval_avg_ms=72.0, preview_callback_interval_max_ms=536.7, image_paint_max_ms=0.2
+2026-10-21T17:46:04 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=5.1, dashboard_collect_background_max_ms=5.3, dashboard_refresh_avg_ms=7.7, dashboard_refresh_max_ms=10.6, image_paint_max_ms=0.0
+2026-10-21T17:46:14 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=13.0, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=6.0, dashboard_refresh_avg_ms=8.9, dashboard_refresh_max_ms=14.4, image_paint_max_ms=0.0
+2026-10-21T17:46:24 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=7.7, dashboard_collect_background_avg_ms=55.3, dashboard_collect_background_max_ms=491.2, dashboard_refresh_avg_ms=57.6, dashboard_refresh_max_ms=502.1, image_paint_max_ms=0.2
+2026-10-21T17:46:34 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=7.2, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=7.5, dashboard_refresh_avg_ms=10.4, dashboard_refresh_max_ms=14.9, image_paint_max_ms=0.0
+2026-10-21T17:46:42 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:46:42 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:46:44 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.6, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=25.0, dashboard_refresh_avg_ms=7.5, dashboard_refresh_max_ms=9.7, preview_callback_interval_avg_ms=2183.5, preview_callback_interval_max_ms=54768.5, image_paint_max_ms=0.2
+2026-10-21T17:46:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:46:55 PERF GUI stages: dashboard_apply_avg_ms=57.0, dashboard_apply_max_ms=512.9, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=7.1, dashboard_refresh_avg_ms=8.6, dashboard_refresh_max_ms=18.0, preview_callback_interval_avg_ms=72.0, preview_callback_interval_max_ms=529.9, image_paint_max_ms=0.1
+2026-10-21T17:47:05 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=13.6, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=9.2, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=21.0, image_paint_max_ms=0.0
+2026-10-21T17:47:16 PERF GUI stages: dashboard_apply_avg_ms=6.3, dashboard_apply_max_ms=6.8, dashboard_collect_background_avg_ms=8.6, dashboard_collect_background_max_ms=23.4, dashboard_refresh_avg_ms=57.9, dashboard_refresh_max_ms=478.1, image_paint_max_ms=0.1
+2026-10-21T17:47:27 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=11.8, dashboard_collect_background_avg_ms=49.2, dashboard_collect_background_max_ms=467.4, dashboard_refresh_avg_ms=13.2, dashboard_refresh_max_ms=20.4, image_paint_max_ms=0.0
+2026-10-21T17:47:37 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=7.0, dashboard_collect_background_avg_ms=5.9, dashboard_collect_background_max_ms=7.9, dashboard_refresh_avg_ms=9.6, dashboard_refresh_max_ms=15.2, image_paint_max_ms=0.0
+2026-10-21T17:47:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:47:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:47:47 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=51.1, dashboard_collect_background_max_ms=490.5, dashboard_refresh_avg_ms=64.9, dashboard_refresh_max_ms=502.2, preview_callback_interval_avg_ms=1223.2, preview_callback_interval_max_ms=54804.8, image_paint_max_ms=0.2
+2026-10-21T17:47:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:47:57 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.9, dashboard_collect_background_avg_ms=6.0, dashboard_collect_background_max_ms=9.0, dashboard_refresh_avg_ms=10.0, dashboard_refresh_max_ms=19.8, preview_callback_interval_avg_ms=62.9, preview_callback_interval_max_ms=69.5, image_paint_max_ms=0.2
+2026-10-21T17:48:07 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=7.3, dashboard_refresh_avg_ms=10.0, dashboard_refresh_max_ms=16.7, image_paint_max_ms=0.0
+2026-10-21T17:48:17 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=53.3, dashboard_collect_background_max_ms=462.5, dashboard_refresh_avg_ms=60.2, dashboard_refresh_max_ms=479.2, image_paint_max_ms=0.1
+2026-10-21T17:48:27 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=11.6, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=11.5, dashboard_refresh_avg_ms=11.8, dashboard_refresh_max_ms=22.0, image_paint_max_ms=0.0
+2026-10-21T17:48:37 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=11.4, dashboard_refresh_avg_ms=13.2, dashboard_refresh_max_ms=20.4, image_paint_max_ms=0.0
+2026-10-21T17:48:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:48:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:48:47 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.3, dashboard_collect_background_avg_ms=56.1, dashboard_collect_background_max_ms=525.6, dashboard_refresh_avg_ms=64.3, dashboard_refresh_max_ms=536.7, preview_callback_interval_avg_ms=1223.1, preview_callback_interval_max_ms=54850.6, image_paint_max_ms=0.1
+2026-10-21T17:48:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:48:57 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=16.8, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=9.2, dashboard_refresh_avg_ms=12.5, dashboard_refresh_max_ms=17.2, preview_callback_interval_avg_ms=65.5, preview_callback_interval_max_ms=81.6, image_paint_max_ms=0.2
+2026-10-21T17:49:07 PERF GUI stages: dashboard_apply_avg_ms=6.4, dashboard_apply_max_ms=7.1, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=10.6, dashboard_refresh_avg_ms=13.3, dashboard_refresh_max_ms=19.9, image_paint_max_ms=0.0
+2026-10-21T17:49:17 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=7.8, dashboard_collect_background_avg_ms=53.3, dashboard_collect_background_max_ms=483.0, dashboard_refresh_avg_ms=56.8, dashboard_refresh_max_ms=493.6, image_paint_max_ms=0.1
+2026-10-21T17:49:27 PERF GUI stages: dashboard_apply_avg_ms=6.7, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=9.2, dashboard_refresh_avg_ms=13.7, dashboard_refresh_max_ms=20.2, image_paint_max_ms=0.0
+2026-10-21T17:49:37 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=8.5, dashboard_collect_background_avg_ms=5.6, dashboard_collect_background_max_ms=10.2, dashboard_refresh_avg_ms=8.6, dashboard_refresh_max_ms=10.6, image_paint_max_ms=0.0
+2026-10-21T17:49:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:49:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:49:47 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=12.6, dashboard_collect_background_avg_ms=55.3, dashboard_collect_background_max_ms=513.8, dashboard_refresh_avg_ms=61.7, dashboard_refresh_max_ms=530.8, preview_callback_interval_avg_ms=1247.8, preview_callback_interval_max_ms=54769.2, image_paint_max_ms=0.2
+2026-10-21T17:49:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:49:57 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=13.0, dashboard_collect_background_avg_ms=5.0, dashboard_collect_background_max_ms=6.5, dashboard_refresh_avg_ms=9.6, dashboard_refresh_max_ms=19.6, preview_callback_interval_avg_ms=62.5, preview_callback_interval_max_ms=71.4, image_paint_max_ms=0.4
+2026-10-21T17:50:07 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=7.5, dashboard_collect_background_avg_ms=7.0, dashboard_collect_background_max_ms=11.5, dashboard_refresh_avg_ms=12.5, dashboard_refresh_max_ms=21.0, image_paint_max_ms=0.0
+2026-10-21T17:50:17 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=10.0, dashboard_collect_background_avg_ms=338.0, dashboard_collect_background_max_ms=2489.8, dashboard_refresh_avg_ms=63.2, dashboard_refresh_max_ms=516.9, image_paint_max_ms=0.1
+2026-10-21T17:50:27 PERF GUI stages: dashboard_apply_avg_ms=10.1, dashboard_apply_max_ms=13.7, dashboard_collect_background_avg_ms=7.4, dashboard_collect_background_max_ms=13.0, dashboard_refresh_avg_ms=13.5, dashboard_refresh_max_ms=22.4, image_paint_max_ms=0.0
+2026-10-21T17:50:37 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=8.5, dashboard_collect_background_max_ms=25.9, dashboard_refresh_avg_ms=11.8, dashboard_refresh_max_ms=16.6, image_paint_max_ms=0.0
+2026-10-21T17:50:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:50:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:50:47 PERF GUI stages: dashboard_apply_avg_ms=8.3, dashboard_apply_max_ms=11.3, dashboard_collect_background_avg_ms=66.3, dashboard_collect_background_max_ms=553.0, dashboard_refresh_avg_ms=65.9, dashboard_refresh_max_ms=565.0, preview_callback_interval_avg_ms=1303.9, preview_callback_interval_max_ms=54808.6, image_paint_max_ms=0.2
+2026-10-21T17:50:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:50:57 PERF GUI stages: dashboard_apply_avg_ms=8.4, dashboard_apply_max_ms=16.7, dashboard_collect_background_avg_ms=7.4, dashboard_collect_background_max_ms=13.8, dashboard_refresh_avg_ms=12.0, dashboard_refresh_max_ms=20.7, preview_callback_interval_avg_ms=62.5, preview_callback_interval_max_ms=73.1, image_paint_max_ms=0.2
+2026-10-21T17:51:07 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=7.7, dashboard_collect_background_avg_ms=7.5, dashboard_collect_background_max_ms=10.9, dashboard_refresh_avg_ms=14.9, dashboard_refresh_max_ms=20.8, image_paint_max_ms=0.0
+2026-10-21T17:51:17 PERF GUI stages: dashboard_apply_avg_ms=10.6, dashboard_apply_max_ms=28.8, dashboard_collect_background_avg_ms=57.4, dashboard_collect_background_max_ms=506.2, dashboard_refresh_avg_ms=64.3, dashboard_refresh_max_ms=518.6, image_paint_max_ms=0.1
+2026-10-21T17:51:27 PERF GUI stages: dashboard_apply_avg_ms=8.9, dashboard_apply_max_ms=18.0, dashboard_collect_background_avg_ms=7.5, dashboard_collect_background_max_ms=24.6, dashboard_refresh_avg_ms=10.9, dashboard_refresh_max_ms=16.3, image_paint_max_ms=0.0
+2026-10-21T17:51:37 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=14.7, dashboard_refresh_avg_ms=11.3, dashboard_refresh_max_ms=24.2, image_paint_max_ms=0.0
+2026-10-21T17:51:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:51:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:51:47 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=8.1, dashboard_collect_background_avg_ms=53.2, dashboard_collect_background_max_ms=497.2, dashboard_refresh_avg_ms=61.8, dashboard_refresh_max_ms=507.4, preview_callback_interval_avg_ms=1195.8, preview_callback_interval_max_ms=54710.9, image_paint_max_ms=0.2
+2026-10-21T17:51:48 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:51:57 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=8.9, dashboard_collect_background_avg_ms=7.3, dashboard_collect_background_max_ms=18.6, dashboard_refresh_avg_ms=12.8, dashboard_refresh_max_ms=20.8, preview_callback_interval_avg_ms=62.2, preview_callback_interval_max_ms=64.9, image_paint_max_ms=0.1
+2026-10-21T17:52:07 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=10.6, dashboard_collect_background_avg_ms=5.9, dashboard_collect_background_max_ms=11.6, dashboard_refresh_avg_ms=10.1, dashboard_refresh_max_ms=21.3, image_paint_max_ms=0.0
+2026-10-21T17:52:17 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=57.6, dashboard_collect_background_max_ms=510.3, dashboard_refresh_avg_ms=63.4, dashboard_refresh_max_ms=521.7, image_paint_max_ms=0.1
+2026-10-21T17:52:27 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=6.0, dashboard_collect_background_max_ms=9.8, dashboard_refresh_avg_ms=10.4, dashboard_refresh_max_ms=19.1, image_paint_max_ms=0.0
+2026-10-21T17:52:37 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=7.1, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=6.0, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=16.7, image_paint_max_ms=0.0
+2026-10-21T17:52:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:52:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:52:47 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=11.2, dashboard_collect_background_avg_ms=51.3, dashboard_collect_background_max_ms=487.2, dashboard_refresh_avg_ms=61.1, dashboard_refresh_max_ms=497.6, preview_callback_interval_avg_ms=1198.4, preview_callback_interval_max_ms=54851.7, image_paint_max_ms=0.2
+2026-10-21T17:52:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:52:57 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=6.4, dashboard_collect_background_max_ms=10.8, dashboard_refresh_avg_ms=12.6, dashboard_refresh_max_ms=23.3, preview_callback_interval_avg_ms=62.4, preview_callback_interval_max_ms=67.7, image_paint_max_ms=0.1
+2026-10-21T17:53:07 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.3, dashboard_collect_background_avg_ms=11.6, dashboard_collect_background_max_ms=31.9, dashboard_refresh_avg_ms=15.9, dashboard_refresh_max_ms=23.3, image_paint_max_ms=0.0
+2026-10-21T17:53:17 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=55.7, dashboard_collect_background_max_ms=491.7, dashboard_refresh_avg_ms=64.0, dashboard_refresh_max_ms=501.9, image_paint_max_ms=0.1
+2026-10-21T17:53:27 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.7, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=10.0, dashboard_refresh_avg_ms=13.8, dashboard_refresh_max_ms=21.2, image_paint_max_ms=0.0
+2026-10-21T17:53:37 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=7.7, dashboard_collect_background_max_ms=10.5, dashboard_refresh_avg_ms=14.5, dashboard_refresh_max_ms=19.9, image_paint_max_ms=0.0
+2026-10-21T17:53:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:53:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:53:47 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=9.3, dashboard_collect_background_avg_ms=52.2, dashboard_collect_background_max_ms=493.9, dashboard_refresh_avg_ms=64.2, dashboard_refresh_max_ms=504.6, preview_callback_interval_avg_ms=1222.4, preview_callback_interval_max_ms=54797.6, image_paint_max_ms=0.2
+2026-10-21T17:53:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:53:57 PERF GUI stages: dashboard_apply_avg_ms=6.3, dashboard_apply_max_ms=6.8, dashboard_collect_background_avg_ms=8.4, dashboard_collect_background_max_ms=23.9, dashboard_refresh_avg_ms=10.5, dashboard_refresh_max_ms=20.0, preview_callback_interval_avg_ms=62.4, preview_callback_interval_max_ms=82.7, image_paint_max_ms=0.1
+2026-10-21T17:54:07 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=12.9, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=8.8, dashboard_refresh_avg_ms=11.5, dashboard_refresh_max_ms=18.2, image_paint_max_ms=0.0
+2026-10-21T17:54:17 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=12.5, dashboard_collect_background_avg_ms=60.7, dashboard_collect_background_max_ms=550.9, dashboard_refresh_avg_ms=68.3, dashboard_refresh_max_ms=561.2, image_paint_max_ms=0.2
+2026-10-21T17:54:27 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=11.1, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=13.9, dashboard_refresh_avg_ms=11.5, dashboard_refresh_max_ms=22.1, image_paint_max_ms=0.0
+2026-10-21T17:54:37 PERF GUI stages: dashboard_apply_avg_ms=6.4, dashboard_apply_max_ms=7.1, dashboard_collect_background_avg_ms=4.9, dashboard_collect_background_max_ms=5.1, dashboard_refresh_avg_ms=8.1, dashboard_refresh_max_ms=10.2, image_paint_max_ms=0.0
+2026-10-21T17:54:43 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:54:43 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:54:47 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=10.5, dashboard_collect_background_avg_ms=50.2, dashboard_collect_background_max_ms=467.2, dashboard_refresh_avg_ms=55.1, dashboard_refresh_max_ms=484.3, preview_callback_interval_avg_ms=1223.4, preview_callback_interval_max_ms=54820.7, image_paint_max_ms=0.1
+2026-10-21T17:54:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:54:57 PERF GUI stages: dashboard_apply_avg_ms=6.4, dashboard_apply_max_ms=7.0, dashboard_collect_background_avg_ms=5.3, dashboard_collect_background_max_ms=7.2, dashboard_refresh_avg_ms=7.6, dashboard_refresh_max_ms=10.4, preview_callback_interval_avg_ms=62.2, preview_callback_interval_max_ms=73.9, image_paint_max_ms=0.2
+2026-10-21T17:55:07 PERF GUI stages: dashboard_apply_avg_ms=6.4, dashboard_apply_max_ms=7.2, dashboard_collect_background_avg_ms=5.3, dashboard_collect_background_max_ms=5.8, dashboard_refresh_avg_ms=8.9, dashboard_refresh_max_ms=11.4, image_paint_max_ms=0.0
+2026-10-21T17:55:17 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=8.6, dashboard_collect_background_avg_ms=58.6, dashboard_collect_background_max_ms=542.9, dashboard_refresh_avg_ms=63.3, dashboard_refresh_max_ms=554.0, image_paint_max_ms=0.1
+2026-10-21T17:55:28 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.0, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=11.0, dashboard_refresh_avg_ms=12.7, dashboard_refresh_max_ms=20.5, image_paint_max_ms=0.0
+2026-10-21T17:55:38 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=11.0, dashboard_collect_background_avg_ms=7.5, dashboard_collect_background_max_ms=22.2, dashboard_refresh_avg_ms=10.4, dashboard_refresh_max_ms=17.7, image_paint_max_ms=0.0
+2026-10-21T17:55:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:55:44 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:55:48 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.0, dashboard_collect_background_avg_ms=50.0, dashboard_collect_background_max_ms=478.1, dashboard_refresh_avg_ms=61.9, dashboard_refresh_max_ms=488.3, preview_callback_interval_avg_ms=1198.1, preview_callback_interval_max_ms=54814.9, image_paint_max_ms=0.1
+2026-10-21T17:55:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:55:58 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=10.6, dashboard_collect_background_avg_ms=6.3, dashboard_collect_background_max_ms=8.3, dashboard_refresh_avg_ms=10.6, dashboard_refresh_max_ms=18.1, preview_callback_interval_avg_ms=62.5, preview_callback_interval_max_ms=64.1, image_paint_max_ms=0.2
+2026-10-21T17:56:08 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=5.8, dashboard_collect_background_max_ms=9.6, dashboard_refresh_avg_ms=9.9, dashboard_refresh_max_ms=18.1, image_paint_max_ms=0.0
+2026-10-21T17:56:18 PERF GUI stages: dashboard_apply_avg_ms=54.4, dashboard_apply_max_ms=480.7, dashboard_collect_background_avg_ms=7.4, dashboard_collect_background_max_ms=13.5, dashboard_refresh_avg_ms=13.8, dashboard_refresh_max_ms=23.5, image_paint_max_ms=0.1
+2026-10-21T17:56:28 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=8.0, dashboard_collect_background_avg_ms=7.6, dashboard_collect_background_max_ms=21.0, dashboard_refresh_avg_ms=11.2, dashboard_refresh_max_ms=21.2, image_paint_max_ms=0.0
+2026-10-21T17:56:38 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.0, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=7.7, dashboard_refresh_avg_ms=13.7, dashboard_refresh_max_ms=17.5, image_paint_max_ms=0.0
+2026-10-21T17:56:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:56:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:56:48 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=54.2, dashboard_collect_background_max_ms=474.4, dashboard_refresh_avg_ms=59.7, dashboard_refresh_max_ms=484.4, preview_callback_interval_avg_ms=1196.1, preview_callback_interval_max_ms=54724.7, image_paint_max_ms=0.1
+2026-10-21T17:56:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:56:58 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=7.6, dashboard_collect_background_avg_ms=7.0, dashboard_collect_background_max_ms=11.9, dashboard_refresh_avg_ms=11.2, dashboard_refresh_max_ms=19.1, preview_callback_interval_avg_ms=63.2, preview_callback_interval_max_ms=87.6, image_paint_max_ms=0.2
+2026-10-21T17:57:08 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=14.7, dashboard_collect_background_avg_ms=5.6, dashboard_collect_background_max_ms=12.6, dashboard_refresh_avg_ms=9.5, dashboard_refresh_max_ms=22.4, image_paint_max_ms=0.0
+2026-10-21T17:57:18 PERF GUI stages: dashboard_apply_avg_ms=6.7, dashboard_apply_max_ms=7.2, dashboard_collect_background_avg_ms=53.9, dashboard_collect_background_max_ms=472.5, dashboard_refresh_avg_ms=56.2, dashboard_refresh_max_ms=483.4, image_paint_max_ms=0.1
+2026-10-21T17:57:28 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=6.1, dashboard_collect_background_max_ms=11.0, dashboard_refresh_avg_ms=12.2, dashboard_refresh_max_ms=21.0, image_paint_max_ms=0.0
+2026-10-21T17:57:38 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=10.0, dashboard_collect_background_avg_ms=5.3, dashboard_collect_background_max_ms=5.9, dashboard_refresh_avg_ms=9.8, dashboard_refresh_max_ms=15.5, image_paint_max_ms=0.0
+2026-10-21T17:57:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:57:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:57:48 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.7, dashboard_collect_background_avg_ms=51.1, dashboard_collect_background_max_ms=490.8, dashboard_refresh_avg_ms=60.7, dashboard_refresh_max_ms=504.5, preview_callback_interval_avg_ms=1198.8, preview_callback_interval_max_ms=54856.2, image_paint_max_ms=0.2
+2026-10-21T17:57:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:57:58 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=6.4, dashboard_collect_background_max_ms=12.2, dashboard_refresh_avg_ms=11.9, dashboard_refresh_max_ms=22.1, preview_callback_interval_avg_ms=62.7, preview_callback_interval_max_ms=67.6, image_paint_max_ms=0.1
+2026-10-21T17:58:08 PERF GUI stages: dashboard_apply_avg_ms=6.7, dashboard_apply_max_ms=8.2, dashboard_collect_background_avg_ms=7.2, dashboard_collect_background_max_ms=24.2, dashboard_refresh_avg_ms=10.4, dashboard_refresh_max_ms=19.0, image_paint_max_ms=0.0
+2026-10-21T17:58:18 PERF GUI stages: dashboard_apply_avg_ms=54.4, dashboard_apply_max_ms=484.1, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=9.6, dashboard_refresh_avg_ms=11.4, dashboard_refresh_max_ms=18.9, image_paint_max_ms=0.2
+2026-10-21T17:58:28 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=16.6, dashboard_refresh_avg_ms=11.1, dashboard_refresh_max_ms=22.8, image_paint_max_ms=0.0
+2026-10-21T17:58:38 PERF GUI stages: dashboard_apply_avg_ms=6.5, dashboard_apply_max_ms=7.5, dashboard_collect_background_avg_ms=5.4, dashboard_collect_background_max_ms=6.5, dashboard_refresh_avg_ms=8.5, dashboard_refresh_max_ms=11.5, image_paint_max_ms=0.0
+2026-10-21T17:58:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:58:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:58:48 PERF GUI stages: dashboard_apply_avg_ms=47.9, dashboard_apply_max_ms=488.8, dashboard_collect_background_avg_ms=8.4, dashboard_collect_background_max_ms=20.4, dashboard_refresh_avg_ms=9.0, dashboard_refresh_max_ms=16.2, preview_callback_interval_avg_ms=1196.8, preview_callback_interval_max_ms=54747.1, image_paint_max_ms=0.1
+2026-10-21T17:58:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:58:58 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.1, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=11.3, dashboard_refresh_avg_ms=13.6, dashboard_refresh_max_ms=21.1, preview_callback_interval_avg_ms=64.4, preview_callback_interval_max_ms=76.8, image_paint_max_ms=0.2
+2026-10-21T17:59:08 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=5.8, dashboard_collect_background_max_ms=8.4, dashboard_refresh_avg_ms=9.8, dashboard_refresh_max_ms=17.5, image_paint_max_ms=0.0
+2026-10-21T17:59:18 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=52.5, dashboard_collect_background_max_ms=477.8, dashboard_refresh_avg_ms=56.2, dashboard_refresh_max_ms=489.5, image_paint_max_ms=0.2
+2026-10-21T17:59:28 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=5.5, dashboard_collect_background_max_ms=8.5, dashboard_refresh_avg_ms=10.8, dashboard_refresh_max_ms=17.7, image_paint_max_ms=0.0
+2026-10-21T17:59:38 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.0, dashboard_collect_background_avg_ms=6.9, dashboard_collect_background_max_ms=12.4, dashboard_refresh_avg_ms=13.6, dashboard_refresh_max_ms=23.8, image_paint_max_ms=0.0
+2026-10-21T17:59:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T17:59:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T17:59:48 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=11.1, dashboard_collect_background_avg_ms=49.3, dashboard_collect_background_max_ms=485.8, dashboard_refresh_avg_ms=62.0, dashboard_refresh_max_ms=497.5, preview_callback_interval_avg_ms=1198.5, preview_callback_interval_max_ms=54789.1, image_paint_max_ms=0.1
+2026-10-21T17:59:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T17:59:58 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=7.0, dashboard_collect_background_max_ms=9.9, dashboard_refresh_avg_ms=12.7, dashboard_refresh_max_ms=19.1, preview_callback_interval_avg_ms=62.9, preview_callback_interval_max_ms=70.3, image_paint_max_ms=0.2
+2026-10-21T18:00:08 PERF GUI stages: dashboard_apply_avg_ms=6.8, dashboard_apply_max_ms=8.4, dashboard_collect_background_avg_ms=6.0, dashboard_collect_background_max_ms=12.2, dashboard_refresh_avg_ms=11.6, dashboard_refresh_max_ms=23.2, image_paint_max_ms=0.0
+2026-10-21T18:00:18 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=10.6, dashboard_collect_background_avg_ms=63.6, dashboard_collect_background_max_ms=568.1, dashboard_refresh_avg_ms=68.8, dashboard_refresh_max_ms=580.1, image_paint_max_ms=0.2
+2026-10-21T18:00:28 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.5, dashboard_collect_background_avg_ms=6.8, dashboard_collect_background_max_ms=10.9, dashboard_refresh_avg_ms=12.7, dashboard_refresh_max_ms=21.7, image_paint_max_ms=0.0
+2026-10-21T18:00:38 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=8.4, dashboard_collect_background_avg_ms=8.7, dashboard_collect_background_max_ms=27.9, dashboard_refresh_avg_ms=13.8, dashboard_refresh_max_ms=19.9, image_paint_max_ms=0.0
+2026-10-21T18:00:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T18:00:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:00:48 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=7.9, dashboard_collect_background_avg_ms=50.1, dashboard_collect_background_max_ms=469.6, dashboard_refresh_avg_ms=65.3, dashboard_refresh_max_ms=490.5, preview_callback_interval_avg_ms=1225.1, preview_callback_interval_max_ms=54901.6, image_paint_max_ms=0.2
+2026-10-21T18:00:49 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T18:00:58 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.6, dashboard_collect_background_avg_ms=5.9, dashboard_collect_background_max_ms=10.0, dashboard_refresh_avg_ms=11.3, dashboard_refresh_max_ms=21.0, preview_callback_interval_avg_ms=62.7, preview_callback_interval_max_ms=70.8, image_paint_max_ms=0.1
+2026-10-21T18:01:08 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=11.3, dashboard_refresh_avg_ms=11.7, dashboard_refresh_max_ms=19.9, image_paint_max_ms=0.0
+2026-10-21T18:01:18 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=10.0, dashboard_collect_background_avg_ms=56.4, dashboard_collect_background_max_ms=510.2, dashboard_refresh_avg_ms=61.2, dashboard_refresh_max_ms=520.4, image_paint_max_ms=0.1
+2026-10-21T18:01:28 PERF GUI stages: dashboard_apply_avg_ms=8.6, dashboard_apply_max_ms=11.2, dashboard_collect_background_avg_ms=10.1, dashboard_collect_background_max_ms=28.9, dashboard_refresh_avg_ms=15.4, dashboard_refresh_max_ms=21.7, image_paint_max_ms=0.0
+2026-10-21T18:01:38 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=9.2, dashboard_refresh_avg_ms=12.0, dashboard_refresh_max_ms=18.4, image_paint_max_ms=0.0
+2026-10-21T18:01:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T18:01:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:01:48 PERF GUI stages: dashboard_apply_avg_ms=8.5, dashboard_apply_max_ms=19.9, dashboard_collect_background_avg_ms=59.3, dashboard_collect_background_max_ms=569.6, dashboard_refresh_avg_ms=68.5, dashboard_refresh_max_ms=581.1, preview_callback_interval_avg_ms=1224.7, preview_callback_interval_max_ms=54866.0, image_paint_max_ms=0.3
+2026-10-21T18:01:50 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T18:01:58 PERF GUI stages: dashboard_apply_avg_ms=6.7, dashboard_apply_max_ms=7.5, dashboard_collect_background_avg_ms=5.4, dashboard_collect_background_max_ms=9.7, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=19.0, preview_callback_interval_avg_ms=62.7, preview_callback_interval_max_ms=63.7, image_paint_max_ms=0.4
+2026-10-21T18:02:08 PERF GUI stages: dashboard_apply_avg_ms=6.7, dashboard_apply_max_ms=8.4, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=6.8, dashboard_refresh_avg_ms=9.0, dashboard_refresh_max_ms=12.6, image_paint_max_ms=0.0
+2026-10-21T18:02:18 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.4, dashboard_collect_background_avg_ms=59.5, dashboard_collect_background_max_ms=514.1, dashboard_refresh_avg_ms=65.5, dashboard_refresh_max_ms=526.6, image_paint_max_ms=0.2
+2026-10-21T18:02:28 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=7.2, dashboard_collect_background_max_ms=12.0, dashboard_refresh_avg_ms=14.9, dashboard_refresh_max_ms=22.1, image_paint_max_ms=0.0
+2026-10-21T18:02:38 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=5.1, dashboard_collect_background_max_ms=6.5, dashboard_refresh_avg_ms=8.7, dashboard_refresh_max_ms=11.8, image_paint_max_ms=0.0
+2026-10-21T18:02:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T18:02:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:02:48 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.9, dashboard_collect_background_avg_ms=52.9, dashboard_collect_background_max_ms=510.7, dashboard_refresh_avg_ms=61.3, dashboard_refresh_max_ms=523.0, preview_callback_interval_avg_ms=1222.0, preview_callback_interval_max_ms=54797.0, image_paint_max_ms=0.2
+2026-10-21T18:02:50 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T18:02:58 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=9.3, dashboard_collect_background_avg_ms=5.1, dashboard_collect_background_max_ms=5.8, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=10.7, preview_callback_interval_avg_ms=64.0, preview_callback_interval_max_ms=77.5, image_paint_max_ms=0.1
+2026-10-21T18:03:08 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=8.6, dashboard_collect_background_avg_ms=7.1, dashboard_collect_background_max_ms=23.7, dashboard_refresh_avg_ms=7.6, dashboard_refresh_max_ms=9.3, image_paint_max_ms=0.0
+2026-10-21T18:03:18 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.3, dashboard_collect_background_avg_ms=55.8, dashboard_collect_background_max_ms=502.3, dashboard_refresh_avg_ms=63.3, dashboard_refresh_max_ms=519.7, image_paint_max_ms=0.1
+2026-10-21T18:03:28 PERF GUI stages: dashboard_apply_avg_ms=12.8, dashboard_apply_max_ms=32.7, dashboard_collect_background_avg_ms=10.3, dashboard_collect_background_max_ms=18.2, dashboard_refresh_avg_ms=15.7, dashboard_refresh_max_ms=23.7, image_paint_max_ms=0.0
+2026-10-21T18:03:38 PERF GUI stages: dashboard_apply_avg_ms=8.9, dashboard_apply_max_ms=11.5, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=9.1, dashboard_refresh_avg_ms=10.2, dashboard_refresh_max_ms=15.0, image_paint_max_ms=0.0
+2026-10-21T18:03:44 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T18:03:45 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:03:49 PERF GUI stages: dashboard_apply_avg_ms=9.8, dashboard_apply_max_ms=12.9, dashboard_collect_background_avg_ms=61.2, dashboard_collect_background_max_ms=542.2, dashboard_refresh_avg_ms=65.1, dashboard_refresh_max_ms=553.7, preview_callback_interval_avg_ms=1275.8, preview_callback_interval_max_ms=54796.7, image_paint_max_ms=0.1
+2026-10-21T18:03:50 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T18:03:59 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=8.8, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=25.8, dashboard_refresh_avg_ms=8.6, dashboard_refresh_max_ms=11.1, preview_callback_interval_avg_ms=62.4, preview_callback_interval_max_ms=81.5, image_paint_max_ms=0.2
+2026-10-21T18:04:09 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=10.7, dashboard_collect_background_avg_ms=3.6, dashboard_collect_background_max_ms=4.1, dashboard_refresh_avg_ms=7.4, dashboard_refresh_max_ms=10.2, image_paint_max_ms=0.0
+2026-10-21T18:04:19 PERF GUI stages: dashboard_apply_avg_ms=7.7, dashboard_apply_max_ms=11.1, dashboard_collect_background_avg_ms=52.6, dashboard_collect_background_max_ms=481.1, dashboard_refresh_avg_ms=57.6, dashboard_refresh_max_ms=492.7, image_paint_max_ms=0.2
+2026-10-21T18:04:29 PERF GUI stages: dashboard_apply_avg_ms=6.9, dashboard_apply_max_ms=8.4, dashboard_collect_background_avg_ms=3.5, dashboard_collect_background_max_ms=4.7, dashboard_refresh_avg_ms=7.9, dashboard_refresh_max_ms=9.5, image_paint_max_ms=0.0
+2026-10-21T18:04:39 PERF GUI stages: dashboard_apply_avg_ms=7.5, dashboard_apply_max_ms=10.8, dashboard_collect_background_avg_ms=4.0, dashboard_collect_background_max_ms=5.5, dashboard_refresh_avg_ms=8.2, dashboard_refresh_max_ms=11.0, image_paint_max_ms=0.1
+2026-10-21T18:04:45 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T18:04:46 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:04:49 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=10.3, dashboard_collect_background_avg_ms=49.2, dashboard_collect_background_max_ms=529.6, dashboard_refresh_avg_ms=62.1, dashboard_refresh_max_ms=540.9, preview_callback_interval_avg_ms=1221.7, preview_callback_interval_max_ms=54735.0, image_paint_max_ms=0.3
+2026-10-21T18:04:50 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T18:04:59 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=9.0, dashboard_collect_background_avg_ms=4.3, dashboard_collect_background_max_ms=7.0, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=17.3, preview_callback_interval_avg_ms=63.0, preview_callback_interval_max_ms=106.5, image_paint_max_ms=0.2
+2026-10-21T18:05:09 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=9.7, dashboard_collect_background_avg_ms=4.4, dashboard_collect_background_max_ms=7.2, dashboard_refresh_avg_ms=8.7, dashboard_refresh_max_ms=10.7, image_paint_max_ms=0.0
+2026-10-21T18:05:19 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=9.8, dashboard_collect_background_avg_ms=52.7, dashboard_collect_background_max_ms=486.1, dashboard_refresh_avg_ms=58.0, dashboard_refresh_max_ms=500.8, image_paint_max_ms=0.2
+2026-10-21T18:05:29 PERF GUI stages: dashboard_apply_avg_ms=8.1, dashboard_apply_max_ms=12.4, dashboard_collect_background_avg_ms=4.8, dashboard_collect_background_max_ms=6.4, dashboard_refresh_avg_ms=8.8, dashboard_refresh_max_ms=10.4, image_paint_max_ms=0.2
+2026-10-21T18:05:39 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=9.6, dashboard_collect_background_avg_ms=6.5, dashboard_collect_background_max_ms=21.2, dashboard_refresh_avg_ms=9.8, dashboard_refresh_max_ms=16.8, image_paint_max_ms=0.1
+2026-10-21T18:05:45 Tyre detection: OAK RVC2 384 RGB; CPU decoding and ByteTrack; detection only; full 16:9 view
+2026-10-21T18:05:46 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:05:49 PERF GUI stages: dashboard_apply_avg_ms=7.9, dashboard_apply_max_ms=12.6, dashboard_collect_background_avg_ms=57.3, dashboard_collect_background_max_ms=502.1, dashboard_refresh_avg_ms=74.9, dashboard_refresh_max_ms=513.4, preview_callback_interval_avg_ms=1891.9, preview_callback_interval_max_ms=56112.3, image_paint_max_ms=0.2
+2026-10-21T18:05:51 Counter worker failed:
+Traceback (most recent call last):
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1673, in run
+    source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
+  File "C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\TyreTrack_Production_Monitor.py", line 1172, in __init__
+    self.device = dai.Device(pipeline)
+                  ~~~~~~~~~~^^^^^^^^^^
+RuntimeError: No available devices
+
+2026-10-21T18:05:59 PERF GUI stages: dashboard_apply_avg_ms=6.6, dashboard_apply_max_ms=8.1, dashboard_collect_background_avg_ms=3.9, dashboard_collect_background_max_ms=6.1, dashboard_refresh_avg_ms=9.3, dashboard_refresh_max_ms=13.7, preview_callback_interval_avg_ms=62.9, preview_callback_interval_max_ms=72.4, image_paint_max_ms=0.1
+2026-10-21T18:06:09 PERF GUI stages: dashboard_apply_avg_ms=7.3, dashboard_apply_max_ms=10.4, dashboard_collect_background_avg_ms=4.4, dashboard_collect_background_max_ms=5.5, dashboard_refresh_avg_ms=9.1, dashboard_refresh_max_ms=13.2, image_paint_max_ms=0.2
+2026-10-21T18:06:19 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=9.2, dashboard_collect_background_avg_ms=54.2, dashboard_collect_background_max_ms=487.9, dashboard_refresh_avg_ms=58.6, dashboard_refresh_max_ms=500.7, image_paint_max_ms=0.2
+2026-10-21T18:06:29 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=10.2, dashboard_collect_background_avg_ms=4.1, dashboard_collect_background_max_ms=4.9, dashboard_refresh_avg_ms=8.4, dashboard_refresh_max_ms=12.1, image_paint_max_ms=0.0
+2026-10-21T18:06:39 PERF GUI stages: dashboard_apply_avg_ms=7.4, dashboard_apply_max_ms=11.4, dashboard_collect_background_avg_ms=4.4, dashboard_collect_background_max_ms=6.3, dashboard_refresh_avg_ms=8.3, dashboard_refresh_max_ms=11.0, image_paint_max_ms=0.0
+2026-10-21T18:06:47 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:06:49 PERF GUI stages: dashboard_apply_avg_ms=8.0, dashboard_apply_max_ms=12.8, dashboard_collect_background_avg_ms=60.9, dashboard_collect_background_max_ms=492.4, dashboard_refresh_avg_ms=60.9, dashboard_refresh_max_ms=506.4, image_paint_max_ms=0.1
+2026-10-21T18:06:59 PERF GUI stages: dashboard_apply_avg_ms=7.2, dashboard_apply_max_ms=8.5, dashboard_collect_background_avg_ms=4.1, dashboard_collect_background_max_ms=5.2, dashboard_refresh_avg_ms=9.3, dashboard_refresh_max_ms=23.3, image_paint_max_ms=0.2
+2026-10-21T18:07:09 PERF GUI stages: dashboard_apply_avg_ms=7.1, dashboard_apply_max_ms=8.9, dashboard_collect_background_avg_ms=9.0, dashboard_collect_background_max_ms=36.6, dashboard_refresh_avg_ms=9.7, dashboard_refresh_max_ms=13.6, image_paint_max_ms=0.0
+2026-10-21T18:07:20 PERF GUI stages: dashboard_apply_avg_ms=8.2, dashboard_apply_max_ms=12.0, dashboard_collect_background_avg_ms=53.1, dashboard_collect_background_max_ms=483.9, dashboard_refresh_avg_ms=53.1, dashboard_refresh_max_ms=498.1, image_paint_max_ms=0.1
+2026-10-21T18:07:30 PERF GUI stages: dashboard_apply_avg_ms=7.8, dashboard_apply_max_ms=11.1, dashboard_collect_background_avg_ms=5.2, dashboard_collect_background_max_ms=10.2, dashboard_refresh_avg_ms=9.0, dashboard_refresh_max_ms=12.2, image_paint_max_ms=0.1
+2026-10-21T18:07:40 PERF GUI stages: dashboard_apply_avg_ms=7.0, dashboard_apply_max_ms=9.1, dashboard_collect_background_avg_ms=5.7, dashboard_collect_background_max_ms=10.4, dashboard_refresh_avg_ms=10.3, dashboard_refresh_max_ms=14.5, image_paint_max_ms=0.0
+2026-10-21T18:07:47 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:07:50 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=11.0, dashboard_collect_background_avg_ms=52.2, dashboard_collect_background_max_ms=476.1, dashboard_refresh_avg_ms=59.1, dashboard_refresh_max_ms=495.4, image_paint_max_ms=0.1
+2026-10-21T18:08:00 PERF GUI stages: dashboard_apply_avg_ms=7.6, dashboard_apply_max_ms=10.5, dashboard_collect_background_avg_ms=4.1, dashboard_collect_background_max_ms=5.1, dashboard_refresh_avg_ms=8.9, dashboard_refresh_max_ms=13.1, image_paint_max_ms=0.0
+2026-10-21T18:08:10 PERF GUI stages: dashboard_apply_avg_ms=8.5, dashboard_apply_max_ms=9.7, dashboard_collect_background_avg_ms=7.0, dashboard_collect_background_max_ms=17.8, dashboard_refresh_avg_ms=9.4, dashboard_refresh_max_ms=18.0, image_paint_max_ms=0.1
+2026-10-21T18:08:20 PERF GUI stages: dashboard_apply_avg_ms=9.4, dashboard_apply_max_ms=12.9, dashboard_collect_background_avg_ms=86.3, dashboard_collect_background_max_ms=730.8, dashboard_refresh_avg_ms=83.5, dashboard_refresh_max_ms=742.2, image_paint_max_ms=0.1
+2026-10-21T18:08:30 PERF GUI stages: dashboard_apply_avg_ms=8.6, dashboard_apply_max_ms=10.9, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=14.9, dashboard_refresh_avg_ms=13.0, dashboard_refresh_max_ms=31.8, image_paint_max_ms=0.0
+2026-10-21T18:08:41 PERF GUI stages: dashboard_apply_avg_ms=9.5, dashboard_apply_max_ms=16.1, dashboard_collect_background_avg_ms=8.1, dashboard_collect_background_max_ms=17.9, dashboard_refresh_avg_ms=13.7, dashboard_refresh_max_ms=29.1, image_paint_max_ms=0.0
+2026-10-21T18:08:47 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:08:51 PERF GUI stages: dashboard_apply_avg_ms=8.5, dashboard_apply_max_ms=13.7, dashboard_collect_background_avg_ms=79.0, dashboard_collect_background_max_ms=682.7, dashboard_refresh_avg_ms=85.2, dashboard_refresh_max_ms=693.9, image_paint_max_ms=0.3
+2026-10-21T18:09:01 PERF GUI stages: dashboard_apply_avg_ms=8.5, dashboard_apply_max_ms=12.5, dashboard_collect_background_avg_ms=9.2, dashboard_collect_background_max_ms=23.6, dashboard_refresh_avg_ms=13.9, dashboard_refresh_max_ms=24.3, frame_prepare_avg_ms=189.4, frame_prepare_max_ms=189.4, image_paint_max_ms=0.0
+2026-10-21T18:09:11 PERF GUI stages: dashboard_apply_avg_ms=11.8, dashboard_apply_max_ms=15.2, dashboard_collect_background_avg_ms=6.6, dashboard_collect_background_max_ms=8.3, dashboard_refresh_avg_ms=13.6, dashboard_refresh_max_ms=15.2, frame_prepare_avg_ms=0.6, frame_prepare_max_ms=1.2, image_paint_max_ms=0.8
+2026-10-21T18:09:21 PERF GUI stages: dashboard_apply_avg_ms=15.8, dashboard_apply_max_ms=19.1, dashboard_collect_background_avg_ms=157.2, dashboard_collect_background_max_ms=1194.7, dashboard_refresh_avg_ms=166.1, dashboard_refresh_max_ms=1206.1, frame_prepare_avg_ms=0.8, frame_prepare_max_ms=2.2, image_paint_max_ms=0.7
+2026-10-21T18:09:31 PERF GUI stages: dashboard_apply_avg_ms=16.5, dashboard_apply_max_ms=27.9, dashboard_collect_background_avg_ms=10.8, dashboard_collect_background_max_ms=28.1, dashboard_refresh_avg_ms=21.7, dashboard_refresh_max_ms=54.1, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=1.5, image_paint_max_ms=0.3
+2026-10-21T18:09:41 PERF GUI stages: dashboard_apply_avg_ms=14.7, dashboard_apply_max_ms=23.1, dashboard_collect_background_avg_ms=9.0, dashboard_collect_background_max_ms=19.6, dashboard_refresh_avg_ms=14.0, dashboard_refresh_max_ms=17.6, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=1.5, image_paint_max_ms=1.5
+2026-10-21T18:09:47 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:09:52 PERF GUI stages: dashboard_apply_avg_ms=17.7, dashboard_apply_max_ms=34.0, dashboard_collect_background_avg_ms=105.3, dashboard_collect_background_max_ms=937.2, dashboard_refresh_avg_ms=108.3, dashboard_refresh_max_ms=938.8, frame_prepare_avg_ms=0.8, frame_prepare_max_ms=3.3, image_paint_max_ms=0.3
+2026-10-21T18:10:02 PERF GUI stages: dashboard_apply_avg_ms=13.1, dashboard_apply_max_ms=17.6, dashboard_collect_background_avg_ms=6.2, dashboard_collect_background_max_ms=9.2, dashboard_refresh_avg_ms=13.3, dashboard_refresh_max_ms=19.5, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=1.5, image_paint_max_ms=0.5
+2026-10-21T18:10:12 PERF GUI stages: dashboard_apply_avg_ms=13.8, dashboard_apply_max_ms=17.6, dashboard_collect_background_avg_ms=8.5, dashboard_collect_background_max_ms=21.0, dashboard_refresh_avg_ms=15.3, dashboard_refresh_max_ms=18.7, frame_prepare_avg_ms=0.6, frame_prepare_max_ms=1.7, image_paint_max_ms=1.5
+2026-10-21T18:10:22 PERF GUI stages: dashboard_apply_avg_ms=13.3, dashboard_apply_max_ms=16.0, dashboard_collect_background_avg_ms=90.1, dashboard_collect_background_max_ms=836.1, dashboard_refresh_avg_ms=97.0, dashboard_refresh_max_ms=847.4, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=1.5, image_paint_max_ms=1.7
+2026-10-21T18:10:32 PERF GUI stages: dashboard_apply_avg_ms=12.2, dashboard_apply_max_ms=15.9, dashboard_collect_background_avg_ms=10.8, dashboard_collect_background_max_ms=53.3, dashboard_refresh_avg_ms=14.3, dashboard_refresh_max_ms=20.5, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=2.0, image_paint_max_ms=0.3
+2026-10-21T18:10:42 PERF GUI stages: dashboard_apply_avg_ms=11.7, dashboard_apply_max_ms=14.2, dashboard_collect_background_avg_ms=9.7, dashboard_collect_background_max_ms=34.0, dashboard_refresh_avg_ms=14.5, dashboard_refresh_max_ms=21.6, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=1.8, image_paint_max_ms=0.5
+2026-10-21T18:10:47 Email waiting for configuration: C:\Users\admin\Downloads\TyreTrack_Truck_Dashboard_Source_Fixed\data\private_config\email_config.ini
+2026-10-21T18:10:52 PERF GUI stages: dashboard_apply_avg_ms=12.9, dashboard_apply_max_ms=16.3, dashboard_collect_background_avg_ms=93.5, dashboard_collect_background_max_ms=870.6, dashboard_refresh_avg_ms=94.1, dashboard_refresh_max_ms=882.5, frame_prepare_avg_ms=0.6, frame_prepare_max_ms=1.4, image_paint_max_ms=0.2
+2026-10-21T18:11:02 PERF GUI stages: dashboard_apply_avg_ms=13.5, dashboard_apply_max_ms=17.4, dashboard_collect_background_avg_ms=6.3, dashboard_collect_background_max_ms=8.0, dashboard_refresh_avg_ms=14.4, dashboard_refresh_max_ms=16.5, frame_prepare_avg_ms=0.6, frame_prepare_max_ms=1.3, image_paint_max_ms=2.3
+2026-10-21T18:11:12 PERF GUI stages: dashboard_apply_avg_ms=12.1, dashboard_apply_max_ms=13.3, dashboard_collect_background_avg_ms=6.7, dashboard_collect_background_max_ms=11.3, dashboard_refresh_avg_ms=14.5, dashboard_refresh_max_ms=17.6, frame_prepare_avg_ms=0.6, frame_prepare_max_ms=1.0, image_paint_max_ms=2.7
+2026-10-21T18:11:23 PERF GUI stages: dashboard_apply_avg_ms=13.1, dashboard_apply_max_ms=13.9, dashboard_collect_background_avg_ms=7.2, dashboard_collect_background_max_ms=14.4, dashboard_refresh_avg_ms=14.5, dashboard_refresh_max_ms=17.3, frame_prepare_avg_ms=0.6, frame_prepare_max_ms=1.1, image_paint_max_ms=0.6
+2026-10-21T18:11:33 PERF GUI stages: dashboard_apply_avg_ms=13.2, dashboard_apply_max_ms=18.5, dashboard_collect_background_avg_ms=264.6, dashboard_collect_background_max_ms=2335.4, dashboard_refresh_avg_ms=273.2, dashboard_refresh_max_ms=2347.4, frame_prepare_avg_ms=0.7, frame_prepare_max_ms=1.4, image_paint_max_ms=0.3

@@ -1,0 +1,31 @@
+TYRETRACK TRUCK DASHBOARD TRIAL
+
+This is a Windows-build-ready SOURCE package, not a precompiled executable.
+Upload all files, including .github/workflows/windows-portable.yml, into the repository root.
+Run Actions > TyreTrack Truck Dashboard Trial. The workflow builds the Windows portable application.
+Keep the current working application for rollback. Back up the data and reporting folders before trialling a replacement.
+No site data, passwords or reports are included in this ZIP.
+
+DASHBOARD
+Left dial: recent flow, tyres per minute. The dial is 0-20; the numeric reading remains exact above 20.
+Centre: this hour, tyres needed to beat today's best completed hour, and progress.
+Right dial: best completed hour today, plus current-hour progress. No target is inferred before a completed hour.
+Below: Today, Best Day, Passenger, SUV and a compact live OAK camera.
+The secondary strip preserves averages, all-time total, no-count status and shift status.
+All 13 production periods remain visible, including 17:00-17:05.
+
+CONTROLS
+Resume/Pause, Admin Settings, Upload video test, Adjust lines and Fullscreen remain available.
+Admin opens the same password-protected settings pages in a separate window.
+Adjust lines opens the actual camera widget in a larger window; lock to return.
+The official supplied Tyrecycle logo is included unchanged in the header and Windows resources.
+
+PRESERVED OPERATION
+Weekday counting remains 05:00-17:05 Brisbane; the OAK remains connected outside the count window.
+Counting modes, geometry, tracker, models, recording, email/CSV and supervisor workflows are preserved.
+Foreign detection remains off by default. Existing celebration audio and record triggers remain included.
+This UI does not add any camera inference workload. Gauge faces and the metal background are cached.
+
+VALIDATION
+See TRUCK_VALIDATION.json and EXPERIMENT_TEST_LOG.txt. Windows packaging, physical OAK
+performance and audio still need the Australian PC check. No new live counting-accuracy claim is made.

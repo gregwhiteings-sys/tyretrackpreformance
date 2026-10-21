@@ -1,59 +1,35 @@
 {
-  "build": "TyreTrack Visible Units / Scrolling Hour Target",
-  "source_checks": "passed",
-  "test_groups": 28,
-  "video_upload_test_section": true,
-  "onscreen_test_preview": true,
-  "adjustable_connected_bounds": true,
-  "adjustable_horizontal_span": true,
-  "sound_choices": 7,
-  "comparison_passed": true,
-  "speaker_playback_verified": false,
-  "zigzag_unit_tests": 11,
-  "physical_oak_tested": false,
-  "windows_executable_built": false,
-  "windows_packaged_smoke_tested": false,
-  "local_runtime_versions": {
-    "torch": "2.14.1+cpu",
-    "torchvision": "0.29.1+cpu",
-    "ultralytics": "8.4.174",
-    "depthai": "2.30.0.0",
-    "PyQt5": "5.15.11",
-    "numpy": "2.5.4",
-    "av": "19.0.1"
-  },
-  "windows_pinned_runtime": "Preserved requirements-windows.txt; Windows workflow will run checks on those versions.",
-  "offline_replay_smoke": {
-    "frames": 45,
-    "fixture": "test_data/oak_h264_sample.h264",
-    "production_writes": false,
-    "accuracy_verified": false
-  },
-  "celebration_audio": "Three existing clips and four user-supplied MP3 clips converted to level-adjusted PCM WAV with fades and an eight-second maximum.",
+  "build": "TyreTrack Truck Dashboard Trial",
+  "regression_groups": 28,
+  "regression_status": "passed locally",
+  "native_qt_instruments": true,
+  "cached_static_gauge_faces": true,
+  "official_logo": "User-supplied Tyrecycle logo, bytes preserved",
+  "preview_uses_sample_totals": true,
+  "physical_camera_tested": false,
+  "windows_exe_built_here": false,
+  "windows_workflow": ".github/workflows/windows-portable.yml",
+  "source_runtime_resource_check": "passed",
+  "layout_sizes": [
+    "1280x720",
+    "1366x768",
+    "1450x850"
+  ],
+  "qt_scaling_150_percent": "passed",
+  "preserved": [
+    "CounterWorker",
+    "OakSource",
+    "three_line.py",
+    "log_count",
+    "production_snapshot",
+    "hourly/daily email reporting",
+    "OAK pipeline resources",
+    "recording modules",
+    "Windows pins"
+  ],
   "limitations": [
-    "Long occlusions, tracker resets or camera reconnects may still split tyre identities.",
-    "No independent real-conveyor accuracy or live performance measurement completed."
-  ],
-  "random_celebrations": true,
-  "immediate_sound_repeats": false,
-  "daily_record_celebration": "Once per date, strictly exceeds best prior production day; persisted across restart",
-  "statistics_focused_layout": true,
-  "follow_up_validation": "Visual-only change: UI sizes and 150% Qt scaling, async snapshot application, source compatibility, on-screen preview, record triggers and audio resources passed. Previous full 28-group run retained above; Windows workflow remains required.",
-  "hourly_dashboard_blocks": 13,
-  "enlarged_hour_headings": true,
-  "automatic_audio_retry": true,
-  "celebration_mute_indicator": true,
-  "tyre_units_on_today_hour_best": true,
-  "larger_class_totals": true,
-  "scrolling_hour_target": true,
-  "latest_targeted_checks": [
-    "ui",
-    "scaled",
-    "async",
-    "compatibility",
-    "preview",
-    "records",
-    "audio"
-  ],
-  "full_suite_rerun_for_this_visual_change": false
+    "Windows workflow must build and test the packaged EXE.",
+    "Gauge performance and physical camera/audio need site verification.",
+    "This dashboard change does not establish a new counting-accuracy result."
+  ]
 }
