@@ -2040,6 +2040,63 @@ class CounterWorker(QThread):
             self.finished_clean.emit()
 
 
+def tyre_total_text(value):
+    """Visible units without making long totals overflow their cards."""
+    return f'{int(value):,} <span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
+
+
+class ScrollingRecordLabel(QLabel):
+    """A small text-only marquee; no video rescaling or database work."""
+    def __init__(self, text="", parent=None):
+        super().__init__(text,parent)
+        self._offset=0.0
+        self._last_step=time.monotonic()
+        self._motion=QTimer(self)
+        self._motion.setInterval(50)
+        self._motion.timeout.connect(self.advance_message)
+        self.setFixedHeight(58)
+        self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+        self.setMinimumWidth(0)
+        self.setToolTip(text)
+        self.setAccessibleName(text)
+
+    def setText(self, text):
+        if text==self.text():return
+        super().setText(text)
+        self.setToolTip(text)
+        self.setAccessibleName(text)
+        self.update()
+
+    def showEvent(self,event):
+        self._last_step=time.monotonic()
+        self._motion.start()
+        super().showEvent(event)
+
+    def hideEvent(self,event):
+        self._motion.stop()
+        super().hideEvent(event)
+
+    def advance_message(self):
+        now=time.monotonic();elapsed=min(.1,now-self._last_step);self._last_step=now
+        if not self.isVisible() or self.window().isMinimized():return
+        span=max(self.fontMetrics().horizontalAdvance(self.text())+90,self.width()+90)
+        self._offset=(self._offset+36*elapsed)%max(span,1)
+        self.update()
+
+    def paintEvent(self,event):
+        painter=QPainter(self)
+        painter.setRenderHint(QPainter.TextAntialiasing)
+        painter.fillRect(self.rect(),QColor("#0b2631"))
+        painter.setPen(QColor("#55f1d7"))
+        painter.setFont(self.font())
+        fm=painter.fontMetrics()
+        span=max(fm.horizontalAdvance(self.text())+90,self.width()+90)
+        x=round(12-self._offset);baseline=(self.height()-fm.height())//2+fm.ascent()
+        painter.setClipRect(self.rect().adjusted(8,0,-8,0))
+        painter.drawText(x,baseline,self.text())
+        painter.drawText(x+span,baseline,self.text())
+
+
 class VideoLabel(QLabel):
     line_dragged = pyqtSignal(float, int, float)
     bounds_dragged = pyqtSignal(float,float)
@@ -2502,13 +2559,13 @@ class Main(QMainWindow):
         self.passenger_lbl.setToolTip("Passenger tyres in the current session; resets with SESSION.")
         self.suv_lbl.setToolTip("SUV / 4x4 tyres in the current session; resets with SESSION.")
         self.truck_lbl = QLabel("0")  # Reserved for future truck classification.
-        self.session_lbl = QLabel("0")
+        self.session_lbl = QLabel(tyre_total_text(0))
         self.no_count_lbl = QLabel("0")
         self.flow_lbl = QLabel("0.0")
         self.gap_lbl = QLabel("0 min")
         self.production_status_lbl = QLabel("WAITING")
-        self.hour_lbl = QLabel("0")
-        self.day_lbl = QLabel("0")
+        self.hour_lbl = QLabel(tyre_total_text(0))
+        self.day_lbl = QLabel(tyre_total_text(0))
         self.month_lbl = QLabel("0")
         self.total_lbl = QLabel("0")
 
@@ -2559,15 +2616,17 @@ class Main(QMainWindow):
             card.findChild(QLabel,"metricName").setStyleSheet("color:#f3f7ff;font-size:18px;font-weight:900;letter-spacing:1px;")
             label.setStyleSheet("font:900 54px 'Consolas';color:#c2b0ff;")
         counters_layout.addLayout(grid)
-        self.record_progress=QLabel("Build the next best hour")
-        self.record_progress.setStyleSheet("color:#40ead7;font:700 16px 'Segoe UI';")
-        self.record_progress.setWordWrap(True)
+        self.record_progress=ScrollingRecordLabel("Build the next best hour")
+        self.record_progress.setStyleSheet("color:#55f1d7;font:800 24px 'Segoe UI';")
         counters_layout.addWidget(self.record_progress)
         flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#40ead7")
         flow_card.setFixedHeight(57);counters_layout.addWidget(flow_card)
         classes=QHBoxLayout();classes.setSpacing(5)
         for name,label,colour in (("PASSENGER",self.passenger_lbl,"#38D996"),("SUV / 4X4",self.suv_lbl,"#42B7FF")):
-            card=metric_card(name,label,colour);card.setFixedHeight(55);classes.addWidget(card)
+            card=metric_card(name,label,colour);card.setFixedHeight(76)
+            label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:12px;font-weight:800;")
+            classes.addWidget(card)
         counters_layout.addLayout(classes)
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
@@ -4597,7 +4656,7 @@ class Main(QMainWindow):
         flow = max((slot['count'] / self._slot_minutes(slot)
                     for slot in completed_slots), default=0.0)
         self.production_flow_best.setText(f"{flow:.2f} tyres per min")
-        self.session_lbl.setText(str(best['count'] if best else 0))
+        self.session_lbl.setText(tyre_total_text(best['count'] if best else 0))
         if best:
             if test_mode:
                 a = 5 * 3600 + best['start']; b = 5 * 3600 + best['end']
@@ -4702,8 +4761,8 @@ class Main(QMainWindow):
                 gaps.append(trailing)
             types = worker.session_type_counts
             # Worker commits before emitting the counted signal, so session totals agree.
-            self.hour_lbl.setText(str(this_hour))
-            self.day_lbl.setText(str(len(events)))
+            self.hour_lbl.setText(tyre_total_text(this_hour))
+            self.day_lbl.setText(tyre_total_text(len(events)))
             self.total_lbl.setText(str(len(events)))
             completed = [sum(i*3600 <= t < min((i+1)*3600,43500) for t in events)
                          for i in range(13) if elapsed >= min((i+1)*3600,43500)]
@@ -4724,8 +4783,8 @@ class Main(QMainWindow):
         else:
             if self._dashboard_cache is None: return
             metrics = self._dashboard_cache['metrics']
-            self.hour_lbl.setText(str(metrics["current_hour"]))
-            self.day_lbl.setText(str(metrics["daily"]))
+            self.hour_lbl.setText(tyre_total_text(metrics["current_hour"]))
+            self.day_lbl.setText(tyre_total_text(metrics["daily"]))
             self.total_lbl.setText(str(metrics["all_time"]))
             # Best-hour count is refreshed from completed slots below.
             stamps = metrics["alert_times"]

@@ -264,3 +264,56 @@ This plugin does not support propagateSizeHints()
 This plugin does not support propagateSizeHints()
 PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines
 PASS: administration pages fit scroll viewport
+
+TARGETED VISIBILITY UPDATE CHECKS
+
+VISIBILITY UPDATE: ui
+[2026-10-21 02:58:39.508] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+PASS: units, larger class totals, scrolling message, accessible full text, hidden-timer suspension
+PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines
+PASS: administration pages fit scroll viewport
+
+VISIBILITY UPDATE: scaled
+[2026-10-21 02:58:38.195] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+PASS: units, larger class totals, scrolling message, accessible full text, hidden-timer suspension
+PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines
+PASS: administration pages fit scroll viewport
+
+VISIBILITY UPDATE: async
+[2026-10-21 02:57:28.203] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: background database snapshot, responsive GUI during slow read, snapshot applied to counters and clean close
+
+VISIBILITY UPDATE: compatibility
+PASS: 35 original source contracts and 16 model/module/dependency files unchanged
+
+VISIBILITY UPDATE: preview
+[2026-10-21 02:58:40.740] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+PASS: 1280px statistics-focused viewport, atomic JPEG/meta preview, actual on-screen frames/progress/count, duplicate-frame suppression, zero production writes
+
+VISIBILITY UPDATE: records
+[2026-10-21 02:58:41.949] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: daily records require a prior day, beat ties, persist across restart, and reset next day
+PASS: first completed hour, late crossings at rollover, daily cutoff, no duplicate records, mute/alarm priority and failed-playback retry
+
+VISIBILITY UPDATE: audio
+[2026-10-21 02:58:43.304] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: valid non-silent PCM audio celebration.wav 8.0 seconds
+PASS: valid non-silent PCM audio celebration_short.wav 3.0 seconds
+PASS: valid non-silent PCM audio celebration_chime.wav 2.2 seconds
+PASS: valid non-silent PCM audio celebration_aussie_1.wav 2.06 seconds
+PASS: valid non-silent PCM audio celebration_aussie_2.wav 8.0 seconds
+PASS: valid non-silent PCM audio celebration_aussie_3.wav 7.67 seconds
+PASS: valid non-silent PCM audio celebration_aussie_4.wav 7.78 seconds
+PASS: selector persistence, selected file/async flags, automatic mute, explicit test, stop, alarm priority and button wiring; physical speaker playback pending

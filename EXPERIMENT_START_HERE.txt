@@ -160,3 +160,9 @@ Automatic audio follows Mute celebrations; preview tests intentionally bypass mu
 The main dashboard displays Celebrations ON/MUTED. Uncheck Mute in Admin > Performance.
 A Windows playback failure is retried up to three times, five seconds apart; pending audio expires after two minutes.
 An operational alarm defers celebration audio. Tests/videos never set production record markers.
+
+VISIBLE UNITS / MOVING TARGET MESSAGE
+Today, This Hour and Best Hour now display tyres next to each total.
+Passenger/SUV class totals are larger. The target message is larger and scrolls gently.
+The text-only animation runs at 20 updates/second and pauses when hidden.
+Hover to read the full stationary message. Counts, reporting and OAK resources are unchanged.

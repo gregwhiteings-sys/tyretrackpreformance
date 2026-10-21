@@ -1,5 +1,5 @@
 {
-  "build": "TyreTrack Hourly Dashboard / Celebration Trigger Fix",
+  "build": "TyreTrack Visible Units / Scrolling Hour Target",
   "source_checks": "passed",
   "test_groups": 28,
   "video_upload_test_section": true,
@@ -38,9 +38,22 @@
   "immediate_sound_repeats": false,
   "daily_record_celebration": "Once per date, strictly exceeds best prior production day; persisted across restart",
   "statistics_focused_layout": true,
-  "follow_up_validation": "28 regression groups passed; expanded rollover/cutoff/retry tests and final visual-style UI checks passed separately. Windows CI and physical automatic audio require site verification.",
+  "follow_up_validation": "Visual-only change: UI sizes and 150% Qt scaling, async snapshot application, source compatibility, on-screen preview, record triggers and audio resources passed. Previous full 28-group run retained above; Windows workflow remains required.",
   "hourly_dashboard_blocks": 13,
   "enlarged_hour_headings": true,
   "automatic_audio_retry": true,
-  "celebration_mute_indicator": true
+  "celebration_mute_indicator": true,
+  "tyre_units_on_today_hour_best": true,
+  "larger_class_totals": true,
+  "scrolling_hour_target": true,
+  "latest_targeted_checks": [
+    "ui",
+    "scaled",
+    "async",
+    "compatibility",
+    "preview",
+    "records",
+    "audio"
+  ],
+  "full_suite_rerun_for_this_visual_change": false
 }

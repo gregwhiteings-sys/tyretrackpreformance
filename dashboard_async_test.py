@@ -26,7 +26,7 @@ with DatabaseTemporaryDirectory() as temp:
   release.set();deadline=time.monotonic()+3
   while window._dashboard_cache is None and time.monotonic()<deadline:qt.processEvents();time.sleep(.005)
   assert window._dashboard_cache is not None
-  assert window.hour_lbl.text()==str(window._dashboard_cache['metrics']['current_hour'])
+  assert window.hour_lbl.text()==m.tyre_total_text(window._dashboard_cache['metrics']['current_hour'])
   assert thread_ids and all(i!=threading.get_ident() for i in thread_ids)
   window.close();qt.processEvents()
  finally:

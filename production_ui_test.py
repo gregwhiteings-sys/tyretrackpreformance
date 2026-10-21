@@ -21,10 +21,20 @@ assert w.line_mode.currentData()=='zigzag' and not w.middle_control.isEnabled()
 w.line_mode.setCurrentIndex(w.line_mode.findData('horizontal'))
 assert w.middle_control.isEnabled()
 w.line_mode.setCurrentIndex(w.line_mode.findData('zigzag'))
+for label,value in ((w.day_lbl,6026),(w.hour_lbl,227),(w.session_lbl,671)):
+ label.setText(m.tyre_total_text(value))
+ assert 'tyres' in label.text()
+w.passenger_lbl.setText('5181');w.suv_lbl.setText('845')
+w.record_progress.setText("445 tyres to beat today's best hour")
+assert '36px' in w.passenger_lbl.styleSheet() and '36px' in w.suv_lbl.styleSheet()
 assert w.line_angle.value()==0 and w.line_length.value()==100
 for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
  for _ in range(5):app.processEvents()
+ for label,value in ((w.day_lbl,6026),(w.hour_lbl,227),(w.session_lbl,671)):
+  label.setText(m.tyre_total_text(value))
+ w.passenger_lbl.setText('5181');w.suv_lbl.setText('845')
+ w.record_progress.setText("445 tyres to beat today's best hour")
  assert w.width()==width,(w.width(),width)
  assert len(w.dashboard_hour_blocks)==13 and w.hourly_strip.isVisible()
  assert w.hourly_strip.mapTo(w,w.hourly_strip.rect().bottomRight()).y()<w.height()
@@ -35,6 +45,13 @@ for width,height in ((1450,850),(1366,768),(1280,720)):
   if control.isVisible():
    at=control.mapTo(w,control.rect().topLeft());assert at.x()>=0 and at.x()+control.width()<=w.width()
  w.grab().save(str(root/f'experiment_dashboard_{width}.png'))
+initial=w.record_progress._offset
+w.record_progress._last_step-=.05;w.record_progress.advance_message()
+assert w.record_progress._offset!=initial
+assert w.record_progress.toolTip()==w.record_progress.text()
+w.record_progress.hide();assert not w.record_progress._motion.isActive()
+w.record_progress.show();assert w.record_progress._motion.isActive()
+print('PASS: units, larger class totals, scrolling message, accessible full text, hidden-timer suspension')
 print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines')
 w.controls_tabs.show();app.processEvents()
 for index in range(w.controls_tabs.count()):
