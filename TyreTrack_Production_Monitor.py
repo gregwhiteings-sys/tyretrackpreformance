@@ -2494,6 +2494,15 @@ class Main(QMainWindow):
 
         return frame, layout
 
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        logo=getattr(self,"dashboard_logo",None)
+        original=getattr(self,"dashboard_logo_original",None)
+        if logo is not None and original is not None:
+            height=105 if self.height()>=820 else 48
+            logo.setFixedSize(232,height+2)
+            logo.setPixmap(original.scaled(224,height,Qt.KeepAspectRatio,Qt.SmoothTransformation))
+
     def build_ui(self):
         root = QWidget()
         self.setCentralWidget(root)
@@ -2526,9 +2535,11 @@ class Main(QMainWindow):
                 logo_label = QLabel()
                 logo_label.setObjectName("tyrecycleLogo")
                 logo_label.setPixmap(logo_pixmap.scaled(
-                    224, 105, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    224, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation
                 ))
-                logo_label.setFixedSize(232, 109)
+                logo_label.setFixedSize(232, 50)
+                self.dashboard_logo=logo_label
+                self.dashboard_logo_original=logo_pixmap
                 logo_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
                 header.addWidget(logo_label)
         header.addLayout(title_column)
