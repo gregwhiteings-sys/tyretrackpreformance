@@ -1,0 +1,14 @@
+{
+  "status": "source_tests_passed",
+  "test_groups": 30,
+  "real_detector_inference": true,
+  "real_segmenter_inference": true,
+  "oak_blob_contract": true,
+  "windows_exe_built": false,
+  "physical_camera_tested": false,
+  "count_accuracy_verified": false,
+  "segmenter_on_oak": false,
+  "mask_centroid_comparison": true,
+  "geometry_tests": 4,
+  "manual_accuracy_verified": false
+}

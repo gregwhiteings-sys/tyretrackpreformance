@@ -1,0 +1,35 @@
+TYRECYCLE DASHBOARD LOGO UPDATE
+Supplied logo included at top left, bundled in Windows EXE.
+GitHub workflow: TyreTrack Dashboard Logo + Mask Test
+Extract ZIP contents into repository root, including .github.
+Run the workflow under Actions and download the portable Windows artifact.
+
+TYRETRACK OAK + SEGMENTER TEST BUILD
+
+This is Windows build source, not a precompiled EXE.
+Use the included .github/workflows/windows-portable.yml to build the portable Windows app.
+Upload the extracted files to your GitHub repository, retaining the .github folder.
+Run the Windows portable workflow and download its portable artifact after checks pass.
+
+Test from a NEW folder. Keep your current working installation for rollback.
+Live OAK mode uses the supplied 384 detector blob, ByteTrack and existing recording.
+Foreign-object trial remains optional. No second tyre network is added to the OAK.
+
+VIDEO TEST:
+Choose / upload a recording. Select Detector for boxes or Segmenter for masks.
+Choose Horizontal to test the three horizontal count lines.
+Enter a full-video hand count if available, then Start video test.
+Watch the preview; wait for COMPLETE and open the annotated test video/results.
+Both models use one ByteTrack stream and the same count logic per test.
+SEGMENTATION COUNT COMPARISON:
+Segmenter now runs independent box-centre and visible-mask-centroid counters on the SAME frames and tracking IDs.
+The video banner shows BOX and MASK totals; red dots are box centres and cyan rings are mask centroids.
+Final results show both totals for each line geometry. point_comparison.json and mask_crossings.csv provide details.
+Missing/invalid masks are skipped and reported; no box fallback is used in mask counts.
+Masks illustrate visible tyre shapes; they do not automatically resolve hidden tyres.
+Compare both tests against a hand count. Video tests do not write production totals.
+Return to live OAK mode when finished.
+
+The detector PT and OAK blob are identical to those supplied inside your source ZIP.
+The segmenter runs on the PC in video tests. It is NOT converted to an OAK blob.
+Physical OAK throughput, Windows EXE execution and counting accuracy require site testing.

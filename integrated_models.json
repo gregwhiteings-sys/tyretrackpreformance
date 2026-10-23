@@ -1,0 +1,5 @@
+{
+  "tyre_detector.pt": "78c4145d104c4d2f0ffdb2495ca1ac4443ff48c46af4c23f148685877b5ba192",
+  "tyre_segmenter.pt": "3274cd4531e55a45d4c69aa052b8ca2f6d334e435682e163fa29c22d84138229",
+  "tyre_detector_oak.blob": "758570aa248f73b16ef0801c636f7449b1a465dccdcbafdab6d2036d5ab15e2e"
+}
