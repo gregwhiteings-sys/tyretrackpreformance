@@ -2042,7 +2042,7 @@ class CounterWorker(QThread):
 
 def tyre_total_text(value):
     """Visible units without making long totals overflow their cards."""
-    return f'{int(value):,}<br><span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
+    return f'{int(value):,} <span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
 
 
 class ScrollingRecordLabel(QLabel):
@@ -2478,8 +2478,6 @@ class Main(QMainWindow):
         self.stop_btn.setText("Pause")
         self.setWindowTitle("TyreTrack · Production Monitor")
         self.apply_2070_theme()
-        from truck_dashboard import install
-        install(self,resource_path)
         self.tick()
 
     def card(self, heading):
@@ -2528,9 +2526,9 @@ class Main(QMainWindow):
                 logo_label = QLabel()
                 logo_label.setObjectName("tyrecycleLogo")
                 logo_label.setPixmap(logo_pixmap.scaled(
-                    136, 52, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    224, 105, Qt.KeepAspectRatio, Qt.SmoothTransformation
                 ))
-                logo_label.setFixedSize(140, 54)
+                logo_label.setFixedSize(232, 109)
                 logo_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
                 header.addWidget(logo_label)
         header.addLayout(title_column)
@@ -3571,6 +3569,10 @@ class Main(QMainWindow):
                 results=json.loads((output/"mode_comparison.json").read_text())["results"]
                 summary += "\n"+"\n".join(f"{dict(horizontal='Horizontal',zigzag='Diagonal',zigzag_reverse='Mirrored diagonal').get(mode,mode)}: {row['final_unique_total']} tyres · difference {row['difference']}" for mode,row in results.items())
                 if self.video_test_cancelled:summary += "\nStopped early: totals cover only the processed section; full-video hand count comparison is invalid."
+            if process.returncode==0 and (output/"point_comparison.json").is_file():
+                import json
+                points=json.loads((output/"point_comparison.json").read_text())["results"]
+                summary += "\nBox / mask-centre comparison:\n"+"\n".join(f"{mode}: box {row['box_total']} / mask {row['mask_total']} tyres" for mode,row in points.items())
             self.simulation_summary.setText(summary)
             if self.video_test_dialog is not None:self.video_test_status.setText(summary)
             self.poll_video_test_preview()
@@ -3617,6 +3619,10 @@ class Main(QMainWindow):
         for label,mode in (("Diagonal","zigzag"),("Mirrored diagonal","zigzag_reverse"),("Horizontal","horizontal")):
             self.video_test_mode.addItem(label,mode)
         layout.addWidget(self.video_test_mode)
+        self.video_test_model=QComboBox()
+        self.video_test_model.addItem("Detector · boxes / OAK comparison", "tyre_detector.pt")
+        self.video_test_model.addItem("Segmenter · compare box vs mask counts (PC)", "tyre_segmenter.pt")
+        layout.addWidget(self.video_test_model)
         self.video_test_hand=QLineEdit();self.video_test_hand.setPlaceholderText("Optional hand count for the complete video")
         layout.addWidget(self.video_test_hand)
         self.video_test_status=QLabel("Ready · no camera required")
@@ -3648,6 +3654,7 @@ class Main(QMainWindow):
         self._replay_process=None
         self._replay_output=None
         self.video_test_dialog.hide()
+        self._video_test_model_name=self.video_test_model.currentData()
         self._video_test_args=(path,self.video_test_mode.currentData(),raw)
         self._video_test_direction=self.dir_combo.currentText()
         self.video.belt_direction=self._video_test_direction
@@ -3672,6 +3679,8 @@ class Main(QMainWindow):
         if not getattr(sys,"frozen",False):command.append(str(Path(__file__).resolve()))
         command += ["--replay-test","--video",path,"--output",str(output),"--middle",str(self.line_pos.value()/100),
                     "--direction",self._video_test_direction,"--mode",mode,"--compare-modes","--stop-file",str(output/"stop.request"),"--top",str(self.top_line_slider.value()/100),"--bottom",str(self.bottom_line_slider.value()/100),"--left",str(self.left_span_slider.value()/100),"--right",str(self.right_span_slider.value()/100)]
+        selected_model=getattr(self,"_video_test_model_name","tyre_detector.pt")
+        command += ["--model",str(resource_path(selected_model))]
         if hand:command += ["--hand-count",hand]
         try:
             with (output/"replay_log.txt").open("w",encoding="utf-8") as logfile:
@@ -4713,8 +4722,6 @@ class Main(QMainWindow):
             if completed or current:
                 active = index
         self.production_scroll.ensureWidgetVisible(self.production_slots[active])
-        from truck_dashboard import sync
-        sync(self)
 
     def request_dashboard_data(self):
         if not hasattr(self, "_dashboard_loader"):
@@ -4822,8 +4829,6 @@ class Main(QMainWindow):
         if getattr(self, "_last_dashboard_snapshot", 0) + 30 < time.monotonic():
             self._last_dashboard_snapshot = time.monotonic()
             self.grab().save(str(DASHBOARD_SNAPSHOT), "PNG")
-        from truck_dashboard import sync
-        sync(self)
 
     def set_flow_rate(self, rate):
         self.flow_lbl.setText(f"{rate:.1f}")
@@ -4836,15 +4841,11 @@ class Main(QMainWindow):
             self.flow_flash_timer.stop()
             self._flow_flash_red = False
             self.flow_lbl.setStyleSheet("")
-        from truck_dashboard import sync
-        sync(self)
 
     def flash_low_flow(self):
         self._flow_flash_red = not self._flow_flash_red
         self.flow_lbl.setStyleSheet(
             "color:#FF5C68;font-size:22px;font-weight:900;" if self._flow_flash_red else "")
-        from truck_dashboard import sync
-        sync(self)
 
     def reset_session(self):
         if (

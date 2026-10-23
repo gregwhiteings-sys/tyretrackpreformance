@@ -14,7 +14,7 @@ with DatabaseTemporaryDirectory() as folder:
  root=Path(folder);m.DB=root/'production.db';m.init_db()
  w=m.Main();w.clock.stop();w.resize(1280,720);w.show()
  app.processEvents()
- assert w.video.height()>=112 and w.video.width()>=220,(w.video.width(),w.video.height())
+ assert w.video.height()>=360 and w.video.width()>=350,(w.video.width(),w.video.height())
  w.offline_testing=True;w._replay_output=root;w.test_progress.show()
  frame=np.zeros((270,480,3),dtype=np.uint8);frame[:]=(40,60,80)
  cv2.line(frame,(0,210),(479,60),(0,255,255),2)
@@ -30,4 +30,4 @@ with DatabaseTemporaryDirectory() as folder:
  state['frame']=41;state['percent']=51;writer.publish(frame,state,force=True)
  w.poll_video_test_preview();assert w.test_progress.value()==510
  w.close()
-print('PASS: 1280px truck dashboard camera viewport, atomic JPEG/meta preview, actual on-screen frames/progress/count, duplicate-frame suppression, zero production writes')
+print('PASS: 1280px statistics-focused viewport, atomic JPEG/meta preview, actual on-screen frames/progress/count, duplicate-frame suppression, zero production writes')
