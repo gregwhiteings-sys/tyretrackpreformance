@@ -15,11 +15,14 @@ with DatabaseTemporaryDirectory() as folder:
  assert w.video_test_dialog.isVisible()
  video=root/'recording.mp4';video.write_bytes(b'fixture placeholder; subprocess is mocked')
  w.video_test_file.setText(str(video));w.video_test_hand.setText('12')
+ assert w.video_test_model.count()==2
+ w.video_test_model.setCurrentIndex(1)
  process=Mock();process.pid=42;process.poll.return_value=None
  with patch('subprocess.Popen',return_value=process) as launch:
   w.start_video_test()
   assert w.offline_testing and not w.video_test_pending
   command=launch.call_args.args[0]
+  assert command[command.index('--model')+1]==str(m.resource_path('tyre_segmenter.pt'))
   assert '--replay-test' in command and '--compare-modes' in command and '--stop-file' in command
   assert command[command.index('--hand-count')+1]=='12'
   assert command[command.index('--video')+1]==str(video)
