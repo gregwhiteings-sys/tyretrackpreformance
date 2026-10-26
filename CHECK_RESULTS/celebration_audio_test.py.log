@@ -1,4 +1,4 @@
-[2026-10-26 08:04:48.892] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+[2026-10-26 08:49:09.116] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
 QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
 PASS: valid non-silent PCM audio celebration_sounds/ao_theme.wav 3.61 seconds
 PASS: valid non-silent PCM audio celebration_sounds/rage_credits.wav 34.03 seconds
@@ -10,4 +10,5 @@ PASS: valid non-silent PCM audio celebration_sounds/crowd_storegraphic.wav 15.07
 PASS: valid non-silent PCM audio celebration_sounds/crowd_hill.wav 51.98 seconds
 PASS: valid non-silent PCM audio celebration_sounds/crowd_dragon.wav 4.44 seconds
 PASS: valid non-silent PCM audio celebration_sounds/crowd_mykelu.wav 5.11 seconds
+PASS: Windows path equivalence and exception-path window/reader shutdown before SQLite temp cleanup
 PASS: selector persistence, selected file/async flags, automatic mute, explicit test, stop, alarm priority and button wiring; physical speaker playback pending

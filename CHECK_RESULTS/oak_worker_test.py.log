@@ -1,3 +1,3 @@
-[2026-10-26 08:05:12.323] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+[2026-10-26 08:49:31.194] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
 PASS: actual ByteTrack worker counts on red-dot centre crossing, not box bottom
 PASS: actual OAK worker bypasses CPU YOLO, tracks packets, counts three-line crossing once and reconciles Passenger total

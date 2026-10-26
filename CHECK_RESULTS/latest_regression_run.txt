@@ -1,0 +1,282 @@
+
+=== START tyre_weight_test.py ===
+[2026-10-26 08:49:07.598] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+PASS: passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU; sum/aliases/unknown exclusions; real count+kg labels and minimum video height at 1280,1366,1450 in Fusion/Windows styles; isolated test labels
+
+=== END tyre_weight_test.py: exit=0, elapsed=0.7s ===
+
+=== START preview_performance_test.py ===
+[2026-10-26 08:49:08.155] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: four real OAK graphs; only live branch 320x180; original AI and recording preserved; reverse-patch hash; responsive Qt timer during blocked PNG encoding; coalesced atomic output
+
+=== END preview_performance_test.py: exit=0, elapsed=0.5s ===
+
+=== START startup_support_test.py ===
+PASS: current-user sign-in shortcut contract, removal, executable path, build/test bypass, real Qt duplicate launch exclusion and lock release; actual Windows sign-in pending
+
+=== END startup_support_test.py: exit=0, elapsed=0.1s ===
+
+=== START celebration_shuffle_test.py ===
+....
+----------------------------------------------------------------------
+Ran 4 tests in 0.002s
+
+OK
+
+=== END celebration_shuffle_test.py: exit=0, elapsed=0.0s ===
+
+=== START compare_builds_test.py ===
+PASS: original source contracts and model/dependency integrity; exact isolated preview resize patch verified against original pipeline hash
+
+=== END compare_builds_test.py: exit=0, elapsed=0.2s ===
+
+=== START celebration_audio_test.py ===
+[2026-10-26 08:49:09.116] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: valid non-silent PCM audio celebration_sounds/ao_theme.wav 3.61 seconds
+PASS: valid non-silent PCM audio celebration_sounds/rage_credits.wav 34.03 seconds
+PASS: valid non-silent PCM audio celebration_sounds/enough.wav 1.61 seconds
+PASS: valid non-silent PCM audio celebration_sounds/hard.wav 2.63 seconds
+PASS: valid non-silent PCM audio celebration_sounds/australia.wav 7.81 seconds
+PASS: valid non-silent PCM audio celebration_sounds/australia_ins.wav 24.22 seconds
+PASS: valid non-silent PCM audio celebration_sounds/crowd_storegraphic.wav 15.07 seconds
+PASS: valid non-silent PCM audio celebration_sounds/crowd_hill.wav 51.98 seconds
+PASS: valid non-silent PCM audio celebration_sounds/crowd_dragon.wav 4.44 seconds
+PASS: valid non-silent PCM audio celebration_sounds/crowd_mykelu.wav 5.11 seconds
+PASS: Windows path equivalence and exception-path window/reader shutdown before SQLite temp cleanup
+PASS: selector persistence, selected file/async flags, automatic mute, explicit test, stop, alarm priority and button wiring; physical speaker playback pending
+
+=== END celebration_audio_test.py: exit=0, elapsed=1.2s ===
+
+=== START database_upgrade_test.py ===
+[2026-10-26 08:49:10.328] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: existing history IDs/values and site state preserved through repeat schema upgrade; additive columns/indexes only
+
+=== END database_upgrade_test.py: exit=0, elapsed=0.6s ===
+
+=== START line_span_test.py ===
+......
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
+
+=== END line_span_test.py: exit=0, elapsed=0.0s ===
+
+=== START adjustable_bounds_test.py ===
+.....
+----------------------------------------------------------------------
+Ran 5 tests in 0.000s
+
+OK
+[2026-10-26 08:49:10.972] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+PASS: real on-screen top-line drag, sliders, connected geometry and live replay control request
+
+=== END adjustable_bounds_test.py: exit=0, elapsed=0.7s ===
+
+=== START video_preview_integration_test.py ===
+[2026-10-26 08:49:11.644] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+PASS: actual child inference, 45-frame video, dashboard preview, 100% completion, three-mode results, zero production writes
+
+=== END video_preview_integration_test.py: exit=0, elapsed=4.9s ===
+
+=== START onscreen_preview_test.py ===
+[2026-10-26 08:49:16.590] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+This plugin does not support propagateSizeHints()
+PASS: 1280px statistics-focused viewport, atomic JPEG/meta preview, actual on-screen frames/progress/count, duplicate-frame suppression, zero production writes
+
+=== END onscreen_preview_test.py: exit=0, elapsed=0.6s ===
+
+=== START video_test_ui_test.py ===
+[2026-10-26 08:49:17.191] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+PASS: camera-free video selection, start/stop, all-mode comparison, reconnect suppression, result display and zero production writes
+
+=== END video_test_ui_test.py: exit=0, elapsed=0.6s ===
+
+=== START zigzag_test.py ===
+...........
+----------------------------------------------------------------------
+Ran 11 tests in 0.002s
+
+OK
+
+=== END zigzag_test.py: exit=0, elapsed=0.0s ===
+
+=== START three_line_test.py ===
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.001s
+
+OK
+
+=== END three_line_test.py: exit=0, elapsed=0.0s ===
+
+=== START production_schedule_test.py ===
+PASS: weekday count boundaries, weekend gate, all-hours camera connection, retry throttle, no scheduled camera disconnect
+
+=== END production_schedule_test.py: exit=0, elapsed=0.1s ===
+
+=== START schedule_metrics_test.py ===
+PASS: best daily excludes tests and out-of-shift counts; alert timestamp at 05:10
+PASS: 04:59:59 / 05:00 / 17:04:59 / 17:05 Brisbane boundaries
+
+=== END schedule_metrics_test.py: exit=0, elapsed=0.1s ===
+
+=== START production_ui_test.py ===
+[2026-10-26 08:49:18.223] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+PASS: units, larger class totals, scrolling message, accessible full text, hidden-timer suspension
+PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines
+This plugin does not support propagateSizeHints()
+PASS: administration pages fit scroll viewport
+
+=== END production_ui_test.py: exit=0, elapsed=0.7s ===
+
+=== START celebration_test.py ===
+[2026-10-26 08:49:18.891] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: daily records require a prior day, beat ties, persist across restart, and reset next day
+PASS: first completed hour, late crossings at rollover, daily cutoff, no duplicate records, mute/alarm priority and failed-playback retry
+
+=== END celebration_test.py: exit=0, elapsed=0.6s ===
+
+=== START logic_test_isolation_test.py ===
+[2026-10-26 08:49:20.468] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: independent shadow count; production gate False production writes 0
+PASS: independent shadow count; production gate True production writes 1
+PASS: exported hand-count comparison and separate test totals
+
+=== END logic_test_isolation_test.py: exit=0, elapsed=1.7s ===
+
+=== START no_count_replies_test.py ===
+..
+----------------------------------------------------------------------
+Ran 2 tests in 0.010s
+
+OK
+
+=== END no_count_replies_test.py: exit=0, elapsed=0.1s ===
+
+=== START oak_foreign_worker_test.py ===
+[2026-10-26 08:49:22.244] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: real OAK counter worker uses compiled foreign outputs without CPU YOLO; each class triggers once; OAK ignores PC-only frame interval
+PASS: actual GUI reset denies unauthenticated reset; authenticated reset persists cleared latch
+
+=== END oak_foreign_worker_test.py: exit=0, elapsed=1.7s ===
+
+=== START oak_integrity_test.py ===
+[2026-10-26 08:49:22.828] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: LF and Windows CRLF metadata accepted; actual JSON changes and binary corruption rejected
+
+=== END oak_integrity_test.py: exit=0, elapsed=0.5s ===
+
+=== START oak_rvc2_test.py ===
+[2026-10-26 08:49:23.359] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: detection-only actual compiled contracts; four pipeline combinations; 384 RGB tyre/416 BGR foreign; full view; NMS; no masks; ByteTrack continuity; both foreign alarm classes
+
+=== END oak_rvc2_test.py: exit=0, elapsed=1.8s ===
+
+=== START oak_fov_test.py ===
+[2026-10-26 08:49:25.114] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: recording False sensor 1920x1080; ISP/video (1920, 1080) preview 480x270; no ISP-to-video crop
+PASS: recording True sensor 1920x1080; ISP/video (640, 360) preview 480x270; no ISP-to-video crop
+
+=== END oak_fov_test.py: exit=0, elapsed=0.5s ===
+
+=== START oak_recording_test.py ===
+OAK recording started: /tmp/tmpl_csppox/2026-10-16/OAK_RGB_20261016_050000_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpl_csppox/2026-10-16/OAK_RGB_20261016_050000_000000.mp4; frames=15; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmpl_csppox/2026-10-16/OAK_RGB_20261016_050001_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpl_csppox/2026-10-16/OAK_RGB_20261016_050001_000000.mp4; frames=15; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmpl_csppox/2026-10-16/OAK_RGB_20261016_050002_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpl_csppox/2026-10-16/OAK_RGB_20261016_050002_000000.mp4; frames=15; stream-copy only, no PC encoding
+PASS: keyframe-aligned segments, 45 decoded frames, correct dimensions and increasing timestamps
+OAK recording started: /tmp/tmpm8n6_6o4/2026-10-16/OAK_RGB_20261016_050000_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK H264 recording packet gap; closing segment and waiting for keyframe
+OAK recording closed: /tmp/tmpm8n6_6o4/2026-10-16/OAK_RGB_20261016_050000_000000.mp4; frames=7; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmpm8n6_6o4/2026-10-16/OAK_RGB_20261016_050001_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpm8n6_6o4/2026-10-16/OAK_RGB_20261016_050001_000000.mp4; frames=30; stream-copy only, no PC encoding
+PASS: dropped packet ends segment; recording resumes at next decodable keyframe
+OAK recording started: /tmp/tmp_dooszhn/2026-10-16/OAK_RGB_20261016_050002_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmp_dooszhn/2026-10-16/OAK_RGB_20261016_050002_000000.mp4; frames=15; stream-copy only, no PC encoding
+PASS: enabling midstream waits for a keyframe
+PASS: recording disabled creates no files
+PASS: failed MP4 finalisation preserves original H264 for recovery
+
+=== END oak_recording_test.py: exit=0, elapsed=0.2s ===
+
+=== START gui_render_test.py ===
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: BGR colours, native paint, aspect ratio, one fullscreen conversion/shared frame, nonblocking coalesced exports and error recovery
+
+=== END gui_render_test.py: exit=0, elapsed=0.2s ===
+
+=== START dashboard_async_test.py ===
+[2026-10-26 08:49:26.196] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: background database snapshot, responsive GUI during slow read, snapshot applied to counters and clean close
+
+=== END dashboard_async_test.py: exit=0, elapsed=0.6s ===
+
+=== START oak_ai_test.py ===
+[2026-10-26 08:49:26.699] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: decode/NMS, letterbox geometry, padding rejection, malformed/empty output, ID continuity, missed frame recovery, blob hash and pipeline construction
+
+=== END oak_ai_test.py: exit=0, elapsed=1.5s ===
+
+=== START oak_stream_test.py ===
+[2026-10-26 08:49:29.246] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: independent preview, exact AI sequence match, no unmatched publication, periodic timing summary, clean thread shutdown
+PASS: actual OakSource recording thread writes and finalises playable MP4 on shutdown
+PASS: independent foreign/tyre sequence pairing, no replay confirmation, foreign stream stall detection
+
+=== END oak_stream_test.py: exit=0, elapsed=1.9s ===
+
+=== START oak_worker_test.py ===
+[2026-10-26 08:49:31.194] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: actual ByteTrack worker counts on red-dot centre crossing, not box bottom
+PASS: actual OAK worker bypasses CPU YOLO, tracks packets, counts three-line crossing once and reconciles Passenger total
+
+=== END oak_worker_test.py: exit=0, elapsed=1.7s ===
+
+=== START tyretrack_report_sync_test.py ===
+PASS: 05:00–06:00 hourly count is 3
+PASS: Hourly classes reconcile 1+1+1=3
+PASS: Video source excluded
+PASS: Previous day excluded from daily
+PASS: All-time includes only OAK records
+PASS: Report matches database hourly count
+PASS: Report matches database daily count
+PASS: Report includes hourly and daily breakdowns
+PASS: Hourly flow rate uses elapsed period
+PASS: Brisbane timezone stated
+PASS: 06:00–07:00 hour contains one tyre
+PASS: Final 5-minute slot contains one tyre
+PASS: 17:06 excluded from final period
+PASS: Final-slot flow rate divides by 5 minutes
+PASS: Daily classification totals reconcile
+PASS: Hourly classification totals reconcile
+
+16/16 checks passed
+
+=== END tyretrack_report_sync_test.py: exit=0, elapsed=0.1s ===
+
+=== START foreign_alarm_test.py ===
+PASS: confirmation, spatial matching, gaps, ROI exclusion, password hash and persistent latch
+
+=== END foreign_alarm_test.py: exit=0, elapsed=0.2s ===
+PASS: all source regression tests
