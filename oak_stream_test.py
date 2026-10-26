@@ -11,7 +11,7 @@ class Packet:
  def getSequenceNum(self):return self.seq
  def getTimestamp(self):return m.dai.Clock.now()
  def getCvFrame(self):
-  shape=(270,480,3) if self.seq==23 else ((416,416,3) if self.seq in (17,18) else (384,384,3))
+  shape=(360,640,3) if self.seq==23 else ((416,416,3) if self.seq in (17,18) else (384,384,3))
   return np.full(shape,self.seq,dtype=np.uint8)
  def getLayerFp16(self,name):
   if name=='output0':return np.full(18144,.123,dtype=np.float32)
@@ -35,7 +35,7 @@ try:
  assert np.allclose(source.last_read_neural_output,.123)
  deadline=time.monotonic()+1
  while source.preview_snapshot()[0] is None and time.monotonic()<deadline:time.sleep(.005)
- live,live_seq,_=source.preview_snapshot();assert live_seq==23 and np.all(live==23)
+ live,live_seq,_=source.preview_snapshot();assert live_seq==23 and live.shape==(360,640,3) and np.all(live==23)
  time.sleep(.03)
  assert source.sequence==seq, 'Unmatched NN packet must not publish'
  before=len(logs);source._stream_diagnostics(source.capture_diagnostic_since+10.01,time.monotonic())

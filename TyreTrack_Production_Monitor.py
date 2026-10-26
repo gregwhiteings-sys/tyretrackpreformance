@@ -2941,7 +2941,7 @@ class Main(QMainWindow):
             self.update_overlay_mode)
         self.oak_view_combo = QComboBox()
         self.oak_view_combo.addItems(["Smooth", "Show Boxes"])
-        self.oak_view_combo.setToolTip("Smooth: lighter 320×180 live preview. Show Boxes follows analysed frames and can look less fluid. Counting is unaffected.")
+        self.oak_view_combo.setToolTip("Smooth: native 640×360 camera video (480×270 with safe launcher). Show Boxes follows original analysed frames.")
         self.oak_view_combo.currentTextChanged.connect(lambda _: self.update_overlay_mode(self.overlay_mode_combo.currentText()))
         source_layout.addWidget(QLabel("OAK viewing mode"))
         source_layout.addWidget(self.oak_view_combo)

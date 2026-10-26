@@ -2,18 +2,18 @@
   "baseline": "TyreTrack_Stability_Fixed_20261018(3).zip",
   "status": "source compatibility checks passed",
   "unchanged_function_or_class_contracts": 35,
-  "unchanged_model_module_or_dependency_files": 15,
-  "preview_pipeline_patch_validated": true,
+  "unchanged_model_module_or_dependency_files": 16,
+  "direct_video_preview_patch_validated": true,
   "checks": [
     "Original camera capture class unchanged; PNG encoding moved off GUI thread",
-    "OAK model weights, AI and recording unchanged; only live preview branch resized to 320x180",
+    "Only live XLink source selected from existing camera outputs: 640x360 NV12 or original 480x270 BGR; reversing selector patch restores exact pipeline hash",
     "Email/report and count-write functions unchanged",
     "Windows dependency pins unchanged"
   ],
   "intentional_changes": [
     "Ten replacement sounds with persisted shuffle and WAV import",
     "Today class counts and owner-specified kg/EPU estimates",
-    "Independent 320x180 live preview and background PNG encoding",
+    "Native 640x360 live view with original-preview fallback; background PNG encoding retained",
     "Optional sign-in shortcut installer and duplicate-instance lock",
     "Camera stays connected outside shift; count gate remains weekday 05:00\u201317:05 Brisbane",
     "Experimental shared three-line counter with adjustable top/bottom and horizontal span",

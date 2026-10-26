@@ -1,4 +1,6 @@
 {
   "old": "    stream('live',camera.preview,1)",
-  "new": "    # Reduce host preview traffic only; AI still receives the original 480x270.\n    live_manip=p.create(dai.node.ImageManip)\n    live_manip.initialConfig.setResize(320,180)\n    live_manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)\n    live_manip.setMaxOutputFrameSize(320*180*3)\n    live_manip.inputImage.setBlocking(False);live_manip.inputImage.setQueueSize(1)\n    camera.preview.link(live_manip.inputImage)\n    stream('live',live_manip.out,1)"
+  "new": "    from oak_preview import live_output\n    stream('live',live_output(camera),1)",
+  "status": "direct native NV12 video; original preview available through TYRETRACK_SAFE_PREVIEW=1",
+  "reference": "https://github.com/luxonis/depthai-python/blob/main/examples/host_side/opencv_support.py"
 }

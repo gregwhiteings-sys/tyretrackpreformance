@@ -37,7 +37,9 @@ def main(argv=None,root=None):
                 while time.monotonic()-start<args.seconds:
                     packet=live.tryGet()
                     if packet is not None:
-                        assert packet.getCvFrame().shape[:2]==(270,480)
+                        from oak_preview import live_size
+                        width,height=live_size()
+                        assert packet.getCvFrame().shape[:2]==(height,width)
                         preview+=1
                     for _ in range(120):
                         packet=encoded.tryGet()

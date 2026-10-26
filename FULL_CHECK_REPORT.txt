@@ -1,5 +1,5 @@
 TYRETRACK — AUSSIE SOUNDS, LIGHTER PREVIEW AND ESTIMATED TYRE WEIGHT
-Checked 26 October 2026. GitHub-ready source, not a compiled Windows EXE.
+Updated 27 October 2026. GitHub-ready source, not a compiled Windows EXE.
 
 WHAT CHANGED
 - Passenger, SUV/4x4 and Truck dashboard cards show count and estimated kg.
@@ -27,17 +27,24 @@ are not used. New additions go to data/celebration_sounds_v2.
 Admin > Performance offers sound selection, mute, Test, Stop preview and Add.
 Operational alarms retain priority over celebrations.
 
-SMOOTHER PREVIEW
-The clean live branch is resized on OAK to 320x180, about 56% fewer raw pixels
-than the former 480x270 live branch. Camera source and AI processing remain
-480x270 feeding the same 384/416 compiled inputs. H264 recording remains
-640x360 at 15 FPS and the original bitrate. Counting coordinates are unchanged.
-Use Admin > Camera > OAK viewing mode > Smooth for fluid live movement.
-Show Boxes displays analysed frames and can move at the slower analysis rate.
-PNG dashboard encoding/file writes now run on a background worker with a
-latest-only queue and atomic file replacement. Widget capture stays on Qt’s
-GUI thread. The preview timer matches the 15 FPS camera with a precise timer.
-These changes reduce load; the on-site network/PC still requires validation.
+NATIVE HIGHER-QUALITY PREVIEW — 27 OCTOBER 2026
+The previous extra live-preview ImageManip resizing node is removed.
+Smooth view now links directly to the existing 640x360 camera.video NV12 output.
+AI still receives camera.preview at 480x270 through its original 384/416 model
+branches. H264 still uses the same 640x360 camera.video output and original
+encoder configuration. No additional on-device processing node is created.
+NV12 is converted by getCvFrame on the host, in the independent preview reader.
+640x360 has four times the pixel count of the superseded 320x180 view, and
+1.78 times the pixel count of the original 480x270 preview. NV12 raw frame bytes
+are 345,600 versus 388,800 for 480x270 three-channel BGR; this is not a claim
+about total network bandwidth or guaranteed site FPS.
+The supplied RUN_SAFE_PREVIEW.bat selects the original direct 480x270 preview
+for that launch. Close the running app first; the duplicate-instance guard stays.
+The AI inputs, model weights, ByteTrack, count logic and encoder remain intact.
+The exact live-source selector patch is reversed in the integrity test to verify
+the original pipeline hash. Both output choices are checked in eight real graphs.
+Background PNG saving remains outside the GUI thread, with a latest-only queue.
+Physical OAK smoothness and count accuracy still require an on-site test.
 
 AUTOMATIC START AND CAMERA CONNECTION
 After building/downloading the Windows portable application:
