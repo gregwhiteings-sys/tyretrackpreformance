@@ -1,1 +1,1 @@
-PASS: original source contracts and model/dependency integrity; exact isolated preview resize patch verified against original pipeline hash
+PASS: original source contracts and model/dependency integrity; direct-output selection patch verified against unchanged original pipeline hash
