@@ -1,0 +1,20 @@
+COMPLETE SOURCE BUILD WITH BOTH WINDOWS CI FIXES
+
+Extract all files and upload them to the root of the existing GitHub repository,
+replacing matching files. Commit and rerun the workflow. Models and all ten
+sounds are included; no separate patches are required.
+
+Layout: the video has a 360px minimum height. Lower camera controls scroll when
+needed. Tests retain the assertion and check Fusion and Windows Qt styles at
+1280x720, 1366x768 and 1450x850.
+
+Audio CI: compares resolved file paths rather than slash-sensitive suffixes.
+All test windows and background readers close even on an assertion failure;
+a deliberate exception cleanup probe verifies temporary directory removal.
+
+Windows sign-in/startup configuration is unchanged.
+
+All 32 regression scripts passed locally. Full source model/runtime/UI smoke
+passed. Actual Windows execution must be confirmed by the GitHub workflow.
+Keep existing site data, reports and private settings when installing the
+compiled portable build. This ZIP is source, not a compiled Windows EXE.
