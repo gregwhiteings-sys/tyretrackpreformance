@@ -2704,6 +2704,7 @@ class Main(QMainWindow):
         self.video.span_dragged.connect(self.drag_span_changed)
         self.video.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         self.video.setObjectName("cameraViewport")
+        self.video.setMinimumHeight(360)
         self.test_transport=QLabel("OAK CAMERA / LIVE VIEW")
         self.test_transport.setObjectName("transport")
         self.test_transport.setWordWrap(True)
@@ -2712,6 +2713,18 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         left.addWidget(self.video, 1)
+        # Windows font metrics can make status/control rows taller. Let this
+        # secondary area scroll instead of taking height from the live video.
+        self.operator_controls_scroll=ControlScrollArea()
+        self.operator_controls_scroll.setFrameShape(QFrame.NoFrame)
+        self.operator_controls_scroll.setMinimumHeight(90)
+        self.operator_controls_scroll.setMaximumHeight(136)
+        self.operator_controls=QWidget()
+        self.operator_controls.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
+        operator_layout=QVBoxLayout(self.operator_controls)
+        operator_layout.setContentsMargins(0,0,0,0);operator_layout.setSpacing(4)
+        self.operator_controls_scroll.setWidget(self.operator_controls)
+        left.addWidget(self.operator_controls_scroll)
         self.stats_scroll=QScrollArea()
         self.stats_scroll.setWidgetResizable(True)
         self.stats_scroll.setFrameShape(QFrame.NoFrame)
@@ -2737,16 +2750,16 @@ class Main(QMainWindow):
 
         run_row.addWidget(self.start_btn)
         run_row.addWidget(self.stop_btn)
-        left.addLayout(run_row)
+        operator_layout.addLayout(run_row)
         tools_row=QHBoxLayout()
-        left.addLayout(tools_row)
+        operator_layout.addLayout(tools_row)
 
         self.status_lbl = QLabel(
             "OAK-D auto-connect · counting follows Brisbane production hours"
         )
         self.status_lbl.setWordWrap(True)
         self.status_lbl.setObjectName("status")
-        left.addWidget(self.status_lbl)
+        operator_layout.addWidget(self.status_lbl)
 
         footer = QHBoxLayout()
 
@@ -2762,7 +2775,7 @@ class Main(QMainWindow):
         footer.addStretch()
         footer.addWidget(self.source_status)
         self.all_time_lbl.hide();self.source_status.hide()
-        left.addLayout(footer)
+        operator_layout.addLayout(footer)
 
         tabs = QTabWidget()
         self.controls_tabs = tabs
@@ -2794,12 +2807,12 @@ class Main(QMainWindow):
         self.celebration_mute.hide()
         self.celebration_indicator=QLabel()
         self.celebration_indicator.setWordWrap(True)
-        left.addWidget(self.celebration_indicator)
+        operator_layout.addWidget(self.celebration_indicator)
         self.celebration_mute.toggled.connect(self.update_celebration_indicator)
         self.update_celebration_indicator()
         self.celebration_banner = QLabel("")
         self.celebration_banner.setWordWrap(True)
-        left.addWidget(self.celebration_banner)
+        operator_layout.addWidget(self.celebration_banner)
         self._celebrated_hours = set()
 
         def tab_page(name):

@@ -23,15 +23,18 @@ with DatabaseTemporaryDirectory() as tmp:
  assert [w.weight_labels[k].text() for k in ('passenger','4x4','truck')]==['80 kg','48 kg','90 kg']
  assert '218 kg' in w.total_weight_lbl.text() and '26 EPU' in w.total_weight_lbl.text()
  assert '1 unclassified' in w.total_weight_lbl.toolTip()
- for width,height in [(1280,720),(1366,768),(1450,850)]:
-  w.resize(width,height)
-  for _ in range(5):qt.processEvents()
-  for label in [w.total_weight_lbl,*w.weight_labels.values(),w.passenger_lbl,w.suv_lbl,w.truck_lbl]:
-   pos=label.mapTo(w.stats_scroll.viewport(),label.rect().topLeft())
-   assert pos.y()>=0 and pos.y()+label.height()<=w.stats_scroll.viewport().height(),(width,label.text(),pos.y(),label.height(),w.stats_scroll.viewport().height())
-  assert w.video.height()>=360
+ for style in ('Fusion','Windows'):
+  qt.setStyle(style)
+  for width,height in [(1280,720),(1366,768),(1450,850)]:
+   w.resize(width,height)
+   for _ in range(5):qt.processEvents()
+   for label in [w.total_weight_lbl,*w.weight_labels.values(),w.passenger_lbl,w.suv_lbl,w.truck_lbl]:
+    pos=label.mapTo(w.stats_scroll.viewport(),label.rect().topLeft())
+    assert pos.y()>=0 and pos.y()+label.height()<=w.stats_scroll.viewport().height(),(width,label.text(),pos.y(),label.height(),w.stats_scroll.viewport().height())
+   assert w.height()==height,(width,height,w.height())
+   assert w.video.height()>=360,(width,height,w.video.height())
  w.refresh_weight_totals({'truck':1},test_mode=True)
  assert w.total_weight_lbl.text().startswith('TEST') and '45 kg' in w.total_weight_lbl.text()
  assert m.get_state('celebration_sound')==before
  w.close();qt.processEvents()
-print('PASS: passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU; sum/aliases/unknown exclusions; real count+kg labels visible at 1280,1366,1450; isolated test labels')
+print('PASS: passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU; sum/aliases/unknown exclusions; real count+kg labels and minimum video height at 1280,1366,1450 in Fusion/Windows styles; isolated test labels')
