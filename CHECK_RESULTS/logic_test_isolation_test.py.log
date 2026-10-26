@@ -1,0 +1,4 @@
+[2026-10-26 08:05:01.087] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: independent shadow count; production gate False production writes 0
+PASS: independent shadow count; production gate True production writes 1
+PASS: exported hand-count comparison and separate test totals

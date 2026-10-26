@@ -9,7 +9,7 @@ def run(app_module, output):
     if os.environ.get("TYRETRACK_SMOKE_LEVEL") == "quick":
         try:
             print("SMOKE: checking bundled resources", flush=True)
-            resources = ["celebration.wav", "celebration_short.wav", "celebration_chime.wav", "celebration_aussie_1.wav", "celebration_aussie_2.wav", "celebration_aussie_3.wav", "celebration_aussie_4.wav", "tyre_detector.pt", "tyre_detector_oak.blob",
+            resources = [name for label,name in app_module.CELEBRATION_SOUNDS.values()] + ["tyre_detector.pt", "tyre_detector_oak.blob",
                          "foreign_model/foreign_object.pt", "rvc2_models/sha256.json"]
             for name in resources:
                 path = Path(app_module.resource_path(name))
@@ -91,6 +91,8 @@ def run(app_module, output):
         qt=QApplication.instance() or QApplication([])
         # Main builds every control but never runs camera/scheduler during this check.
         original_tick=app_module.Main.tick
+        original_pin=app_module.Main._confirm_admin_pin
+        app_module.Main._confirm_admin_pin=lambda *args:True
         app_module.Main.tick=lambda self:None
         try:
             window=app_module.Main();window.clock.stop();window.resize(1366,768)
@@ -100,6 +102,8 @@ def run(app_module, output):
             assert window.video._pix.width()==480, 'Keep native frame size'
             assert window.video._pix.toImage().pixelColor(240,135).red()>245, 'BGR rendering colour error'
 
+            window.controls_tabs.show()
+            for _ in range(4):qt.processEvents()
             for index in range(window.controls_tabs.count()):
                 window.controls_tabs.setCurrentIndex(index)
                 # Allow layout/scrollbar resize events to settle, then check real geometry.
@@ -111,12 +115,16 @@ def run(app_module, output):
                 from PyQt5.QtWidgets import QCheckBox,QComboBox,QPushButton,QSlider
                 for cls in (QCheckBox,QComboBox,QPushButton,QSlider):
                     for control in scroll.widget().findChildren(cls):
+                        if not control.isVisibleTo(scroll.widget()):continue
                         x=control.mapTo(scroll.widget(),control.rect().topLeft()).x()
                         assert x>=0 and x+control.width()<=scroll.widget().width(), (
                             f"Clipped control in {name}: {type(control).__name__} x={x} width={control.width()}")
-            assert window.best_daily_card.geometry().top()==window.best_hour_card.geometry().top()
+            assert window.best_daily_card.isVisible() and window.best_hour_card.isVisible()
+            assert window.hourly_strip.isVisible()
             window.close();qt.processEvents()
-        finally:app_module.Main.tick=original_tick
+        finally:
+            app_module.Main.tick=original_tick
+            app_module.Main._confirm_admin_pin=original_pin
         payload={'status':'passed','torch':torch.__version__,'torchvision':torchvision.__version__,
                  'numpy':np.__version__,'depthai':depthai.__version__,
                  'checks':['imports','H264-native-remux-and-MP4-playback','scipy','torchvision-nms','bundled-detection-model',

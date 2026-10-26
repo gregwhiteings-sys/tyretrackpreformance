@@ -1,0 +1,2 @@
+[2026-10-26 08:05:07.484] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: decode/NMS, letterbox geometry, padding rejection, malformed/empty output, ID continuity, missed frame recovery, blob hash and pipeline construction

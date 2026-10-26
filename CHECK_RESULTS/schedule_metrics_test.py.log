@@ -1,0 +1,2 @@
+PASS: best daily excludes tests and out-of-shift counts; alert timestamp at 05:10
+PASS: 04:59:59 / 05:00 / 17:04:59 / 17:05 Brisbane boundaries

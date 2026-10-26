@@ -1,0 +1,2 @@
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: BGR colours, native paint, aspect ratio, one fullscreen conversion/shared frame, nonblocking coalesced exports and error recovery

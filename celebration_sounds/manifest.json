@@ -1,0 +1,72 @@
+[
+  {
+    "key": "ao_theme",
+    "label": "AO theme",
+    "source": "ao-theme.mp3",
+    "file": "celebration_sounds/ao_theme.wav",
+    "seconds": 3.605328798185941
+  },
+  {
+    "key": "rage_credits",
+    "label": "Rage end credits",
+    "source": "rage-end-credits-music.mp3",
+    "file": "celebration_sounds/rage_credits.wav",
+    "seconds": 34.02777777777778
+  },
+  {
+    "key": "enough",
+    "label": "That’s enough for me",
+    "source": "thats-enough-for-me-australian.mp3",
+    "file": "celebration_sounds/enough.wav",
+    "seconds": 1.6080045351473924
+  },
+  {
+    "key": "hard",
+    "label": "You don’t understand how hard it is",
+    "source": "you-dont-understand-how-hard-it-is.mp3",
+    "file": "celebration_sounds/hard.wav",
+    "seconds": 2.63156462585034
+  },
+  {
+    "key": "australia",
+    "label": "Australia",
+    "source": "australia.mp3",
+    "file": "celebration_sounds/australia.wav",
+    "seconds": 7.81061224489796
+  },
+  {
+    "key": "australia_ins",
+    "label": "Australia instrumental",
+    "source": "australia-ins.mp3",
+    "file": "celebration_sounds/australia_ins.wav",
+    "seconds": 24.2184126984127
+  },
+  {
+    "key": "crowd_storegraphic",
+    "label": "Crowd cheering · Storegraphic",
+    "source": "storegraphic-crowd-cheering-312830.mp3",
+    "file": "celebration_sounds/crowd_storegraphic.wav",
+    "seconds": 15.07265306122449
+  },
+  {
+    "key": "crowd_hill",
+    "label": "Crowd · The Hill",
+    "source": "freesound_community-crowd_the_hill_language-69994.mp3",
+    "file": "celebration_sounds/crowd_hill.wav",
+    "seconds": 51.98401360544218
+  },
+  {
+    "key": "crowd_dragon",
+    "label": "Cheer and applause · Dragon Studio",
+    "source": "dragon-studio-crowd-cheer-and-applause-406644.mp3",
+    "file": "celebration_sounds/crowd_dragon.wav",
+    "seconds": 4.44
+  },
+  {
+    "key": "crowd_mykelu",
+    "label": "Crowd cheering · Mykelu",
+    "source": "mykelu-crowd-cheering-383111.mp3",
+    "file": "celebration_sounds/crowd_mykelu.wav",
+    "seconds": 5.111995464852607
+  }
+]

@@ -1,0 +1,2 @@
+[2026-10-26 08:04:50.143] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+PASS: existing history IDs/values and site state preserved through repeat schema upgrade; additive columns/indexes only

@@ -1,0 +1,18 @@
+PASS: 05:00–06:00 hourly count is 3
+PASS: Hourly classes reconcile 1+1+1=3
+PASS: Video source excluded
+PASS: Previous day excluded from daily
+PASS: All-time includes only OAK records
+PASS: Report matches database hourly count
+PASS: Report matches database daily count
+PASS: Report includes hourly and daily breakdowns
+PASS: Hourly flow rate uses elapsed period
+PASS: Brisbane timezone stated
+PASS: 06:00–07:00 hour contains one tyre
+PASS: Final 5-minute slot contains one tyre
+PASS: 17:06 excluded from final period
+PASS: Final-slot flow rate divides by 5 minutes
+PASS: Daily classification totals reconcile
+PASS: Hourly classification totals reconcile
+
+16/16 checks passed
