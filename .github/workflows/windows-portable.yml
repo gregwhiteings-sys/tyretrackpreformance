@@ -1,4 +1,4 @@
-name: TyreTrack Dashboard Logo + Mask Test
+name: TyreTrack Production - Smooth Preview and Aussie Sounds
 
 on:
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           New-Item -ItemType Directory -Force build_logs | Out-Null
-          $required = @('TyreTrack_Production_Monitor.py','tyre_detector.pt','tyre_segmenter.pt','tyrecycle_logo.png','integrated_models.json','model_integration_test.py','count_line.py','hourly_dashboard.py','BUILD_WINDOWS.py','requirements-windows.txt','build_support/smoke_test.py','foreign_alarm.py','oak_ai.py','oak_recording.py','oak_rvc2.py','oak_hardware_test.py','rvc2_models/sha256.json','background_export.py','tyre_detector_oak.blob','foreign_model/foreign_object.pt')
+          $required = @('TyreTrack_Production_Monitor.py','tyre_detector.pt','count_line.py','hourly_dashboard.py','BUILD_WINDOWS.py','requirements-windows.txt','build_support/smoke_test.py','foreign_alarm.py','oak_ai.py','oak_recording.py','oak_rvc2.py','oak_hardware_test.py','rvc2_models/sha256.json','background_export.py','tyre_detector_oak.blob','foreign_model/foreign_object.pt')
           foreach ($path in $required) {
             if (!(Test-Path -LiteralPath $path)) { throw "Missing repository-root file: $path. Extract the source ZIP before uploading; do not upload only the ZIP." }
           }
