@@ -16,12 +16,15 @@ def run(app_module, output):
                 if not path.is_file() or path.stat().st_size == 0:
                     raise RuntimeError(f"Missing or empty required resource: {name} ({path})")
                 print(f"SMOKE: OK {name}", flush=True)
+            print("SMOKE: generating isolated PDF/CSV with bundled fonts",flush=True)
+            from management_reports import smoke_report
+            smoke_report()
             print("SMOKE: initializing Qt offscreen", flush=True)
             from PyQt5.QtWidgets import QApplication
             qt = QApplication.instance() or QApplication([])
             qt.processEvents()
             payload = {"status": "passed", "level": "quick", "checks":
-                       ["application imports", "model and OAK resources", "Qt initialization"],
+                       ["application imports", "model and OAK resources", "PDF/CSV generation and embedded fonts", "Qt initialization"],
                        "note": "AI inference, camera operation and full GUI layout are not verified by this quick smoke test"}
             Path(output).write_text(json.dumps(payload, indent=2), encoding="utf-8")
             print("SMOKE: PASSED", flush=True)

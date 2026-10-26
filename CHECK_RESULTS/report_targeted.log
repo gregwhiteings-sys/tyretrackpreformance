@@ -1,0 +1,5 @@
+PASS: production-only PDF/CSV/JSON reconciliation, kg/EPU/legacy counts, gaps/replies/trial alerts/footage, weekly and provisional reports; MIME attachments and SMTP failures mocked
+PASS: after-close daily + Friday weekly, failed-send retry, persisted success deduplication and weekend gate; no emails sent
+[2026-10-26 20:56:37.987] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+PASS: real report export button, responsive GUI, saved PDF/CSV and completion signal

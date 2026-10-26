@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "level": "quick",
+  "checks": [
+    "application imports",
+    "model and OAK resources",
+    "PDF/CSV generation and embedded fonts",
+    "Qt initialization"
+  ],
+  "note": "AI inference, camera operation and full GUI layout are not verified by this quick smoke test"
+}

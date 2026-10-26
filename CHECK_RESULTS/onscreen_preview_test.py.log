@@ -1,4 +1,4 @@
-[2026-10-26 20:12:28.467] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+[2026-10-26 20:54:11.902] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
 QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
 This plugin does not support propagateSizeHints()
 This plugin does not support propagateSizeHints()

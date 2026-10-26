@@ -1,2 +1,2 @@
-[2026-10-26 20:12:17.467] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+[2026-10-26 20:54:02.527] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
 PASS: four real OAK graphs; eight real direct-video/fallback graphs; real NV12 colour conversion; AI and recording preserved; reverse-patch baseline hash; responsive Qt timer during blocked PNG encoding; coalesced atomic output

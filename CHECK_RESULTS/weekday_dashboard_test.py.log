@@ -1,0 +1,5 @@
+PASS: Brisbane Monday-Friday, week rollover/weekend, legacy timestamps, current-day cutoff, source and shift exclusion
+[2026-10-26 20:54:00.832] [depthai] [warning] USB protocol not available - If running in a container, make sure that the following is set: "-v /dev/bus/usb:/dev/bus/usb --device-cgroup-rule='c 189:* rmw'"
+QStandardPaths: XDG_RUNTIME_DIR not set, defaulting to '/tmp/runtime-root'
+This plugin does not support propagateSizeHints()
+PASS: real async history collection, dated five-day strip, today/upcoming states, six layouts and production history isolated from tests

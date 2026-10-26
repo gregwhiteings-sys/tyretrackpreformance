@@ -1,18 +1,18 @@
-OAK recording started: /tmp/tmp4b2g15x4/2026-10-16/OAK_RGB_20261016_050000_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
-OAK recording closed: /tmp/tmp4b2g15x4/2026-10-16/OAK_RGB_20261016_050000_000000.mp4; frames=15; stream-copy only, no PC encoding
-OAK recording started: /tmp/tmp4b2g15x4/2026-10-16/OAK_RGB_20261016_050001_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
-OAK recording closed: /tmp/tmp4b2g15x4/2026-10-16/OAK_RGB_20261016_050001_000000.mp4; frames=15; stream-copy only, no PC encoding
-OAK recording started: /tmp/tmp4b2g15x4/2026-10-16/OAK_RGB_20261016_050002_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
-OAK recording closed: /tmp/tmp4b2g15x4/2026-10-16/OAK_RGB_20261016_050002_000000.mp4; frames=15; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmpgjdy4j79/2026-10-16/OAK_RGB_20261016_050000_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpgjdy4j79/2026-10-16/OAK_RGB_20261016_050000_000000.mp4; frames=15; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmpgjdy4j79/2026-10-16/OAK_RGB_20261016_050001_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpgjdy4j79/2026-10-16/OAK_RGB_20261016_050001_000000.mp4; frames=15; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmpgjdy4j79/2026-10-16/OAK_RGB_20261016_050002_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmpgjdy4j79/2026-10-16/OAK_RGB_20261016_050002_000000.mp4; frames=15; stream-copy only, no PC encoding
 PASS: keyframe-aligned segments, 45 decoded frames, correct dimensions and increasing timestamps
-OAK recording started: /tmp/tmpcw3jub9d/2026-10-16/OAK_RGB_20261016_050000_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording started: /tmp/tmphf42saq9/2026-10-16/OAK_RGB_20261016_050000_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
 OAK H264 recording packet gap; closing segment and waiting for keyframe
-OAK recording closed: /tmp/tmpcw3jub9d/2026-10-16/OAK_RGB_20261016_050000_000000.mp4; frames=7; stream-copy only, no PC encoding
-OAK recording started: /tmp/tmpcw3jub9d/2026-10-16/OAK_RGB_20261016_050001_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
-OAK recording closed: /tmp/tmpcw3jub9d/2026-10-16/OAK_RGB_20261016_050001_000000.mp4; frames=30; stream-copy only, no PC encoding
+OAK recording closed: /tmp/tmphf42saq9/2026-10-16/OAK_RGB_20261016_050000_000000.mp4; frames=7; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmphf42saq9/2026-10-16/OAK_RGB_20261016_050001_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmphf42saq9/2026-10-16/OAK_RGB_20261016_050001_000000.mp4; frames=30; stream-copy only, no PC encoding
 PASS: dropped packet ends segment; recording resumes at next decodable keyframe
-OAK recording started: /tmp/tmpguxxexl8/2026-10-16/OAK_RGB_20261016_050002_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
-OAK recording closed: /tmp/tmpguxxexl8/2026-10-16/OAK_RGB_20261016_050002_000000.mp4; frames=15; stream-copy only, no PC encoding
+OAK recording started: /tmp/tmp79bg3ys_/2026-10-16/OAK_RGB_20261016_050002_000000.h264; H264 encoded on OAK, MP4 finalised at segment close
+OAK recording closed: /tmp/tmp79bg3ys_/2026-10-16/OAK_RGB_20261016_050002_000000.mp4; frames=15; stream-copy only, no PC encoding
 PASS: enabling midstream waits for a keyframe
 PASS: recording disabled creates no files
 PASS: failed MP4 finalisation preserves original H264 for recovery
