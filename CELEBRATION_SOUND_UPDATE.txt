@@ -1,0 +1,36 @@
+RANDOM CELEBRATIONS — UPDATE
+
+Admin Settings > Performance:
+Select Random celebration (shuffle all sounds), uncheck Mute celebrations,
+and press Test selected celebration sound several times.
+Each available sound plays once per shuffled cycle. The next choice and last
+successful sound are saved across restarts. Failed playback does not consume
+a choice. Missing files are excluded. The dashboard shows the actual selection.
+
+ADD SOUNDS
+Press Add celebration sound (WAV). Choose uncompressed 16-bit PCM WAV, mono
+or stereo, up to 60 seconds and 12 MB. Short 3–10 second clips work well.
+Files are copied to data/celebration_sounds_v2 beside the app and join Random.
+No GitHub rebuild is needed for later WAV additions. Convert MP3 to PCM WAV;
+renaming its extension does not convert it.
+Preserve your existing data folder when upgrading. Do not replace site data
+with test data. Imported files and existing history stay in your data folder.
+
+DOWNLOAD SOURCES
+https://www.myinstants.com/en/search/?name=australia
+Aussie Oi and familiar Australian sound bites.
+https://pixabay.com/sound-effects/search/crowd-cheering/
+Cheers and applause alternatives. Check terms for your selected clip.
+
+VALIDATION
+Shuffle cycles, restart state, failed playback, WAV validation and import,
+real Qt selection/import/persistence, alarm priority, mute, Windows async call
+flags, dashboard sizes and baseline source/model contracts tested.
+Physical Windows speakers still require the on-site Test button.
+This is GitHub-ready source, not a compiled Windows executable.
+
+This release replaces the previous seven bundled clips with the ten supplied
+MP3 recordings, converted to PCM WAV with matched loudness. Full recordings
+are preserved, including the 34-second Rage and 52-second crowd clips.
+Old imported sound folders are not used by this release.
+For automatic Windows sign-in launch, see FULL_CHECK_REPORT.txt.

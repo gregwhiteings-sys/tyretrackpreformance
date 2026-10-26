@@ -1,16 +1,4 @@
-celebration.wav: eight-second faded excerpt of Clapping hurray by starlite
-(metadata also credits Zack and friends), released into the public domain.
-https://commons.wikimedia.org/wiki/File:Clapping_hurray.ogg
-https://upload.wikimedia.org/wikipedia/commons/a/a8/Clapping_hurray.ogg
-No Australian audience or chant provenance is claimed.
-
-celebration_short.wav: three-second faded edit of the same public-domain recording.
-celebration_chime.wav: original synthesised ascending chime generated for this build.
-
-USER-SUPPLIED CELEBRATION CLIPS (20 October 2026)
-celebration_aussie_1.wav: my-movie_25.mp3
-celebration_aussie_2.wav: aussie-train-lover.mp3 (first eight seconds)
-celebration_aussie_3.wav: loud-aussie-music.mp3
-celebration_aussie_4.wav: waltzing-matilda-short.mp3
-Converted to mono 22050 Hz 16-bit PCM, level adjusted with short fades.
-Provided by the user for inclusion; original recording licences/provenance not independently verified.
+Celebration clips supplied by the app owner on 26 October 2026.
+The ten converted WAV files correspond to celebration_sounds/manifest.json.
+Previous celebration clips have been removed from the source and Windows bundle.
+Foreign-object alarm audio is separate and is unchanged.

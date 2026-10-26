@@ -1,0 +1,88 @@
+TYRETRACK — AUSSIE SOUNDS, LIGHTER PREVIEW AND ESTIMATED TYRE WEIGHT
+Checked 26 October 2026. GitHub-ready source, not a compiled Windows EXE.
+
+WHAT CHANGED
+- Passenger, SUV/4x4 and Truck dashboard cards show count and estimated kg.
+- Combined estimated kg and EPU appear below Today’s tyre total.
+- Today’s stored class counts are used automatically; no recount/reset needed.
+- Passenger: 1 EPU and 8 kg. SUV/4x4: 2 EPU and 16 kg.
+- Truck: 5 EPU and 45 kg, using the requested class-specific factor directly.
+  Truck kg is not calculated as EPU multiplied by 8.
+- Unknown/unclassified tyres have no assigned kg or EPU. They remain in the
+  original total count and are described in the weight tooltip.
+- Current detector classes are Passenger and SUV/4x4. Truck’s card is ready
+  for truck-labelled count data, but this update does not add a truck model.
+- Weights are class-based estimates, not measured scale weights.
+- Video/manual tests display separate TEST estimates; production is unchanged.
+
+SOUNDS
+Only the ten supplied recordings are bundled. The previous seven celebration
+WAVs are removed from the build. Sound levels were adjusted and recordings
+converted to 16-bit stereo PCM WAV without trimming their full length.
+Rage is 34 seconds and The Hill crowd is 52 seconds.
+Random uses every available sound once per shuffled cycle and remembers its
+place across restarts. Failed playback does not consume a selection.
+The new pack defaults to Random once on upgrade. Old custom sound folders
+are not used. New additions go to data/celebration_sounds_v2.
+Admin > Performance offers sound selection, mute, Test, Stop preview and Add.
+Operational alarms retain priority over celebrations.
+
+SMOOTHER PREVIEW
+The clean live branch is resized on OAK to 320x180, about 56% fewer raw pixels
+than the former 480x270 live branch. Camera source and AI processing remain
+480x270 feeding the same 384/416 compiled inputs. H264 recording remains
+640x360 at 15 FPS and the original bitrate. Counting coordinates are unchanged.
+Use Admin > Camera > OAK viewing mode > Smooth for fluid live movement.
+Show Boxes displays analysed frames and can move at the slower analysis rate.
+PNG dashboard encoding/file writes now run on a background worker with a
+latest-only queue and atomic file replacement. Widget capture stays on Qt’s
+GUI thread. The preview timer matches the 15 FPS camera with a precise timer.
+These changes reduce load; the on-site network/PC still requires validation.
+
+AUTOMATIC START AND CAMERA CONNECTION
+After building/downloading the Windows portable application:
+1. Keep the complete portable folder in a permanent location.
+2. Run INSTALL_AUTOSTART.bat beside TyreTrack.exe once as the site Windows user.
+3. The current user’s Startup folder shortcut launches it at Windows sign-in.
+4. REMOVE_AUTOSTART.bat removes only this shortcut if needed.
+This does not configure Windows automatic sign-in or launch before sign-in.
+A real Qt lock prevents duplicate production instances from using the same
+app data folder, including launches from multiple existing startup entries.
+The app auto-connects/retries the camera all hours; retry is throttled to
+60 seconds. Automatic production counting remains Monday–Friday 05:00–17:05
+Brisbane time. A manual pause remains for that day; it clears the next day.
+Video tests suppress live reconnects and keep counts separate.
+
+VALIDATION
+All 32 scripts in run_ci_tests.py passed on the final source. They cover:
+- weight/EPU formulas, three class cards, total, aliases and unknown exclusions;
+- visible count/weight labels at 1280x720, 1366x768 and 1450x850;
+- WAV format/content, ten-sound shuffle cycles, restart and failure state;
+- sound import/selector, mute, alarm priority and Windows audio-call flags;
+- real Qt lock exclusivity and startup script path/install/remove contract;
+- four real DepthAI pipeline configurations and original neural model integrity;
+- blocked background PNG writes without blocking a Qt timer;
+- count geometry, adjustments, ByteTrack, recovery, tests and production isolation;
+- actual child video inference and on-screen replay/progress;
+- schedule boundaries, database upgrades and persisted record celebrations;
+- hourly/daily reporting, CSV/count reconciliation and no-count reply processing;
+- foreign alarm confirmation, reset authorisation and persistent latch;
+- recording packet handling, MP4 finalisation/playback and error recovery;
+- UI layout, native rendering and background dashboard data collection.
+
+Full source smoke check also passed with CPU Torch 2.5.1, torchvision 0.20.1,
+NumPy 1.26.4 and DepthAI 2.30. It checked real tyre and foreign checkpoints,
+CPU inference, ByteTrack, native operators, H264 remux/playback and every
+visible admin tab/control. The smoke fixture authorises its own test-window
+close; production PIN requirements are unchanged.
+Detailed test logs and source smoke results are in CHECK_RESULTS.
+ZIP CRC and per-file hashes are checked during packaging.
+
+NOT PHYSICALLY VERIFIED HERE
+Windows EXE compilation/installed DLLs, sign-in startup registration, speakers,
+physical OAK/network smoothness, site detection/count accuracy and actual
+email delivery were not tested on the Australian PC. No emails were sent.
+Run the GitHub workflow, then use the included sound Test and
+RUN_OAK_HARDWARE_TEST.bat on site. No physical conveyor-stop command is enabled
+by these changes. Preserve existing data/reports/private configuration when
+upgrading; do not overwrite them with blank or test data.

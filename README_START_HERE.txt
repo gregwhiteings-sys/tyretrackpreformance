@@ -1,3 +1,12 @@
+LATEST UPDATE — 26 OCTOBER 2026
+Today’s class counts now show estimated kg and a combined weight/EPU total.
+Passenger = 8 kg/1 EPU; SUV = 16 kg/2 EPU; Truck = 45 kg/5 EPU.
+Truck recognition still needs a truck-capable model; current model is two-class.
+Ten new supplied sounds replace old celebrations; Random shuffles all of them.
+Smooth live preview is lighter; PNG saving runs in the background.
+For Windows sign-in launch, run INSTALL_AUTOSTART.bat beside the built EXE.
+Read FULL_CHECK_REPORT.txt for verification, setup and on-site checks.
+
 TYRETRACK · PRODUCTION / VIDEO TEST BUILD · 20 OCTOBER 2026
 
 This ZIP is source plus models and a Windows build workflow, not a compiled EXE.

@@ -20,6 +20,9 @@ import threading
 import queue
 import json
 import random
+import celebration_library
+import tyre_weight
+from PyQt5.QtCore import QLockFile
 import time
 import traceback
 from datetime import datetime, timedelta, timezone
@@ -126,15 +129,8 @@ except Exception:
 
 APP_NAME = "TYRECYCLE | TYRETRACK"
 MODEL_NAME = "tyre_detector.pt"
-CELEBRATION_SOUNDS={
-    "cheer":("Crowd cheer · 8 seconds","celebration.wav"),
-    "applause":("Short applause · 3 seconds","celebration_short.wav"),
-    "chime":("Victory chime · 2 seconds","celebration_chime.wav"),
-    "aussie_1":("Aussie clip · My Movie","celebration_aussie_1.wav"),
-    "aussie_2":("Aussie clip · Train Lover","celebration_aussie_2.wav"),
-    "aussie_3":("Aussie clip · Loud Aussie Music","celebration_aussie_3.wav"),
-    "aussie_4":("Waltzing Matilda · short","celebration_aussie_4.wav"),
-}
+CELEBRATION_SOUNDS={'ao_theme': ('AO theme', 'celebration_sounds/ao_theme.wav'), 'rage_credits': ('Rage end credits', 'celebration_sounds/rage_credits.wav'), 'enough': ('That’s enough for me', 'celebration_sounds/enough.wav'), 'hard': ('You don’t understand how hard it is', 'celebration_sounds/hard.wav'), 'australia': ('Australia', 'celebration_sounds/australia.wav'), 'australia_ins': ('Australia instrumental', 'celebration_sounds/australia_ins.wav'), 'crowd_storegraphic': ('Crowd cheering · Storegraphic', 'celebration_sounds/crowd_storegraphic.wav'), 'crowd_hill': ('Crowd · The Hill', 'celebration_sounds/crowd_hill.wav'), 'crowd_dragon': ('Cheer and applause · Dragon Studio', 'celebration_sounds/crowd_dragon.wav'), 'crowd_mykelu': ('Crowd cheering · Mykelu', 'celebration_sounds/crowd_mykelu.wav')}
+
 OAK_NAME = "OAK-D S2 PoE / CAT5"
 OAK_TEST_NAME = "OAK-D S2 / MANUAL TEST"
 
@@ -147,8 +143,8 @@ V48_MAX_TRACK_GAP = 20
 V48_AGNOSTIC_NMS = True
 
 
-# Target up to 20 live-preview updates/second, independently of inference.
-OAK_PREVIEW_INTERVAL_MS = 50
+# Match the 15 FPS camera; fewer redundant GUI callbacks.
+OAK_PREVIEW_INTERVAL_MS = 67
 
 # Draw the detector geometry faithfully; cosmetic shrinking does not improve detection.
 VISUAL_BOX_INSET = 0.0
@@ -2451,6 +2447,7 @@ class Main(QMainWindow):
         self.refresh_counts()
 
         self.oak_preview_timer = QTimer(self)
+        self.oak_preview_timer.setTimerType(Qt.PreciseTimer)
         self.oak_preview_timer.setInterval(
             OAK_PREVIEW_INTERVAL_MS
         )
@@ -2494,15 +2491,6 @@ class Main(QMainWindow):
 
         return frame, layout
 
-    def resizeEvent(self, event):
-        super().resizeEvent(event)
-        logo=getattr(self,"dashboard_logo",None)
-        original=getattr(self,"dashboard_logo_original",None)
-        if logo is not None and original is not None:
-            height=105 if self.height()>=820 else 48
-            logo.setFixedSize(232,height+2)
-            logo.setPixmap(original.scaled(224,height,Qt.KeepAspectRatio,Qt.SmoothTransformation))
-
     def build_ui(self):
         root = QWidget()
         self.setCentralWidget(root)
@@ -2535,11 +2523,9 @@ class Main(QMainWindow):
                 logo_label = QLabel()
                 logo_label.setObjectName("tyrecycleLogo")
                 logo_label.setPixmap(logo_pixmap.scaled(
-                    224, 48, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    136, 52, Qt.KeepAspectRatio, Qt.SmoothTransformation
                 ))
-                logo_label.setFixedSize(232, 50)
-                self.dashboard_logo=logo_label
-                self.dashboard_logo_original=logo_pixmap
+                logo_label.setFixedSize(140, 54)
                 logo_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
                 header.addWidget(logo_label)
         header.addLayout(title_column)
@@ -2606,9 +2592,24 @@ class Main(QMainWindow):
         self.rail_heading.setObjectName("railHeading")
         counters_layout.addWidget(self.rail_heading)
         daily=metric_card("TODAY / TYRES",self.day_lbl,"#40ead7")
-        daily.setFixedHeight(85)
+        daily.setFixedHeight(108)
+        self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
+        self.total_weight_lbl.setStyleSheet("color:#9be8dd;font:700 18px 'Consolas';")
+        daily.layout().addWidget(self.total_weight_lbl)
         self.day_lbl.setStyleSheet("color:#40ead7;font:900 48px 'Consolas';")
         counters_layout.addWidget(daily)
+        classes=QHBoxLayout();classes.setSpacing(5)
+        self.truck_lbl=QLabel("0")
+        self.weight_labels={}
+        for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#edbc72",45,5)):
+            card=metric_card(name,label,colour);card.setFixedHeight(105)
+            label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:12px;font-weight:800;")
+            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 22px 'Consolas';")
+            card.layout().addWidget(weight);self.weight_labels[key]=weight
+            card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
+            classes.addWidget(card)
+        counters_layout.addLayout(classes)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
         self.current_hour_card=hour
@@ -2632,13 +2633,6 @@ class Main(QMainWindow):
         counters_layout.addWidget(self.record_progress)
         flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#40ead7")
         flow_card.setFixedHeight(57);counters_layout.addWidget(flow_card)
-        classes=QHBoxLayout();classes.setSpacing(5)
-        for name,label,colour in (("PASSENGER",self.passenger_lbl,"#38D996"),("SUV / 4X4",self.suv_lbl,"#42B7FF")):
-            card=metric_card(name,label,colour);card.setFixedHeight(76)
-            label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
-            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:12px;font-weight:800;")
-            classes.addWidget(card)
-        counters_layout.addLayout(classes)
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
         averages.setFixedHeight(67)
@@ -2836,14 +2830,22 @@ class Main(QMainWindow):
         hours_tab.addWidget(QLabel("Celebration sound"))
         self.celebration_sound_combo=QComboBox()
         self.celebration_sound_combo.addItem("Random celebration · all sounds", "random")
-        for key,(label,filename) in CELEBRATION_SOUNDS.items():self.celebration_sound_combo.addItem(label,key)
+        if get_state("celebration_pack","")!="aussie_ten_v1":
+            set_state("celebration_sound","random")
+            set_state("celebration_shuffle","{}")
+            set_state("celebration_pack","aussie_ten_v1")
+        self.celebration_sounds=celebration_library.catalog(CELEBRATION_SOUNDS,DATA/"celebration_sounds_v2")
+        for key,(label,filename) in self.celebration_sounds.items():self.celebration_sound_combo.addItem(label,key)
         if get_state("celebration_policy","legacy")!="random_records_v1":
             set_state("celebration_sound","random")
             set_state("celebration_policy","random_records_v1")
         selected=self.celebration_sound_combo.findData(get_state("celebration_sound","random"))
         self.celebration_sound_combo.setCurrentIndex(max(0,selected))
-        self.celebration_sound_combo.currentIndexChanged.connect(lambda index:set_state("celebration_sound",self.celebration_sound_combo.currentData()))
+        self.celebration_sound_combo.currentIndexChanged.connect(self.celebration_selection_changed)
         hours_tab.addWidget(self.celebration_sound_combo)
+        add_sound=QPushButton("Add celebration sound (WAV)")
+        add_sound.clicked.connect(self.add_celebration_sound);hours_tab.addWidget(add_sound)
+        self.update_celebration_indicator()
         self.test_sound_btn=QPushButton("Test selected celebration sound")
         self.test_sound_btn.clicked.connect(lambda:self.play_celebration_sound(preview=True))
         hours_tab.addWidget(self.test_sound_btn)
@@ -2926,7 +2928,7 @@ class Main(QMainWindow):
             self.update_overlay_mode)
         self.oak_view_combo = QComboBox()
         self.oak_view_combo.addItems(["Smooth", "Show Boxes"])
-        self.oak_view_combo.setToolTip("Smooth: clean live stream. Show Boxes: matched analysed frames with detection boxes. Counting is unaffected.")
+        self.oak_view_combo.setToolTip("Smooth: lighter 320×180 live preview. Show Boxes follows analysed frames and can look less fluid. Counting is unaffected.")
         self.oak_view_combo.currentTextChanged.connect(lambda _: self.update_overlay_mode(self.overlay_mode_combo.currentText()))
         source_layout.addWidget(QLabel("OAK viewing mode"))
         source_layout.addWidget(self.oak_view_combo)
@@ -3580,10 +3582,6 @@ class Main(QMainWindow):
                 results=json.loads((output/"mode_comparison.json").read_text())["results"]
                 summary += "\n"+"\n".join(f"{dict(horizontal='Horizontal',zigzag='Diagonal',zigzag_reverse='Mirrored diagonal').get(mode,mode)}: {row['final_unique_total']} tyres · difference {row['difference']}" for mode,row in results.items())
                 if self.video_test_cancelled:summary += "\nStopped early: totals cover only the processed section; full-video hand count comparison is invalid."
-            if process.returncode==0 and (output/"point_comparison.json").is_file():
-                import json
-                points=json.loads((output/"point_comparison.json").read_text())["results"]
-                summary += "\nBox / mask-centre comparison:\n"+"\n".join(f"{mode}: box {row['box_total']} / mask {row['mask_total']} tyres" for mode,row in points.items())
             self.simulation_summary.setText(summary)
             if self.video_test_dialog is not None:self.video_test_status.setText(summary)
             self.poll_video_test_preview()
@@ -3630,10 +3628,6 @@ class Main(QMainWindow):
         for label,mode in (("Diagonal","zigzag"),("Mirrored diagonal","zigzag_reverse"),("Horizontal","horizontal")):
             self.video_test_mode.addItem(label,mode)
         layout.addWidget(self.video_test_mode)
-        self.video_test_model=QComboBox()
-        self.video_test_model.addItem("Detector · boxes / OAK comparison", "tyre_detector.pt")
-        self.video_test_model.addItem("Segmenter · compare box vs mask counts (PC)", "tyre_segmenter.pt")
-        layout.addWidget(self.video_test_model)
         self.video_test_hand=QLineEdit();self.video_test_hand.setPlaceholderText("Optional hand count for the complete video")
         layout.addWidget(self.video_test_hand)
         self.video_test_status=QLabel("Ready · no camera required")
@@ -3665,7 +3659,6 @@ class Main(QMainWindow):
         self._replay_process=None
         self._replay_output=None
         self.video_test_dialog.hide()
-        self._video_test_model_name=self.video_test_model.currentData()
         self._video_test_args=(path,self.video_test_mode.currentData(),raw)
         self._video_test_direction=self.dir_combo.currentText()
         self.video.belt_direction=self._video_test_direction
@@ -3690,8 +3683,6 @@ class Main(QMainWindow):
         if not getattr(sys,"frozen",False):command.append(str(Path(__file__).resolve()))
         command += ["--replay-test","--video",path,"--output",str(output),"--middle",str(self.line_pos.value()/100),
                     "--direction",self._video_test_direction,"--mode",mode,"--compare-modes","--stop-file",str(output/"stop.request"),"--top",str(self.top_line_slider.value()/100),"--bottom",str(self.bottom_line_slider.value()/100),"--left",str(self.left_span_slider.value()/100),"--right",str(self.right_span_slider.value()/100)]
-        selected_model=getattr(self,"_video_test_model_name","tyre_detector.pt")
-        command += ["--model",str(resource_path(selected_model))]
         if hand:command += ["--hand-count",hand]
         try:
             with (output/"replay_log.txt").open("w",encoding="utf-8") as logfile:
@@ -3842,8 +3833,33 @@ class Main(QMainWindow):
 
     def update_celebration_indicator(self, *_args):
         muted=self.celebration_mute.isChecked()
-        self.celebration_indicator.setText("Celebrations: MUTED · enable in Admin → Performance" if muted else "Celebrations: ON · random / selected sound")
+        key=get_state("celebration_sound","random")
+        catalog=getattr(self,"celebration_sounds",CELEBRATION_SOUNDS)
+        label="Random · shuffle all sounds" if key=="random" else catalog.get(key,("Selected sound unavailable",None))[0]
+        self.celebration_indicator.setText("Celebrations: MUTED · enable in Admin → Performance" if muted else "Celebrations: ON · "+label)
         self.celebration_indicator.setStyleSheet("color:#eeb85a;font-size:11px;" if muted else "color:#7295b3;font-size:11px;")
+
+    def celebration_selection_changed(self, *_args):
+        set_state("celebration_sound",self.celebration_sound_combo.currentData())
+        self.update_celebration_indicator()
+
+    def add_celebration_sound(self):
+        path,_=QFileDialog.getOpenFileName(self,"Add celebration sound","","PCM WAV (*.wav)")
+        if not path:return
+        try:
+            key=celebration_library.import_wav(path,DATA/"celebration_sounds_v2")
+            self.celebration_sounds=celebration_library.catalog(CELEBRATION_SOUNDS,DATA/"celebration_sounds_v2")
+            self.celebration_sound_combo.blockSignals(True)
+            self.celebration_sound_combo.clear()
+            self.celebration_sound_combo.addItem("Random celebration · shuffle all sounds","random")
+            for k,(label,filename) in self.celebration_sounds.items():self.celebration_sound_combo.addItem(label,k)
+            # Add to the random pool; keep Random selected for automatic records.
+            self.celebration_sound_combo.setCurrentIndex(0)
+            self.celebration_sound_combo.blockSignals(False)
+            self.celebration_selection_changed()
+            self.celebration_sound_status.setText("Added: "+self.celebration_sounds[key][0]+" · included in Random. Select it to preview.")
+        except (OSError,ValueError) as exc:
+            self.celebration_sound_status.setText("Cannot add sound: "+str(exc))
 
     def deliver_record_celebration(self, achievements=None):
         """Persist a short-lived retry when Windows cannot start the sound."""
@@ -3898,11 +3914,17 @@ class Main(QMainWindow):
             self.celebration_sound_status.setText("Automatic celebrations are muted. Uncheck Mute celebrations to enable.")
             return False
         key=self.celebration_sound_combo.currentData()
+        sounds=getattr(self,"celebration_sounds",CELEBRATION_SOUNDS)
+        try:shuffle_state=json.loads(get_state("celebration_shuffle","{}"))
+        except (ValueError,TypeError):shuffle_state={}
+        if not isinstance(shuffle_state,dict):shuffle_state={}
+        next_shuffle=None
         if key == "random":
-            choices=[k for k in CELEBRATION_SOUNDS if k != getattr(self,"_last_celebration_sound",None)]
-            key=random.choice(choices or list(CELEBRATION_SOUNDS))
-        self._last_celebration_sound=key
-        label,filename=CELEBRATION_SOUNDS.get(key,CELEBRATION_SOUNDS["cheer"])
+            available=[k for k,(_,name) in sounds.items() if resource_path(name).is_file()]
+            if not available:
+                self.celebration_sound_status.setText("No celebration audio files available.");return False
+            key,next_shuffle=celebration_library.plan_shuffle(available,shuffle_state)
+        label,filename=sounds.get(key,next(iter(CELEBRATION_SOUNDS.values())))
         path=resource_path(filename)
         if not path.is_file():
             self.celebration_sound_status.setText("Missing audio file: "+filename);return False
@@ -3913,6 +3935,11 @@ class Main(QMainWindow):
                 import winsound
                 backend=winsound
             backend.PlaySound(str(path),backend.SND_FILENAME|backend.SND_ASYNC|backend.SND_NODEFAULT)
+            self._last_celebration_sound=key
+            if next_shuffle is None:
+                next_shuffle=dict(shuffle_state,last=key)
+            set_state("celebration_shuffle",json.dumps(next_shuffle))
+            log("Celebration sound started: "+key+" · "+label)
             self.celebration_sound_status.setText("Playing: "+label+" · check Windows volume and speakers.")
             return True
         except Exception as exc:
@@ -4801,6 +4828,7 @@ class Main(QMainWindow):
             self.all_time_lbl.setText("TEST SESSION  " + str(len(events)))
             self.passenger_lbl.setText(str(types.get("passenger",0)))
             self.suv_lbl.setText(str(types.get("4x4",0)))
+            self.refresh_weight_totals(types,test_mode=True)
             self.refresh_production_hours(test_mode=True,test_seconds=elapsed)
         else:
             if self._dashboard_cache is None: return
@@ -4826,6 +4854,7 @@ class Main(QMainWindow):
                     class_totals[key]+=n
             self.passenger_lbl.setText(str(class_totals['passenger']))
             self.suv_lbl.setText(str(class_totals['4x4']))
+            self.refresh_weight_totals(types)
             self.refresh_production_hours()
         best_date, best_count = self._dashboard_cache['best'] if self._dashboard_cache else (None, 0)
         self.best_daily_lbl.setText(f"{best_count:,} tyres")
@@ -4839,7 +4868,19 @@ class Main(QMainWindow):
             "color:#FF5C68;font-size:11px;font-weight:700;" if alert else "color:#88b5cd;font-size:11px;font-weight:700;")
         if getattr(self, "_last_dashboard_snapshot", 0) + 30 < time.monotonic():
             self._last_dashboard_snapshot = time.monotonic()
-            self.grab().save(str(DASHBOARD_SNAPSHOT), "PNG")
+            if not hasattr(self,"_snapshot_writer"):
+                from preview_output import SnapshotWriter
+                self._snapshot_writer=SnapshotWriter(DASHBOARD_SNAPSHOT,lambda exc:log("Dashboard PNG failed: "+str(exc)))
+            self._snapshot_writer.request(self.grab().toImage())
+
+    def refresh_weight_totals(self, types, test_mode=False):
+        values=tyre_weight.totals(types)
+        for key,label in (("passenger",self.passenger_lbl),("4x4",self.suv_lbl),("truck",self.truck_lbl)):
+            label.setText(f"{values['counts'][key]:,}")
+            self.weight_labels[key].setText(f"{values['weights'][key]:,} kg")
+        prefix="TEST ESTIMATED WEIGHT" if test_mode else "ESTIMATED WEIGHT"
+        self.total_weight_lbl.setText(f"{prefix}: {values['total_kg']:,} kg · {values['total_epu']:,} EPU")
+        self.total_weight_lbl.setToolTip(f"{'Test session' if test_mode else 'Today’s production'}: {values['total_count']:,} counted tyres. Passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU. Weight is an estimate. {values['unknown']:,} unclassified tyres excluded from weight and EPU. Truck uses the requested 45 kg directly, not 5 × 8 kg.")
 
     def set_flow_rate(self, rate):
         self.flow_lbl.setText(f"{rate:.1f}")
@@ -5082,6 +5123,8 @@ class Main(QMainWindow):
         exporter = getattr(self, "_csv_exporter", None)
         if exporter is not None and not exporter.wait(3):
             log("CSV export still finishing at close; committed counts remain in SQLite")
+        snapshot_writer=getattr(self,"_snapshot_writer",None)
+        if snapshot_writer is not None:snapshot_writer.wait(3)
         self.stop_alarm_sound()
         event.accept()
 
@@ -5109,6 +5152,13 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
 
+    # Hold for the entire GUI lifetime; duplicate startup entries cannot open
+    # two OAK workers against the same production database and camera.
+    instance_lock = QLockFile(str(DATA / "production_instance.lock"))
+    instance_lock.setStaleLockTime(0)
+    if not instance_lock.tryLock(0):
+        log("TyreTrack startup skipped: production application is already running or its lock is unavailable")
+        sys.exit(0)
     window = Main()
     window.show()
 

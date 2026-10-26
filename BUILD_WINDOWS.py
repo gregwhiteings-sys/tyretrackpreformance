@@ -44,7 +44,7 @@ def main():
     smoke([sys.executable,ROOT/'TyreTrack_Production_Monitor.py','--build-smoke-test',source_result],source_result,env,ROOT,180)
     command=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--windowed',
              '--name','TyreTrack','--paths',ROOT,'--noupx',
-             '--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','mask_count','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
+             '--hidden-import','tyre_weight','--hidden-import','preview_output','--hidden-import','celebration_library','--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
              '--hidden-import','build_support.smoke_test','--hidden-import','foreign_alarm','--hidden-import','no_count_replies',
              '--hidden-import','ultralytics.nn.tasks',
              '--hidden-import','ultralytics.trackers.byte_tracker',
@@ -54,15 +54,8 @@ def main():
              '--collect-all','depthai','--collect-all','lap','--collect-all','optree',
              '--copy-metadata','torch','--copy-metadata','ultralytics',
              '--exclude-module','tensorflow','--exclude-module','keras','--exclude-module','tkinter',
-             '--add-data',str(ROOT/'celebration.wav')+';.',
-             '--add-data',str(ROOT/'celebration_short.wav')+';.',
-             '--add-data',str(ROOT/'celebration_chime.wav')+';.',
-             '--add-data',str(ROOT/'celebration_aussie_1.wav')+';.',
-             '--add-data',str(ROOT/'celebration_aussie_2.wav')+';.',
-             '--add-data',str(ROOT/'celebration_aussie_3.wav')+';.',
-             '--add-data',str(ROOT/'celebration_aussie_4.wav')+';.',
+             '--add-data',str(ROOT/'celebration_sounds')+';celebration_sounds',
              '--add-data',str(ROOT/'tyre_detector.pt')+';.',
-             '--add-data',str(ROOT/'tyre_segmenter.pt')+';.',
              '--add-data',str(ROOT/'tyre_detector_oak.blob')+';.',
              '--add-data',str(ROOT/'oak_model_metadata.json')+';.',
              '--add-data',str(ROOT/'rvc2_models')+';rvc2_models',
@@ -80,8 +73,6 @@ def main():
                 backup.parent.mkdir(parents=True,exist_ok=True);shutil.move(str(dll),str(backup))
     models=list(BUNDLE.rglob('tyre_detector.pt'))
     assert len(models)==1 and digest(models[0])==digest(ROOT/'tyre_detector.pt'), 'Model missing or changed'
-    segmenters=list(BUNDLE.rglob('tyre_segmenter.pt'))
-    assert len(segmenters)==1 and digest(segmenters[0])==digest(ROOT/'tyre_segmenter.pt'), 'Segmenter missing or changed'
     blobs=list(BUNDLE.rglob('tyre_detector_oak.blob'))
     assert len(blobs)==1 and digest(blobs[0])==digest(ROOT/'tyre_detector_oak.blob')
     foreign=list(BUNDLE.rglob('foreign_object.pt'))
@@ -98,6 +89,8 @@ def main():
     shutil.copy2(ROOT/'RUN_OAK_HARDWARE_TEST.bat',BUNDLE/'RUN_OAK_HARDWARE_TEST.bat')
     shutil.copy2(ROOT/'EXPERIMENT_START_HERE.txt',BUNDLE/'START_HERE.txt')
     shutil.copy2(ROOT/'SOUND_CREDIT.txt',BUNDLE/'SOUND_CREDIT.txt')
+    for name in ['INSTALL_AUTOSTART.bat','REMOVE_AUTOSTART.bat','startup_shortcut.ps1','FULL_CHECK_REPORT.txt']:
+        shutil.copy2(ROOT/name,BUNDLE/name)
     shutil.copy2(LOGS/'installed-versions.txt',BUNDLE/'BUILD_VERSIONS.txt')
     prerequisites=BUNDLE/'prerequisites';prerequisites.mkdir(exist_ok=True)
     shutil.copy2(ROOT/'vc_redist.x64.exe',prerequisites/'vc_redist.x64.exe')

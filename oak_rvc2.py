@@ -47,7 +47,14 @@ def build_pipeline(dai,root,recording=False,foreign_enabled=True):
     def stream(name,out,size=4):
         node=p.create(dai.node.XLinkOut);node.setStreamName(name)
         node.input.setBlocking(False);node.input.setQueueSize(size);out.link(node.input)
-    stream('live',camera.preview,1)
+    # Reduce host preview traffic only; AI still receives the original 480x270.
+    live_manip=p.create(dai.node.ImageManip)
+    live_manip.initialConfig.setResize(320,180)
+    live_manip.initialConfig.setFrameType(dai.ImgFrame.Type.BGR888p)
+    live_manip.setMaxOutputFrameSize(320*180*3)
+    live_manip.inputImage.setBlocking(False);live_manip.inputImage.setQueueSize(1)
+    camera.preview.link(live_manip.inputImage)
+    stream('live',live_manip.out,1)
     if recording:
         enc=p.create(dai.node.VideoEncoder)
         enc.setDefaultProfilePreset(15,dai.VideoEncoderProperties.Profile.H264_MAIN)

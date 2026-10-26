@@ -1,11 +1,15 @@
 WORKING BUILD VS CURRENT BUILD
 
-Original camera capture class unchanged
-OAK pipelines, model weights and recording unchanged
+Original camera capture class unchanged; PNG encoding moved off GUI thread
+OAK model weights, AI and recording unchanged; only live preview branch resized to 320x180
 Email/report and count-write functions unchanged
 Windows dependency pins unchanged
 
 INTENTIONAL CHANGES
+Ten replacement sounds with persisted shuffle and WAV import
+Today class counts and owner-specified kg/EPU estimates
+Independent 320x180 live preview and background PNG encoding
+Optional sign-in shortcut installer and duplicate-instance lock
 Camera stays connected outside shift; count gate remains weekday 05:00–17:05 Brisbane
 Experimental shared three-line counter with adjustable top/bottom and horizontal span
 OAK-only production input and separate on-screen video tester
