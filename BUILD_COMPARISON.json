@@ -7,10 +7,11 @@
   "checks": [
     "Original camera capture class unchanged; PNG encoding moved off GUI thread",
     "Only live XLink source selected from existing camera outputs: 640x360 NV12 or original 480x270 BGR; reversing selector patch restores exact pipeline hash",
-    "Email/report and count-write functions unchanged",
-    "Windows dependency pins unchanged"
+    "Original hourly emails, alerts and count writes preserved; two audited daily/scheduler functions now produce PDF+CSV briefings",
+    "Existing Windows dependency pins preserved; ReportLab 4.4.9 added for PDFs and pypdf 6.10.0 for CI validation"
   ],
   "intentional_changes": [
+    "Branded daily and Friday weekly PDF+CSV management briefings; manual background export; HTML email",
     "Ten replacement sounds with persisted shuffle and WAV import",
     "Today class counts and owner-specified kg/EPU estimates",
     "Native 640x360 live view with original-preview fallback; background PNG encoding retained",

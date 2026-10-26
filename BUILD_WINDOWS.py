@@ -44,7 +44,7 @@ def main():
     smoke([sys.executable,ROOT/'TyreTrack_Production_Monitor.py','--build-smoke-test',source_result],source_result,env,ROOT,180)
     command=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--windowed',
              '--name','TyreTrack','--paths',ROOT,'--noupx',
-             '--hidden-import','tyre_weight','--hidden-import','oak_preview','--hidden-import','preview_output','--hidden-import','celebration_library','--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
+             '--hidden-import','tyre_weight','--hidden-import','management_reports','--collect-all','reportlab','--hidden-import','weekly_dashboard','--hidden-import','oak_preview','--hidden-import','preview_output','--hidden-import','celebration_library','--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
              '--hidden-import','build_support.smoke_test','--hidden-import','foreign_alarm','--hidden-import','no_count_replies',
              '--hidden-import','ultralytics.nn.tasks',
              '--hidden-import','ultralytics.trackers.byte_tracker',
@@ -89,7 +89,7 @@ def main():
     shutil.copy2(ROOT/'RUN_OAK_HARDWARE_TEST.bat',BUNDLE/'RUN_OAK_HARDWARE_TEST.bat')
     shutil.copy2(ROOT/'EXPERIMENT_START_HERE.txt',BUNDLE/'START_HERE.txt')
     shutil.copy2(ROOT/'SOUND_CREDIT.txt',BUNDLE/'SOUND_CREDIT.txt')
-    for name in ['INSTALL_AUTOSTART.bat','REMOVE_AUTOSTART.bat','startup_shortcut.ps1','FULL_CHECK_REPORT.txt','RUN_SAFE_PREVIEW.bat','STREAM_RECOVERY_README.txt']:
+    for name in ['INSTALL_AUTOSTART.bat','REMOVE_AUTOSTART.bat','startup_shortcut.ps1','FULL_CHECK_REPORT.txt','RUN_SAFE_PREVIEW.bat','STREAM_RECOVERY_README.txt','MANAGEMENT_REPORTS_README.txt']:
         shutil.copy2(ROOT/name,BUNDLE/name)
     shutil.copy2(LOGS/'installed-versions.txt',BUNDLE/'BUILD_VERSIONS.txt')
     prerequisites=BUNDLE/'prerequisites';prerequisites.mkdir(exist_ok=True)

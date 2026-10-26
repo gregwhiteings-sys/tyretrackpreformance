@@ -894,29 +894,18 @@ def oak_no_count_alert_tick():
 
 
 def send_daily_production_email(now):
-    """Send one Brisbane shift report; caller records success for retry safety."""
-    metrics = production_snapshot(now)
-    with sqlite3.connect(DB, timeout=15) as con:
-        slots, best, _ = hourly_snapshot(con, source=OAK_NAME, now=now)
-    completed = [slot for slot in slots if slot['completed']]
-    average = sum(slot['count'] for slot in completed) / len(completed) if completed else 0
-    peak = max((slot['count'] / max((slot['end']-slot['start']).total_seconds()/60, 1/60)
-                for slot in completed), default=0)
-    best_period = f"{best['start']:%H:%M}-{best['end']:%H:%M}" if best else "None"
-    body = (f"TYRECYCLE | TYRETRACK DAILY PRODUCTION REPORT\n"
-            f"Brisbane shift: {metrics['day_start']:%Y-%m-%d 05:00}–17:05\n\n"
-            f"Total tyres: {metrics['daily']:,}\n"
-            f"Best completed hour: {metrics['best_count']:,} ({best_period})\n"
-            f"Average hourly production (completed slots incl. zero): {average:.1f}\n"
-            f"Best completed-slot flow average: {peak:.2f} tyres/min\n"
-            f"No-count incidents (10+ minutes): {metrics['no_count_incidents']}\n"
-            f"No-flow time in incidents: {metrics['no_flow_minutes']:.1f} minutes\n"
-            "Camera availability and missed detections are not verified by counts alone.\n")
-    try:
-        body += "\n" + no_count_replies.summary(DB, now.strftime("%Y-%m-%d"))
-    except Exception as exc:
-        log(f"Supervisor report summary unavailable: {exc}")
-    return send_message(f"TYRETRACK Daily Production - {now:%Y-%m-%d}", body, DASHBOARD_SNAPSHOT)
+    return send_management_briefing(now, weekly=False)
+
+
+def send_management_briefing(now, weekly=False):
+    settings=email_settings()
+    if settings is None:
+        log(f"Management report waiting for email configuration: {EMAIL_INI}")
+        return False
+    from management_reports import build_briefing,send_briefing
+    report,paths=build_briefing(DB,OAK_NAME,REPORTS/"management",now,weekly,
+        DATA/"foreign_incidents",OAK_RECORDINGS,resource_path("tyrecycle_logo.png"))
+    return send_briefing(settings,report,paths,DASHBOARD_SNAPSHOT,logger=log)
 
 
 def process_scheduled_emails(now):
@@ -944,7 +933,7 @@ def process_scheduled_emails(now):
         oak_no_count_alert_tick()
         today_open = now.replace(hour=5, minute=0, second=0, microsecond=0)
         today_close = today_open.replace(hour=17, minute=5)
-        if now < today_open:
+        if now.weekday()>=5 or now < today_open:
             return
         stored = get_state("hourly_next_start", "")
         try:
@@ -968,6 +957,11 @@ def process_scheduled_emails(now):
             if get_state(daily_key, "") != "1":
                 if send_daily_production_email(today_close.replace(tzinfo=timezone(timedelta(hours=10)))):
                     set_state(daily_key, "1")
+            if today_open.weekday()==4:
+                weekly_key=f"weekly_sent_{today_open:%Y%m%d}"
+                if get_state(weekly_key, "")!="1":
+                    if send_management_briefing(today_close.replace(tzinfo=timezone(timedelta(hours=10))),weekly=True):
+                        set_state(weekly_key,"1")
     except Exception:
         log("Hourly scheduler error:\n" + traceback.format_exc())
     finally:
@@ -2392,6 +2386,7 @@ class ControlScrollArea(QScrollArea):
 
 
 class Main(QMainWindow):
+    management_report_ready = pyqtSignal(object)
     dashboard_ready = pyqtSignal(object)
     def __init__(self):
         super().__init__()
@@ -2677,13 +2672,31 @@ class Main(QMainWindow):
             label=QLabel(f"{index+5:02d}:00–{end}\n—")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
-            label.setMinimumWidth(0);label.setFixedHeight(62)
+            label.setMinimumWidth(0);label.setFixedHeight(52)
             label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;font-size:12px;")
             blocks.addWidget(label,0,index);blocks.setColumnStretch(index,1)
             self.dashboard_hour_blocks.append(label)
         strip_layout.addLayout(blocks)
-        self.hourly_strip.setFixedHeight(86)
+        self.hourly_strip.setFixedHeight(76)
         outer.addWidget(self.hourly_strip)
+
+        self.weekday_strip=QFrame()
+        daily_layout=QVBoxLayout(self.weekday_strip)
+        daily_layout.setContentsMargins(0,0,0,0);daily_layout.setSpacing(2)
+        self.weekday_heading=QLabel("DAILY TOTALS · THIS WEEK · BRISBANE")
+        daily_layout.addWidget(self.weekday_heading)
+        daily_blocks=QHBoxLayout();daily_blocks.setSpacing(4)
+        self.dashboard_day_blocks=[]
+        for name in ("MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"):
+            label=QLabel(name+" · —")
+            label.setAlignment(Qt.AlignCenter)
+            label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+            label.setMinimumWidth(0);label.setFixedHeight(42)
+            label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;")
+            daily_blocks.addWidget(label,1);self.dashboard_day_blocks.append(label)
+        daily_layout.addLayout(daily_blocks)
+        self.weekday_strip.setFixedHeight(64)
+        outer.addWidget(self.weekday_strip)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -2717,7 +2730,7 @@ class Main(QMainWindow):
         # secondary area scroll instead of taking height from the live video.
         self.operator_controls_scroll=ControlScrollArea()
         self.operator_controls_scroll.setFrameShape(QFrame.NoFrame)
-        self.operator_controls_scroll.setMinimumHeight(90)
+        self.operator_controls_scroll.setMinimumHeight(44)
         self.operator_controls_scroll.setMaximumHeight(136)
         self.operator_controls=QWidget()
         self.operator_controls.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
@@ -3252,6 +3265,16 @@ class Main(QMainWindow):
         supervisor_btn.clicked.connect(self.open_supervisor_reports)
         reports_layout.addWidget(supervisor_btn)
 
+        self.management_report_status=QLabel("Daily PDF + CSV emailed after 17:05; Friday adds the weekly briefing.")
+        self.management_report_status.setWordWrap(True)
+        self.management_report_ready.connect(self.management_report_finished)
+        self.management_daily_btn=QPushButton("Export today's management PDF + CSV")
+        self.management_weekly_btn=QPushButton("Export this week's management PDF + CSV")
+        self.management_daily_btn.clicked.connect(lambda:self.export_management_report(False))
+        self.management_weekly_btn.clicked.connect(lambda:self.export_management_report(True))
+        reports_layout.addWidget(self.management_daily_btn)
+        reports_layout.addWidget(self.management_weekly_btn)
+        reports_layout.addWidget(self.management_report_status)
         reports_layout.addWidget(export_btn)
         reports_layout.addWidget(
             self.reset_btn
@@ -4056,6 +4079,31 @@ class Main(QMainWindow):
             if visible else "Show controls"
         )
 
+    def export_management_report(self, weekly=False):
+        if getattr(self,"_management_thread",None) is not None and self._management_thread.is_alive():return
+        now=brisbane_now()
+        self.management_daily_btn.setEnabled(False);self.management_weekly_btn.setEnabled(False)
+        self.management_report_status.setText("Preparing charts and production report...")
+        def work():
+            try:
+                from management_reports import build_briefing
+                _,paths=build_briefing(DB,OAK_NAME,REPORTS/"management",now,weekly,
+                    DATA/"foreign_incidents",OAK_RECORDINGS,resource_path("tyrecycle_logo.png"))
+                result=dict(paths={k:str(v) for k,v in paths.items()})
+            except Exception as exc:
+                log(f"Management export failed: {exc}");result=dict(error=str(exc))
+            self.management_report_ready.emit(result)
+        self._management_thread=threading.Thread(target=work,name="TyreTrack management report",daemon=True)
+        self._management_thread.start()
+
+    def management_report_finished(self, result):
+        if getattr(self,"closing",False):return
+        self.management_daily_btn.setEnabled(True);self.management_weekly_btn.setEnabled(True)
+        if 'error' in result:
+            self.management_report_status.setText("Report failed: "+result['error']);return
+        self.management_report_status.setText("PDF + CSV saved: "+result['paths']['pdf'])
+        if sys.platform=="win32":os.startfile(str(Path(result['paths']['pdf']).parent))
+
     def open_supervisor_reports(self):
         """Read-only incident register; does not interfere with counting or Gmail."""
         dialog = QDialog(self)
@@ -4774,6 +4822,18 @@ class Main(QMainWindow):
                 active = index
         self.production_scroll.ensureWidgetVisible(self.production_slots[active])
 
+    def refresh_weekday_totals(self):
+        days=(self._dashboard_cache or {}).get('weekdays',[])
+        if not days:return
+        self.weekday_heading.setText(f"DAILY TOTALS · THIS WEEK · {days[0]['date']:%d %b}–{days[-1]['date']:%d %b} · BRISBANE")
+        for block,day in zip(self.dashboard_day_blocks,days):
+            colour="#42b7ff" if day['current'] else "#38d996" if day['completed'] else "#84929e"
+            amount="—" if day['future'] else f"{day['count']:,}"
+            tag=" · TODAY" if day['current'] else ""
+            block.setText(f'<span style="font-size:11px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:22px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
+            block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
+            block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
+
     def request_dashboard_data(self):
         if not hasattr(self, "_dashboard_loader"):
             from background_export import CoalescedExport
@@ -4785,6 +4845,8 @@ class Main(QMainWindow):
                     types = con.execute("SELECT tyre_type,COUNT(*) FROM counts WHERE source=? AND metric_utc>=? AND metric_utc<? GROUP BY tyre_type",
                         (OAK_NAME,metrics['day_start'].timestamp(),min(now,metrics['day_end']).timestamp())).fetchall()
                     hourly = hourly_snapshot(con, source=OAK_NAME)
+                    from weekly_dashboard import weekday_snapshot
+                    weekdays = weekday_snapshot(con, source=OAK_NAME, now=now)
                 best = best_daily_record()
                 day_key=now.date().isoformat()
                 if getattr(self,"_prior_best_date",None)!=day_key:
@@ -4792,7 +4854,7 @@ class Main(QMainWindow):
                     self._prior_best_date=day_key
                 prior_best=self._prior_best_value
                 self.dashboard_ready.emit(dict(metrics=metrics, types=types, hourly=hourly,
-                    best=best, prior_best=prior_best, collect_ms=(time.monotonic()-started)*1000))
+                    best=best, prior_best=prior_best, weekdays=weekdays, collect_ms=(time.monotonic()-started)*1000))
             self._dashboard_loader = CoalescedExport(collect,
                 lambda exc: log(f"Dashboard background refresh failed: {exc}"))
         self._dashboard_loader.request()
@@ -4869,6 +4931,7 @@ class Main(QMainWindow):
             self.suv_lbl.setText(str(class_totals['4x4']))
             self.refresh_weight_totals(types)
             self.refresh_production_hours()
+        self.refresh_weekday_totals()
         best_date, best_count = self._dashboard_cache['best'] if self._dashboard_cache else (None, 0)
         self.best_daily_lbl.setText(f"{best_count:,} tyres")
         self.best_daily_lbl.setToolTip(f"Best production day: {best_date or 'No OAK counts yet'} · 05:00–17:05 Brisbane; includes today")
@@ -5138,6 +5201,8 @@ class Main(QMainWindow):
             log("CSV export still finishing at close; committed counts remain in SQLite")
         snapshot_writer=getattr(self,"_snapshot_writer",None)
         if snapshot_writer is not None:snapshot_writer.wait(3)
+        report_thread=getattr(self,"_management_thread",None)
+        if report_thread is not None and report_thread.is_alive():report_thread.join(3)
         self.stop_alarm_sound()
         event.accept()
 

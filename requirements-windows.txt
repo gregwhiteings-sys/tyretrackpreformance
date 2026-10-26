@@ -13,3 +13,8 @@ torchvision==0.20.1+cpu
 
 # Bundled FFmpeg libraries: remux camera H264 into MP4, no PC video encoding.
 av==16.1.0
+
+# PDF management briefings (vector charts, embedded fonts).
+reportlab==4.4.9
+# Report validation during CI; not required by the application.
+pypdf==6.10.0

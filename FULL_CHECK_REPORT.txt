@@ -2,6 +2,19 @@ TYRETRACK — AUSSIE SOUNDS, LIGHTER PREVIEW AND ESTIMATED TYRE WEIGHT
 Updated 27 October 2026. GitHub-ready source, not a compiled Windows EXE.
 
 WHAT CHANGED
+- Daily and Friday weekly management briefings attach branded PDF + CSV reports.
+- Reports include hourly/weekday bars, tyre mix, kg/EPU, factual summary and audit detail.
+- Existing email configuration is used; manual exports are in Admin > Reports.
+- PDF generation is on background workers; OAK pipeline and count logic unchanged.
+- ReportLab is added for PDFs; pypdf is added for CI verification.
+- A second dashboard row shows the current Brisbane week's Monday-Friday totals.
+- Each daily block displays the weekday/date; today updates with new counts.
+- Past weekdays show their recorded totals; future days show a dash.
+- Counts are read from existing OAK production history for 05:00-17:05 only.
+- Video/manual tests and weekend/out-of-shift counts are excluded.
+- Week selection rolls forward automatically on Monday, in Brisbane time.
+- The bounded weekly history query runs on the existing background loader.
+- No camera/model/pipeline/count-logic changes in this dashboard addition.
 - Passenger, SUV/4x4 and Truck dashboard cards show count and estimated kg.
 - Combined estimated kg and EPU appear below Today’s tyre total.
 - Today’s stored class counts are used automatically; no recount/reset needed.
@@ -61,7 +74,7 @@ Brisbane time. A manual pause remains for that day; it clears the next day.
 Video tests suppress live reconnects and keep counts separate.
 
 VALIDATION
-All 32 scripts in run_ci_tests.py passed on the final source. They cover:
+All 34 scripts in run_ci_tests.py passed on the final source. They cover:
 - weight/EPU formulas, three class cards, total, aliases and unknown exclusions;
 - visible count/weight labels at 1280x720, 1366x768 and 1450x850;
 - WAV format/content, ten-sound shuffle cycles, restart and failure state;
