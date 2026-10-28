@@ -1,0 +1,17 @@
+TARGETS UPDATE — 29 October 2026
+Build the Windows app through the existing GitHub workflow.
+Window title: TyreTrack · Targets update 2026-10-29
+
+Use Set daily production target on the dashboard. Set 0 to disable.
+The target persists and applies to each production day until changed.
+The forecast uses existing committed OAK production totals and the current
+weekday 05:00–17:05 Brisbane schedule. Average pace includes stops/breaks.
+A forecast appears after 15 minutes and refreshes at most every 30 seconds.
+It estimates the finish total and required remaining hourly rate; it is not
+a guaranteed result. Video/manual tests do not feed the production forecast.
+
+The best-hour message is stationary and wrapped. No scrolling timer.
+Flow stays red below 5 tyres/minute; no blinking timer.
+Unchanged live counter text and flow styling are not repeatedly reset.
+Camera, tracking and count processing were not modified in this update.
+Windows/OAK hardware and busy-shift CPU behaviour require onsite validation.

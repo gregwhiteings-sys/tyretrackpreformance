@@ -45,13 +45,14 @@ for width,height in ((1450,850),(1366,768),(1280,720)):
   if control.isVisible():
    at=control.mapTo(w,control.rect().topLeft());assert at.x()>=0 and at.x()+control.width()<=w.width()
  w.grab().save(str(root/f'experiment_dashboard_{width}.png'))
-initial=w.record_progress._offset
-w.record_progress._last_step-=.05;w.record_progress.advance_message()
-assert w.record_progress._offset!=initial
-assert w.record_progress.toolTip()==w.record_progress.text()
-w.record_progress.hide();assert not w.record_progress._motion.isActive()
-w.record_progress.show();assert w.record_progress._motion.isActive()
-print('PASS: units, larger class totals, scrolling message, accessible full text, hidden-timer suspension')
+assert not hasattr(w.record_progress, '_motion')
+w.record_progress.setText("Fixed message")
+assert w.record_progress.toolTip()=="Fixed message"
+w.set_flow_rate(4.9);assert '#FF5C68' in w.flow_lbl.styleSheet()
+w.set_flow_rate(5);assert not w.flow_lbl.styleSheet()
+assert not hasattr(w, 'flow_flash_timer')
+assert w.target_button.text() == 'Set daily production target'
+print('PASS: stationary accessible message, steady low-flow threshold, target control')
 print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines')
 w.controls_tabs.show();app.processEvents()
 for index in range(w.controls_tabs.count()):
