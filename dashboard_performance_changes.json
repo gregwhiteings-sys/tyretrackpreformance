@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "best_daily_record": {
+      "old": "def best_daily_record(now=None):\n    now = now or brisbane_now()\n    totals = defaultdict(int)\n    with sqlite3.connect(DB, timeout=15) as con:\n        rows = con.execute(\"SELECT ts, metric_utc FROM counts WHERE source=?\", (OAK_NAME,)).fetchall()\n    for ts, epoch in rows:\n        try:\n            stamp = (datetime.fromtimestamp(epoch, now.tzinfo) if epoch is not None\n                     else datetime.fromisoformat(ts))\n            if stamp.tzinfo is None:\n                stamp = stamp.replace(tzinfo=now.tzinfo)\n            stamp = stamp.astimezone(now.tzinfo)\n            begin = stamp.replace(hour=5, minute=0, second=0, microsecond=0)\n            if begin <= stamp < begin.replace(hour=17, minute=5) and stamp <= now:\n                totals[stamp.date().isoformat()] += 1\n        except (ValueError, TypeError, OverflowError):\n            continue\n    return max(totals.items(), key=lambda item: (item[1], item[0])) if totals else (None, 0)",
+      "new": "def best_daily_record(now=None):\n    from dashboard_history import best_daily\n    return best_daily(DB,OAK_NAME,now or brisbane_now())"
+    }
+  }
+}

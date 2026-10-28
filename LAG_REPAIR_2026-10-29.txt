@@ -1,0 +1,56 @@
+TYRETRACK PERFORMANCE UPDATE - 29 OCTOBER 2026
+
+Recording reviewed
+The supplied Chrome Remote Desktop recording shows the small preview counter
+advance from 68 to 69 around 5 seconds while Today remains 213 until around
+8 seconds (then 214). The scrolling message also appears uneven. This is
+visible feedback lag, not proof of missed tyres or a hand-count accuracy check.
+A Task Manager view around 32 seconds shows overall CPU 84%, TyreTrack 34.4%
+and Host Process 33.3%. The recording alone cannot identify what all of that
+Host Process load represents or separate local animation from remote transport.
+Visible app logs show repeated dashboard background collection around 0.8-1.5s,
+camera receipt about 15 fps and matched AI about 8 fps in the displayed samples.
+Recording packet gaps were also present in the cumulative log counters; this
+update does not claim those are fixed.
+
+Repairs
+1. Best-day history is aggregated inside SQLite. Modern history rows are no
+   longer copied into Python and converted one by one at every refresh.
+2. Live totals use grouped database queries rather than reading each tyre
+   from today's records into Python. Legacy timestamp compatibility retained.
+3. Full historical statistics refresh at most once per five seconds; requests
+   are not queued while a collection is already running. Live counters retain
+   their independent event-triggered refresh and one-second periodic fallback.
+4. Scrolling text uses fractional positioning and a precise 33 ms timer.
+5. Logs include live-read time, queued delivery time and maximum marquee
+   callback gap to help separate database work from GUI/remote delays.
+6. Window title identifies Performance update 2026-10-29.
+
+Kept from previous update
+Weight pie charts in management email/PDF, count/weight/EPU totals, periodic
+CSV exports and final pending CSV request at close. Camera quality, AI models,
+recording, crossing rules, schedules and report calculations are unchanged.
+Statistics such as historical best-day and weekday blocks may lag up to five
+seconds; the headline counters use the independent lightweight read.
+
+Validation completed locally
+- 100,000-event best-day parity with previous implementation: passed.
+- Includes legacy/offset timestamps, near-close sub-second records, future
+  records and non-production source isolation.
+- Example local timing: old best-day 221ms, new SQL 37ms; live snapshot 6ms.
+  These are local benchmark results, not timings measured on the site PC.
+- Live totals and GUI heartbeat during blocked history collection: passed.
+- Busy-loader suppression and historical refresh throttle: passed.
+- Management PDF/CSV/email, kg/EPU labels, schedules, weekday history,
+  production UI, database upgrade and reporting reconciliation: passed.
+- Source compatibility checks: passed with explicit audited best-day change.
+- Three-line tests passed. OAK binaries and pipeline files retained byte-for-byte.
+Full Windows CI/executable build and physical OAK tests were not run here.
+
+Build and trial
+Build with the existing GitHub workflow. Keep the previous build for rollback
+and preserve the existing database/settings/reports. Close the old executable
+before launching this version. Check the window title for the update date.
+Compare the onsite display with Remote Desktop during a busy belt. A hand count
+is still needed to verify counting accuracy. If stutter remains, send the new
+PERF GUI stages and OAK stream summary log lines alongside a short recording.
