@@ -89,7 +89,7 @@ from three_line import ThreeLineCounter, simulation_checks, line_segments
 from hourly_dashboard import hourly_snapshot, brisbane_now
 from foreign_alarm import CLASSES, Confirmation, in_region, read_json, write_json, set_password, verify_password, make_tone
 
-from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, QPointF, pyqtSignal
 from PyQt5.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
@@ -685,23 +685,8 @@ def production_snapshot(now=None):
 
 
 def best_daily_record(now=None):
-    now = now or brisbane_now()
-    totals = defaultdict(int)
-    with sqlite3.connect(DB, timeout=15) as con:
-        rows = con.execute("SELECT ts, metric_utc FROM counts WHERE source=?", (OAK_NAME,)).fetchall()
-    for ts, epoch in rows:
-        try:
-            stamp = (datetime.fromtimestamp(epoch, now.tzinfo) if epoch is not None
-                     else datetime.fromisoformat(ts))
-            if stamp.tzinfo is None:
-                stamp = stamp.replace(tzinfo=now.tzinfo)
-            stamp = stamp.astimezone(now.tzinfo)
-            begin = stamp.replace(hour=5, minute=0, second=0, microsecond=0)
-            if begin <= stamp < begin.replace(hour=17, minute=5) and stamp <= now:
-                totals[stamp.date().isoformat()] += 1
-        except (ValueError, TypeError, OverflowError):
-            continue
-    return max(totals.items(), key=lambda item: (item[1], item[0])) if totals else (None, 0)
+    from dashboard_history import best_daily
+    return best_daily(DB,OAK_NAME,now or brisbane_now())
 
 
 def production_report_counts(start, end):
@@ -2042,7 +2027,8 @@ class ScrollingRecordLabel(QLabel):
         self._offset=0.0
         self._last_step=time.monotonic()
         self._motion=QTimer(self)
-        self._motion.setInterval(50)
+        self._motion.setTimerType(Qt.PreciseTimer)
+        self._motion.setInterval(33)
         self._motion.timeout.connect(self.advance_message)
         self.setFixedHeight(58)
         self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
@@ -2067,7 +2053,9 @@ class ScrollingRecordLabel(QLabel):
         super().hideEvent(event)
 
     def advance_message(self):
-        now=time.monotonic();elapsed=min(.1,now-self._last_step);self._last_step=now
+        now=time.monotonic();gap=max(0,now-self._last_step);self._last_step=now
+        self._max_motion_gap_ms=max(getattr(self,"_max_motion_gap_ms",0),gap*1000)
+        elapsed=min(.25,gap)
         if not self.isVisible() or self.window().isMinimized():return
         span=max(self.fontMetrics().horizontalAdvance(self.text())+90,self.width()+90)
         self._offset=(self._offset+36*elapsed)%max(span,1)
@@ -2081,10 +2069,10 @@ class ScrollingRecordLabel(QLabel):
         painter.setFont(self.font())
         fm=painter.fontMetrics()
         span=max(fm.horizontalAdvance(self.text())+90,self.width()+90)
-        x=round(12-self._offset);baseline=(self.height()-fm.height())//2+fm.ascent()
+        x=12-self._offset;baseline=(self.height()-fm.height())//2+fm.ascent()
         painter.setClipRect(self.rect().adjusted(8,0,-8,0))
-        painter.drawText(x,baseline,self.text())
-        painter.drawText(x+span,baseline,self.text())
+        painter.drawText(QPointF(x,baseline),self.text())
+        painter.drawText(QPointF(x+span,baseline),self.text())
 
 
 class VideoLabel(QLabel):
@@ -2430,7 +2418,7 @@ class Main(QMainWindow):
         self.test_events = []  # Video playback seconds at confirmed crossings.
 
         self.setWindowTitle(
-            APP_NAME + " - TOTAL TYRE COUNT [Controls 2026-10-12]"
+            APP_NAME + " - Performance update 2026-10-29"
         )
         self.resize(1450, 850)
         self.dashboard_ready.connect(self.dashboard_data_ready)
@@ -4315,8 +4303,9 @@ class Main(QMainWindow):
             details = ", ".join(f"{key}_avg_ms={total/max(1,count):.1f}, {key}_max_ms={maximum:.1f}"
                                 for key,(count,total,maximum) in sorted(self._gui_timings.items()))
             active = self.fullscreen_video if self.fullscreen_video is not None else self.video
-            log("PERF GUI stages: "+details+f", image_paint_max_ms={getattr(active, '_max_image_paint_ms', 0):.1f}")
+            log("PERF GUI stages: "+details+f", marquee_gap_max_ms={getattr(self.record_progress, '_max_motion_gap_ms', 0):.1f}, image_paint_max_ms={getattr(active, '_max_image_paint_ms', 0):.1f}")
             active._max_image_paint_ms = 0
+            self.record_progress._max_motion_gap_ms = 0
             self._gui_timings = {}; self._gui_timing_since = now
 
     def display_oak_preview(self):
@@ -4860,6 +4849,8 @@ class Main(QMainWindow):
     def live_totals_received(self,data):
         if getattr(self,"closing",False):return
         self._live_totals=data
+        self.gui_timing('live_totals_read',data.get('read_ms',0))
+        self.gui_timing('live_totals_delivery',max(0,(time.monotonic()-data.get('ready_mono',time.monotonic()))*1000))
         self.apply_live_totals()
 
     def apply_live_totals(self):
@@ -4873,6 +4864,12 @@ class Main(QMainWindow):
         self.refresh_weight_totals(data['types'])
 
     def request_dashboard_data(self):
+        now_mono=time.monotonic()
+        if hasattr(self,"_dashboard_loader"):
+            with self._dashboard_loader.lock:
+                if self._dashboard_loader.running:return
+            if now_mono-getattr(self,"_last_statistics_request",0)<5:return
+        self._last_statistics_request=now_mono
         if not hasattr(self, "_dashboard_loader"):
             from background_export import CoalescedExport
             def collect():
