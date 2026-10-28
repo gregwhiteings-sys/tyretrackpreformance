@@ -171,18 +171,19 @@ def write_pdf(r,path,logo=None):
                 c.setFont('Brief',7);c.drawCentredString(x+step/2,10,label)
     class Mix(Flowable):
         height=118
-        def __init__(self):Flowable.__init__(self);self.width=width;self.height=118
+        def __init__(self,weight=False):Flowable.__init__(self);self.width=width;self.height=118;self.weight=weight
         def draw(self):
-            c=self.canv;total=r['total'];angle=90;cx=62;cy=57;radius=43
+            c=self.canv;total=r['weight']['total_kg'] if self.weight else r['total'];angle=90;cx=62;cy=57;radius=43
             for i,k in enumerate(KINDS):
-                val=r['types'].get(k,0);span=360*val/total if total else 0
+                val=r['weight']['weights'].get(k,0) if self.weight else r['types'].get(k,0);span=360*val/total if total else 0
                 if span:c.setFillColor(colors.HexColor(COLOURS[i]));c.wedge(cx-radius,cy-radius,cx+radius,cy+radius,angle,span,fill=1,stroke=0)
                 angle+=span
                 y=96-i*25;c.setFillColor(colors.HexColor(COLOURS[i]));c.rect(139,y-2,8,8,fill=1,stroke=0)
                 c.setFillColor(navy);c.setFont('Brief',9);c.drawString(155,y,LABELS[i]);c.setFont('BriefBold',9)
                 c.drawRightString(self.width-10,y,f'{val:,}   ({val/total*100 if total else 0:.1f}%)')
             c.setFillColor(colors.white);c.circle(cx,cy,26,fill=1,stroke=0)
-            c.setFillColor(navy);c.setFont('BriefBold',10);c.drawCentredString(cx,cy,f'{total:,}');c.setFont('Brief',7);c.drawCentredString(cx,cy-12,'TYRES')
+            c.setFillColor(navy);c.setFont('BriefBold',10);c.drawCentredString(cx,cy,f'{total:,}');c.setFont('Brief',7);c.drawCentredString(cx,cy-12,'KG' if self.weight else 'TYRES')
+            if not total:c.drawString(139,3,'No assigned weight data' if self.weight else 'No counted tyres')
     def table(rows,widths=None):
         header_style=ParagraphStyle(name='TH',parent=styles['BriefBody'],textColor=colors.white,fontName='BriefBold')
         cells=[[Paragraph(escape(str(x)).replace('\n','<br/>'),header_style if i==0 else styles['BriefBody']) for x in row] for i,row in enumerate(rows)]
@@ -206,7 +207,7 @@ def write_pdf(r,path,logo=None):
     kpis=[('TOTAL TYRES',f"{r['total']:,}"),('ESTIMATED WEIGHT',f"{r['weight']['total_kg']/1000:,.2f} tonnes"),('TOTAL EPU',f"{r['weight']['total_epu']:,}"),('AVERAGE / HOUR',f"{r['average_hour']:,.1f}"),('BEST DAY',f"{r['best_day'][1]:,} tyres"),('ALL-TIME OAK COUNTS',f"{r['all_time']:,}")]
     tiles=[]
     for a in (0,3):tiles.append([Paragraph(f'<font size="7" color="#526779">{label}</font><br/><font name="BriefBold" size="17" color="#008b85">{value}</font>',ParagraphStyle(name='KPI',parent=styles['BriefBody'],leading=22)) for label,value in kpis[a:a+3]])
-    t=Table(tiles,colWidths=[width/3]*3);t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#edf5f8')),('BOX',(0,0),(-1,-1),.5,colors.HexColor('#d6e2e9')),('TOPPADDING',(0,0),(-1,-1),9),('BOTTOMPADDING',(0,0),(-1,-1),8)]));story +=[t,Spacer(1,9),p(commentary(r)),heading('Hourly production'+(' - combined clock hours' if r['weekly'] else '')),Bars([s['start'][:2] for s in r['slots']],[s['count'] for s in r['slots']]),heading('Monday-Friday production'),Bars([d['label'] for d in r['weekdays']],[None if d['future'] else d['count'] for d in r['weekdays']],h=99),heading('Tyre classifications'),Mix(),p('Passenger: 8 kg / 1 EPU. SUV / 4x4: 16 kg / 2 EPU. Truck: 45 kg / 5 EPU. Unclassified tyres remain in the total and have no assigned weight. Truck figures require truck-labelled count data.'),PageBreak(),heading('Production detail')]
+    t=Table(tiles,colWidths=[width/3]*3);t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#edf5f8')),('BOX',(0,0),(-1,-1),.5,colors.HexColor('#d6e2e9')),('TOPPADDING',(0,0),(-1,-1),9),('BOTTOMPADDING',(0,0),(-1,-1),8)]));story +=[t,Spacer(1,9),p(commentary(r)),heading('Hourly production'+(' - combined clock hours' if r['weekly'] else '')),Bars([s['start'][:2] for s in r['slots']],[s['count'] for s in r['slots']]),heading('Monday-Friday production'),Bars([d['label'] for d in r['weekdays']],[None if d['future'] else d['count'] for d in r['weekdays']],h=99),heading('Tyre classifications'),Mix(),p('Passenger: 8 kg / 1 EPU. SUV / 4x4: 16 kg / 2 EPU. Truck: 45 kg / 5 EPU. Unclassified tyres remain in the total and have no assigned weight. Truck figures require truck-labelled count data.'),PageBreak(),heading('Estimated weight by tyre class'),Mix(weight=True),p('Weight share uses kilograms, not tyre counts. Unclassified tyres have no assigned weight and are excluded. Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre.'),heading('Production detail')]
     rows=[['Brisbane slot','Tyres','Passenger','SUV / 4x4','Truck','Est. kg']]
     for s in r['slots']:rows.append([s['start']+'-'+s['end'],f"{s['count']:,}",s['types'].get('passenger',0),s['types'].get('4x4',0),s['types'].get('truck',0),totals(s['types'])['total_kg']])
     story +=[table(rows,[width*.24,width*.12,width*.17,width*.17,width*.12,width*.18]),p(f"Average flow: {r['flow_minute']:.2f} tyres/min | Best completed-slot flow: {r['peak_flow']:.2f} tyres/min"),p(f"Best day: {r['best_day'][0] or 'No history'} | Previous {'week' if r['weekly'] else 'working day'} ({r['previous_label']}): {r['previous_total']:,} tyres"),heading('No-count review and supervisor responses'),p(f"{len(r['no_count_gaps'])} count {'gap' if len(r['no_count_gaps'])==1 else 'gaps'} of 10+ minutes ({sum(g['minutes'] for g in r['no_count_gaps']):.1f} minutes combined). A count gap does not establish conveyor stoppage or camera availability.")]
@@ -248,7 +249,9 @@ def make_email(settings,r,paths,snapshot=None):
     if snapshot and Path(snapshot).is_file():
         captured=datetime.fromtimestamp(Path(snapshot).stat().st_mtime,BRISBANE).strftime('%d %b %Y %H:%M:%S Brisbane')
         html=html.replace('</body>',f'<p>Dashboard captured {captured}:</p><img src="cid:dashboard_snapshot" alt="Dashboard reference" style="width:100%;max-width:900px;height:auto"></body>')
+    html=html.replace('</body>', '<h3>Estimated weight by tyre class</h3><img src="cid:weight_mix" alt="Estimated weight by class in kilograms" style="width:100%;max-width:620px"><p>Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre. Unclassified tyres excluded.</p></body>')
     msg.add_alternative(html,subtype='html')
+    msg.get_body(preferencelist=('html',)).add_related(weight_chart_png(r),maintype='image',subtype='png',cid='<weight_mix>',disposition='inline',filename='Estimated_Weight_By_Class.png')
     for ext,mime in [('pdf',('application','pdf')),('csv',('text','csv'))]:msg.add_attachment(Path(paths[ext]).read_bytes(),maintype=mime[0],subtype=mime[1],filename=Path(paths[ext]).name)
     if snapshot and Path(snapshot).is_file():
         msg.get_body(preferencelist=('html',)).add_related(Path(snapshot).read_bytes(),maintype='image',subtype='png',cid='<dashboard_snapshot>',disposition='inline',filename='TyreTrack_Dashboard.png')
@@ -273,6 +276,26 @@ def smoke_report():
         with closing(sqlite3.connect(db)) as con:
             con.execute('CREATE TABLE counts(ts TEXT,metric_utc REAL,source TEXT,tyre_type TEXT)')
             con.commit()
-        _,paths=build_briefing(db,'smoke',folder,datetime(2026,10,26,17,5,tzinfo=BRISBANE))
+        r,paths=build_briefing(db,'smoke',folder,datetime(2026,10,26,17,5,tzinfo=BRISBANE))
+        assert weight_chart_png(r).startswith(b'\x89PNG')
         assert paths['pdf'].read_bytes().startswith(b'%PDF-')
         assert paths['csv'].stat().st_size>0
+
+
+def weight_chart_png(r):
+    """Small dependency-free chart for email, same kg values as PDF/CSV."""
+    from PIL import Image, ImageDraw, ImageFont
+    import reportlab
+    font=ImageFont.truetype(str(Path(reportlab.__file__).parent/"fonts"/"Vera.ttf"),15)
+    import io
+    image=Image.new('RGB',(620,230),'white');d=ImageDraw.Draw(image)
+    total=r['weight']['total_kg'];angle=-90
+    for i,key in enumerate(KINDS[:3]):
+        value=r['weight']['weights'].get(key,0);span=360*value/total if total else 0
+        if span:d.pieslice((10,10,220,220),angle,angle+span,fill=COLOURS[i])
+        angle+=span;y=35+i*55
+        d.rectangle((245,y,258,y+13),fill=COLOURS[i])
+        d.text((270,y),f"{LABELS[i]}: {value:,} kg ({value/total*100 if total else 0:.1f}%)",fill='#10283c',font=font)
+    if not total:d.text((40,110),'No assigned weight',fill='#10283c',font=font)
+    d.text((245,205),f'Total estimated weight: {total:,} kg',fill='#10283c',font=font)
+    out=io.BytesIO();image.save(out,format='PNG');return out.getvalue()

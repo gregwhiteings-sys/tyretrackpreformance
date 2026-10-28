@@ -2387,6 +2387,7 @@ class ControlScrollArea(QScrollArea):
 
 class Main(QMainWindow):
     management_report_ready = pyqtSignal(object)
+    live_totals_ready = pyqtSignal(object)
     dashboard_ready = pyqtSignal(object)
     def __init__(self):
         super().__init__()
@@ -2433,6 +2434,7 @@ class Main(QMainWindow):
         )
         self.resize(1450, 850)
         self.dashboard_ready.connect(self.dashboard_data_ready)
+        self.live_totals_ready.connect(self.live_totals_received)
         self._dashboard_cache = None
         self.build_ui()
         self.flow_flash_timer = QTimer(self)
@@ -4696,7 +4698,18 @@ class Main(QMainWindow):
                 self._csv_exporter = CoalescedExport(
                     lambda: (export_daily_csv(), export_classification_csv()),
                     lambda exc: log(f"Daily CSV update failed: {exc}"))
-            self._csv_exporter.request()
+            # Request a cheap committed-count read immediately; historical reports
+            # cannot hold up this independent worker or overwrite its display.
+            self.request_live_totals()
+            if time.monotonic()-getattr(self,"_last_count_csv",0)>=10:
+                self._last_count_csv=time.monotonic()
+                self._csv_exporter.request()
+            else:
+                if not hasattr(self,"_csv_flush_timer"):
+                    self._csv_flush_timer=QTimer(self)
+                    self._csv_flush_timer.setSingleShot(True)
+                    self._csv_flush_timer.timeout.connect(self._csv_exporter.request)
+                if not self._csv_flush_timer.isActive():self._csv_flush_timer.start(10000)
         # SQLite already contains the count. The existing 1-second timer refreshes cards;
         # never scan all reports or write CSV synchronously for every crossing.
 
@@ -4834,6 +4847,31 @@ class Main(QMainWindow):
             block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
             block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
+    def request_live_totals(self):
+        if getattr(self,"closing",False):return
+        if not hasattr(self,"_live_loader"):
+            from background_export import CoalescedExport
+            from live_totals import snapshot
+            self._live_loader=CoalescedExport(
+                lambda:self.live_totals_ready.emit(snapshot(DB,OAK_NAME,brisbane_now())),
+                lambda exc:log(f"Live counter refresh failed: {exc}"))
+        self._live_loader.request()
+
+    def live_totals_received(self,data):
+        if getattr(self,"closing",False):return
+        self._live_totals=data
+        self.apply_live_totals()
+
+    def apply_live_totals(self):
+        worker=self.worker
+        if worker is not None and (worker.source_kind=="video" or worker.manual_test):return
+        data=getattr(self,"_live_totals",None);now=brisbane_now()
+        if not data or data['day']!=now.date().isoformat() or data['hour']!=now.hour:return
+        self.day_lbl.setText(tyre_total_text(data['daily']))
+        self.hour_lbl.setText(tyre_total_text(data['current_hour']))
+        self.total_lbl.setText(str(data['all_time']))
+        self.refresh_weight_totals(data['types'])
+
     def request_dashboard_data(self):
         if not hasattr(self, "_dashboard_loader"):
             from background_export import CoalescedExport
@@ -4869,6 +4907,7 @@ class Main(QMainWindow):
 
     def refresh_counts(self, use_cached=False):
         if not use_cached:
+            self.request_live_totals()
             self.request_dashboard_data()
         worker = self.worker
         test_mode = bool(worker is not None and (worker.source_kind == "video" or worker.manual_test))
@@ -4931,6 +4970,7 @@ class Main(QMainWindow):
             self.suv_lbl.setText(str(class_totals['4x4']))
             self.refresh_weight_totals(types)
             self.refresh_production_hours()
+        self.apply_live_totals()
         self.refresh_weekday_totals()
         best_date, best_count = self._dashboard_cache['best'] if self._dashboard_cache else (None, 0)
         self.best_daily_lbl.setText(f"{best_count:,} tyres")
@@ -5194,6 +5234,12 @@ class Main(QMainWindow):
                 event.ignore()
                 return
 
+        live_loader=getattr(self,"_live_loader",None)
+        if live_loader is not None:live_loader.wait(3)
+        csv_timer=getattr(self,"_csv_flush_timer",None)
+        if csv_timer is not None and csv_timer.isActive():
+            csv_timer.stop()
+            self._csv_exporter.request()
         loader = getattr(self, "_dashboard_loader", None)
         if loader is not None: loader.wait(3)
         exporter = getattr(self, "_csv_exporter", None)

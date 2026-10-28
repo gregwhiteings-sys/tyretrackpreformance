@@ -18,3 +18,6 @@ av==16.1.0
 reportlab==4.4.9
 # Report validation during CI; not required by the application.
 pypdf==6.10.0
+
+# Inline email weight chart.
+Pillow==11.3.0

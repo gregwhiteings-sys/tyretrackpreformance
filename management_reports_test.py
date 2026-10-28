@@ -29,13 +29,14 @@ with DatabaseTemporaryDirectory() as folder:
  (incident/'broken.json').write_text('{')
  r,paths=build_briefing(db,'oak',folder/'reports',now,incidents_dir=incident,recordings_dir=recordings.parent)
  assert r['total']==5 and r['weight']['total_kg']==77 and r['weight']['total_epu']==9
+ assert r['weight']['weights']=={'passenger':16,'4x4':16,'truck':45}
  assert r['weight']['unknown']==1 and sum(s['count'] for s in r['slots'])==5
  assert r['previous_total']==4 and r['delta_percent']==25
  assert len(r['alarms'])==1 and r['unreadable_incidents']==1 and len(r['recordings'])==1
  assert r['supervisors'][0]['status']=='AWAITING RESPONSE'
  assert len(PdfReader(paths['pdf']).pages)>=2
  text=''.join(p.extract_text() for p in PdfReader(paths['pdf']).pages)
- assert all(x in text for x in ['TYRECYCLE / OZCOM','No-count review','Truck','25.0%','Recorded footage'])
+ assert all(x in text for x in ['TYRECYCLE / OZCOM','No-count review','Truck','25.0%','Recorded footage','Estimated weight by tyre class','58.4%'])
  with paths['csv'].open(encoding='utf-8-sig',newline='') as f:rows=list(csv.DictReader(f))
  assert sum(int(x['tyres']) for x in rows if x['record_type']=='HOURLY')==5
  assert sum(int(x['estimated_kg']) for x in rows if x['record_type']=='HOURLY')==77
@@ -46,6 +47,8 @@ with DatabaseTemporaryDirectory() as folder:
  settings=('sender@example.org','TEST_ONLY','manager@example.org')
  email=make_email(settings,r,paths)
  assert email.get_body(preferencelist=('html',)) is not None
+ assert any(p.get('Content-ID')=='<weight_mix>' and p.get_payload(decode=True).startswith(b'\x89PNG') for p in email.walk())
+ assert 'cid:weight_mix' in email.get_body(preferencelist=('html',)).get_content()
  assert sorted(p.get_content_type() for p in email.iter_attachments())==['application/pdf','text/csv']
  rich=make_email(settings,r,paths,snapshot)
  assert any(p.get('Content-ID')=='<dashboard_snapshot>' for p in rich.walk())
