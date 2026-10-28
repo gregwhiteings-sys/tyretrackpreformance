@@ -2021,58 +2021,20 @@ def tyre_total_text(value):
 
 
 class ScrollingRecordLabel(QLabel):
-    """A small text-only marquee; no video rescaling or database work."""
+    """Compatibility name; stationary text with no animation timer."""
     def __init__(self, text="", parent=None):
-        super().__init__(text,parent)
-        self._offset=0.0
-        self._last_step=time.monotonic()
-        self._motion=QTimer(self)
-        self._motion.setTimerType(Qt.PreciseTimer)
-        self._motion.setInterval(33)
-        self._motion.timeout.connect(self.advance_message)
-        self.setFixedHeight(58)
-        self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+        super().__init__(text, parent)
+        self.setWordWrap(True)
+        self.setAlignment(Qt.AlignCenter)
+        self.setMinimumHeight(58)
+        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Minimum)
         self.setMinimumWidth(0)
-        self.setToolTip(text)
-        self.setAccessibleName(text)
 
     def setText(self, text):
-        if text==self.text():return
+        if text == self.text(): return
         super().setText(text)
         self.setToolTip(text)
         self.setAccessibleName(text)
-        self.update()
-
-    def showEvent(self,event):
-        self._last_step=time.monotonic()
-        self._motion.start()
-        super().showEvent(event)
-
-    def hideEvent(self,event):
-        self._motion.stop()
-        super().hideEvent(event)
-
-    def advance_message(self):
-        now=time.monotonic();gap=max(0,now-self._last_step);self._last_step=now
-        self._max_motion_gap_ms=max(getattr(self,"_max_motion_gap_ms",0),gap*1000)
-        elapsed=min(.25,gap)
-        if not self.isVisible() or self.window().isMinimized():return
-        span=max(self.fontMetrics().horizontalAdvance(self.text())+90,self.width()+90)
-        self._offset=(self._offset+36*elapsed)%max(span,1)
-        self.update()
-
-    def paintEvent(self,event):
-        painter=QPainter(self)
-        painter.setRenderHint(QPainter.TextAntialiasing)
-        painter.fillRect(self.rect(),QColor("#0b2631"))
-        painter.setPen(QColor("#55f1d7"))
-        painter.setFont(self.font())
-        fm=painter.fontMetrics()
-        span=max(fm.horizontalAdvance(self.text())+90,self.width()+90)
-        x=12-self._offset;baseline=(self.height()-fm.height())//2+fm.ascent()
-        painter.setClipRect(self.rect().adjusted(8,0,-8,0))
-        painter.drawText(QPointF(x,baseline),self.text())
-        painter.drawText(QPointF(x+span,baseline),self.text())
 
 
 class VideoLabel(QLabel):
@@ -2425,10 +2387,7 @@ class Main(QMainWindow):
         self.live_totals_ready.connect(self.live_totals_received)
         self._dashboard_cache = None
         self.build_ui()
-        self.flow_flash_timer = QTimer(self)
-        self.flow_flash_timer.setInterval(500)
-        self.flow_flash_timer.timeout.connect(self.flash_low_flow)
-        self._flow_flash_red = False
+
         self.refresh_counts()
 
         self.oak_preview_timer = QTimer(self)
@@ -2458,7 +2417,7 @@ class Main(QMainWindow):
         self.oak_view_combo.setCurrentText("Show Boxes")
         self.start_btn.setText("Resume")
         self.stop_btn.setText("Pause")
-        self.setWindowTitle("TyreTrack · Production Monitor")
+        self.setWindowTitle("TyreTrack · Targets update 2026-10-29")
         self.apply_2070_theme()
         self.tick()
 
@@ -2583,6 +2542,17 @@ class Main(QMainWindow):
         daily.layout().addWidget(self.total_weight_lbl)
         self.day_lbl.setStyleSheet("color:#40ead7;font:900 48px 'Consolas';")
         counters_layout.addWidget(daily)
+        self.target_button = QPushButton("Set daily production target")
+        self.target_button.clicked.connect(self.set_production_target)
+        counters_layout.addWidget(self.target_button)
+        self.forecast_label = QLabel("Set a daily target to enable the shift forecast")
+        self.forecast_label.setWordWrap(True)
+        self.forecast_label.setStyleSheet("color:#91bfff;font:600 16px 'Segoe UI';padding:6px;")
+        counters_layout.addWidget(self.forecast_label)
+        try: self.production_target = max(0, int(get_state("production_target", "0")))
+        except (ValueError, TypeError): self.production_target = 0
+
+
         classes=QHBoxLayout();classes.setSpacing(5)
         self.truck_lbl=QLabel("0")
         self.weight_labels={}
@@ -4836,6 +4806,30 @@ class Main(QMainWindow):
             block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
             block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
+    def set_production_target(self):
+        value, accepted = QInputDialog.getInt(self, "Daily production target",
+            "Tyres per production day (0 disables forecast):",
+            self.production_target, 0, 10000000, 100)
+        if not accepted: return
+        self.production_target = value
+        set_state("production_target", str(value))
+        self._forecast_updated = 0
+        self.update_production_forecast()
+
+    def update_production_forecast(self):
+        now = brisbane_now()
+        worker = self.worker
+        test_mode = worker is not None and (worker.source_kind == "video" or worker.manual_test)
+        stamp = time.monotonic()
+        key = (now.date(), self.production_target, test_mode)
+        if key == getattr(self, "_forecast_key", None) and stamp - getattr(self, "_forecast_updated", 0) < 30: return
+        self._forecast_key = key
+        self._forecast_updated = stamp
+        from production_forecast import forecast_text
+        data = getattr(self, "_live_totals", None)
+        text = forecast_text(now, self.production_target, data, test_mode)
+        if self.forecast_label.text() != text: self.forecast_label.setText(text)
+
     def request_live_totals(self):
         if getattr(self,"closing",False):return
         if not hasattr(self,"_live_loader"):
@@ -4854,13 +4848,17 @@ class Main(QMainWindow):
         self.apply_live_totals()
 
     def apply_live_totals(self):
+        self.update_production_forecast()
         worker=self.worker
         if worker is not None and (worker.source_kind=="video" or worker.manual_test):return
         data=getattr(self,"_live_totals",None);now=brisbane_now()
         if not data or data['day']!=now.date().isoformat() or data['hour']!=now.hour:return
-        self.day_lbl.setText(tyre_total_text(data['daily']))
-        self.hour_lbl.setText(tyre_total_text(data['current_hour']))
-        self.total_lbl.setText(str(data['all_time']))
+        value = tyre_total_text(data['daily'])
+        if self.day_lbl.text() != value: self.day_lbl.setText(value)
+        value = tyre_total_text(data['current_hour'])
+        if self.hour_lbl.text() != value: self.hour_lbl.setText(value)
+        value = str(data['all_time'])
+        if self.total_lbl.text() != value: self.total_lbl.setText(value)
         self.refresh_weight_totals(data['types'])
 
     def request_dashboard_data(self):
@@ -4996,21 +4994,13 @@ class Main(QMainWindow):
         self.total_weight_lbl.setToolTip(f"{'Test session' if test_mode else 'Today’s production'}: {values['total_count']:,} counted tyres. Passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU. Weight is an estimate. {values['unknown']:,} unclassified tyres excluded from weight and EPU. Truck uses the requested 45 kg directly, not 5 × 8 kg.")
 
     def set_flow_rate(self, rate):
-        self.flow_lbl.setText(f"{rate:.1f}")
-        if rate < 5:
-            if not self.flow_flash_timer.isActive():
-                self._flow_flash_red = False
-                self.flash_low_flow()
-                self.flow_flash_timer.start()
-        else:
-            self.flow_flash_timer.stop()
-            self._flow_flash_red = False
-            self.flow_lbl.setStyleSheet("")
-
-    def flash_low_flow(self):
-        self._flow_flash_red = not self._flow_flash_red
-        self.flow_lbl.setStyleSheet(
-            "color:#FF5C68;font-size:22px;font-weight:900;" if self._flow_flash_red else "")
+        text = f"{rate:.1f}"
+        if self.flow_lbl.text() != text: self.flow_lbl.setText(text)
+        low = rate < 5
+        if low != getattr(self, "_low_flow", None):
+            self._low_flow = low
+            self.flow_lbl.setStyleSheet("color:#FF5C68;font-size:22px;font-weight:900;" if low else "")
+            self.flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Flow: tyres per minute")
 
     def reset_session(self):
         if (
