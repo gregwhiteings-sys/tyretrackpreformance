@@ -1,0 +1,37 @@
+TYRETRACK - WEIGHT REPORT CHART AND LIVE COUNTER UPDATE
+28 October 2026
+
+Weight reporting
+- Daily and weekly management emails include an inline estimated-weight pie chart.
+- Their attached PDFs retain the tyre-count mix chart and add a separate weight mix chart.
+- Passenger = 8 kg, SUV / 4x4 = 16 kg, truck = 45 kg per counted tyre.
+- Pie percentages use kilograms. Unclassified tyres have no assigned weight.
+- CSV totals, EPU factors and reporting schedules are unchanged.
+- Included report preview uses demonstration data.
+
+Counter responsiveness
+- Committed counts trigger a separate background read for Today, This Hour,
+  all-time counts, class totals and estimated kg/EPU.
+- Heavy historical dashboard queries no longer determine when those labels update.
+- Existing slow statistics refreshes cannot overwrite the fast headline labels.
+- CSV exports run at most roughly every ten seconds during busy counting, with
+  a pending final export requested on app close. Counts remain saved in SQLite.
+- Camera pipeline, models, count crossing rules and production schedule unchanged.
+
+Validation
+Passed: new live-counter test with historical collection deliberately blocked;
+GUI heartbeat, source/test isolation, shift boundaries and legacy timestamps;
+management PDF/CSV/JSON and inline email image tests; daily/weekly scheduler;
+background dashboard test; kg/EPU and layouts; weekday history; production
+schedule/metrics; 16 reporting reconciliation checks; database upgrades;
+production UI; original camera/model/dependency compatibility contracts.
+PDF chart layout rendered and visually checked.
+Full CI and Windows executable build were not run here. Preview pipeline test
+could not run because DepthAI is not installed in this environment.
+No physical OAK, live counting accuracy or remote desktop performance verified.
+
+Install / build
+Use the included GitHub workflow and build scripts as before. Preserve your
+existing database, settings and reports. Try the build in a separate folder.
+At a busy conveyor, compare the onsite screen with Chrome Remote Desktop and
+hand-check counts; this update targets display/CSV load, not detection accuracy.
