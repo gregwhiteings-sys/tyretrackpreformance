@@ -2,6 +2,7 @@
 from pathlib import Path
 from datetime import datetime,timedelta
 from contextlib import closing
+from test_resources import DatabaseTemporaryDirectory
 import json,sqlite3,tempfile,time,statistics,ast
 from collections import defaultdict
 from hourly_dashboard import BRISBANE
@@ -9,7 +10,9 @@ from dashboard_history import best_daily
 from live_totals import snapshot
 root=Path(__file__).resolve().parent
 old=json.loads((root/'dashboard_performance_changes.json').read_text())['functions']['best_daily_record']['old']
-with tempfile.TemporaryDirectory() as folder:
+# The old reference function uses SQLite transaction contexts, which do not
+# close connections. Own those handles explicitly before Windows deletes the DB.
+with DatabaseTemporaryDirectory() as folder:
  db=Path(folder)/'history.db';now=datetime(2026,10,29,12,tzinfo=BRISBANE)
  with closing(sqlite3.connect(db)) as con:
   con.execute('CREATE TABLE counts(id INTEGER PRIMARY KEY,ts TEXT,metric_utc REAL,source TEXT,tyre_type TEXT)')
