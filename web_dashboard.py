@@ -1,4 +1,4 @@
-"""Outbound-only, opt-in dashboard summaries. No video, DB writes or remote controls."""
+"""Outbound-only, opt-in summaries and safe dashboard stills; no remote controls."""
 import json,os,threading,time,urllib.request
 from pathlib import Path
 from datetime import timezone
@@ -10,7 +10,7 @@ def validate_config(value):
     if value.get('schema')!=1 or value.get('url')!=URL:raise ValueError('Choose the connection file downloaded from your TyreTrack web dashboard')
     token=value.get('token','')
     if not isinstance(token,str) or not 32<=len(token)<=256 or any(c.isspace() for c in token):raise ValueError('Invalid connection file')
-    return dict(schema=1,url=URL,token=token,enabled=bool(value.get('enabled',False)))
+    return dict(schema=1,url=URL,token=token,enabled=bool(value.get('enabled',False)),snapshot_enabled=bool(value.get('snapshot_enabled',False)))
 
 def build_snapshot(live,cache,now,camera_connected=False,target=0,test_mode=False):
     if test_mode or not live or not cache:return None
@@ -58,3 +58,49 @@ class Publisher:
                     self.status='Last update sent successfully'
                 except Exception:self.status='Update failed; automatic retry (counting continues)'
             self.thread=threading.Thread(target=send,name='TyreTrack web statistics',daemon=True);self.thread.start();return True
+
+
+def operator_image(full_image,rectangles):
+    """Allow-list pixels from operator widgets; never publish admin settings."""
+    from PyQt5.QtCore import QRect,QPoint
+    from PyQt5.QtGui import QImage,QPainter,QColor,QFont
+    result=QImage(full_image.size(),QImage.Format_RGB32)
+    ratio=full_image.devicePixelRatio();result.setDevicePixelRatio(ratio);result.fill(QColor('#07111e'))
+    painter=QPainter(result)
+    for rect in rectangles:
+        source=QRect(round(rect.x()*ratio),round(rect.y()*ratio),round(rect.width()*ratio),round(rect.height()*ratio)).intersected(full_image.rect())
+        if not source.isEmpty():
+            part=full_image.copy(source);part.setDevicePixelRatio(ratio)
+            painter.drawImage(QPoint(rect.x(),rect.y()),part)
+    painter.setPen(QColor('#6ee3d5'));painter.setFont(QFont('Segoe UI',17,QFont.Bold))
+    painter.drawText(16,32,'TYRETRACK  |  OPERATOR DASHBOARD')
+    painter.end();return result
+
+
+class ImagePublisher:
+    def __init__(self,publisher,clock=time.monotonic):
+        self.publisher=publisher;self.clock=clock;self.last_attempt=-1e9;self.thread=None;self.lock=threading.Lock();self.status='Dashboard snapshot sharing off'
+    def request(self,image,captured_at):
+        config=self.publisher.config
+        if not config or not config['enabled'] or not config.get('snapshot_enabled'):return False
+        with self.lock:
+            if self.thread is not None and self.thread.is_alive():return False
+            if self.clock()-self.last_attempt<30:return False
+            self.last_attempt=self.clock();config=dict(config);copy=image.copy()
+            def send():
+                try:
+                    from PyQt5.QtCore import QBuffer,QIODevice,Qt
+                    frame=copy.scaled(1280,960,Qt.KeepAspectRatio,Qt.SmoothTransformation)
+                    buffer=QBuffer();buffer.open(QIODevice.WriteOnly)
+                    if not frame.save(buffer,'JPEG',65):raise OSError('JPEG encoding failed')
+                    body=bytes(buffer.data());buffer.close()
+                    if len(body)>512*1024:raise OSError('Image too large')
+                    # Sharing can be disabled while encoding; do not start a new upload.
+                    current=self.publisher.config
+                    if not current or not current['enabled'] or not current.get('snapshot_enabled'):return
+                    req=urllib.request.Request(ORIGIN+'/api/dashboard-image',data=body,headers={'Authorization':'Bearer '+config['token'],'Content-Type':'image/jpeg','X-Captured-At':captured_at,'User-Agent':'TyreTrack-Publisher/1.0'},method='POST')
+                    with self.publisher.opener(req,timeout=4) as response:
+                        if response.status!=200:raise OSError('Upload failed')
+                    self.status='Dashboard snapshot sent successfully'
+                except Exception:self.status='Snapshot update failed; automatic retry (counting continues)'
+            self.thread=threading.Thread(target=send,name='TyreTrack web JPEG',daemon=True);self.thread.start();return True

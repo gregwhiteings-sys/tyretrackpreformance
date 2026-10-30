@@ -1,0 +1,39 @@
+TYRETRACK PUBLIC DASHBOARD SNAPSHOT - 31 OCTOBER 2026
+
+Use the same public link and existing web connection file:
+https://tyretrack-production-live.astute-loom-2153.chatgpt.site/
+
+Build/install this updated Windows app through the existing GitHub workflow,
+preserving your data, settings and reports. In Admin Settings > Reports:
+- Keep Share view-only statistics online enabled.
+- Tick Share operator dashboard snapshot publicly (every 30 seconds).
+- Wait up to about one minute for the next capture and website refresh.
+- The image status should read Dashboard snapshot sent successfully.
+No new connection file is required. Image sharing defaults off until enabled.
+
+What viewers see
+A compressed still of the operator dashboard, including the conveyor preview,
+statistics and hourly/weekday blocks. A timestamp is shown in Brisbane time.
+Tap/click to open full size. It is not streaming video. After 90 seconds without
+a fresh capture the image is marked paused and remains dated as last received.
+Anyone with the public link can view it. Administration panels are excluded
+using an allow-list of operator widget pixel regions. The camera view can still
+show whatever is physically within its field of view.
+
+Performance and storage
+The existing 30-second dashboard capture is reused. JPEG compression, resize
+(maximum 1280x960, aspect ratio preserved) and upload run in a background thread.
+JPEG quality 65; maximum 512 KB. Four-second network timeout, no overlapping
+image jobs. Offline replay/manual tests are not published. Image sharing uses
+the existing private uploader credential and does not open any PC ports.
+The server retains only the latest image. Turning sharing off stops future
+uploads; the last published image remains visible and later becomes stale.
+
+Validation
+Actual image-route auth, timestamps, JPEG/size checks, storage round-trip and
+older-image suppression tested with isolated mocked storage. Image privacy
+checked at 1x/2x DPI. Actual Qt capture wiring, test exclusion, JPEG compression,
+rate limit, opt-in persistence, GUI responsiveness during blocked networking
+and failure isolation passed locally. Existing counter/forecast/UI/source
+compatibility checks passed. Website build passed. Full Windows CI and actual
+onsite snapshot upload remain to be verified.
