@@ -89,7 +89,7 @@ from three_line import ThreeLineCounter, simulation_checks, line_segments
 from hourly_dashboard import hourly_snapshot, brisbane_now
 from foreign_alarm import CLASSES, Confirmation, in_region, read_json, write_json, set_password, verify_password, make_tone
 
-from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, QPointF, pyqtSignal
+from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, QPoint, QPointF, pyqtSignal
 from PyQt5.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
@@ -3242,6 +3242,16 @@ class Main(QMainWindow):
         self.web_enabled=QCheckBox("Share view-only statistics online (every 10 seconds)")
         self.web_enabled.setChecked(bool(self._web_publisher.config and self._web_publisher.config['enabled']))
         self.web_enabled.toggled.connect(self.toggle_web_sharing)
+        from web_dashboard import ImagePublisher
+        self._web_image_publisher=ImagePublisher(self._web_publisher)
+        self.web_image_enabled=QCheckBox("Share operator dashboard snapshot publicly (every 30 seconds)")
+        self.web_image_enabled.setToolTip("Includes the conveyor preview and production figures. Admin panels are excluded. Anyone with the dashboard link can see it.")
+        self.web_image_enabled.setChecked(bool(self._web_publisher.config and self._web_publisher.config.get('snapshot_enabled')))
+        self.web_image_enabled.toggled.connect(self.toggle_web_snapshot)
+        reports_layout.addWidget(self.web_image_enabled)
+        self.web_image_status=QLabel(self._web_image_publisher.status)
+        self.web_image_status.setWordWrap(True)
+        reports_layout.addWidget(self.web_image_status)
         self.web_status=QLabel(self._web_publisher.status)
         self.web_status.setWordWrap(True)
         reports_layout.addWidget(self.web_connect_btn)
@@ -3252,6 +3262,7 @@ class Main(QMainWindow):
         reports_layout.addWidget(web_link)
         self._web_status_timer=QTimer(self)
         self._web_status_timer.timeout.connect(lambda:self.web_status.setText(self._web_publisher.status))
+        self._web_status_timer.timeout.connect(lambda:self.web_image_status.setText(self._web_image_publisher.status))
         self._web_status_timer.start(2000)
 
         reports_layout.addWidget(export_btn)
@@ -4857,6 +4868,7 @@ class Main(QMainWindow):
         try:
             self._web_publisher.import_file(path)
             self.web_enabled.setChecked(False)
+            self.web_image_enabled.setChecked(False)
             self.web_status.setText(self._web_publisher.status)
         except Exception as exc:QMessageBox.warning(self,"Web dashboard",str(exc))
 
@@ -4866,6 +4878,32 @@ class Main(QMainWindow):
             self.web_enabled.blockSignals(True);self.web_enabled.setChecked(False);self.web_enabled.blockSignals(False)
             QMessageBox.warning(self,"Web dashboard",str(exc))
         self.web_status.setText(self._web_publisher.status)
+
+    def toggle_web_snapshot(self,enabled):
+        if not self._web_publisher.config:
+            self.web_image_enabled.blockSignals(True);self.web_image_enabled.setChecked(False);self.web_image_enabled.blockSignals(False)
+            QMessageBox.warning(self,"Web snapshot","Load your existing web connection file first.");return
+        self._web_publisher.config['snapshot_enabled']=bool(enabled)
+        self._web_publisher.save()
+        self._web_image_publisher.status='Waiting for next dashboard capture' if enabled else 'Dashboard snapshot sharing off'
+        self.web_image_status.setText(self._web_image_publisher.status)
+
+    def publish_dashboard_image(self,full_image):
+        if getattr(self,"closing",False) or getattr(self,"offline_testing",False):return
+        worker=self.worker
+        if worker is not None and (worker.source_kind=="video" or worker.manual_test):return
+        config=self._web_publisher.config
+        if not config or not config['enabled'] or not config.get('snapshot_enabled'):return
+        from web_dashboard import operator_image
+        safe_widgets=[self.video,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
+        rectangles=[]
+        for widget in safe_widgets:
+            if widget.isVisible():
+                rect=widget.rect().translated(widget.mapTo(self,QPoint(0,0))).intersected(self.rect())
+                if not rect.isEmpty():rectangles.append(rect)
+        if not rectangles:return
+        image=operator_image(full_image,rectangles)
+        self._web_image_publisher.request(image,datetime.now(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'))
 
     def publish_web_statistics(self):
         publisher=getattr(self,"_web_publisher",None)
@@ -5035,7 +5073,9 @@ class Main(QMainWindow):
             if not hasattr(self,"_snapshot_writer"):
                 from preview_output import SnapshotWriter
                 self._snapshot_writer=SnapshotWriter(DASHBOARD_SNAPSHOT,lambda exc:log("Dashboard PNG failed: "+str(exc)))
-            self._snapshot_writer.request(self.grab().toImage())
+            captured=self.grab().toImage()
+            self._snapshot_writer.request(captured)
+            self.publish_dashboard_image(captured)
 
     def refresh_weight_totals(self, types, test_mode=False):
         values=tyre_weight.totals(types)
