@@ -1,0 +1,52 @@
+TYRETRACK - PUBLIC VIEW-ONLY WEB DASHBOARD
+
+Dashboard link (share this):
+https://tyretrack-production-live.astute-loom-2153.chatgpt.site
+
+Connect the onsite PC
+1. Build the updated Windows app using your existing GitHub workflow and install
+   it while preserving your existing data, settings and reports.
+2. On the onsite PC, open the dashboard link and click Connect onsite app at the
+   bottom. Sign in with the SAME ChatGPT account that created this Site.
+3. Click Download connection file. The private JSON file permits publishing;
+   keep it private and do not upload it to GitHub or send it to viewers.
+4. In TyreTrack: Admin Settings > Reports > Web dashboard: Load connection file.
+5. Choose the downloaded JSON, then tick Share view-only statistics online.
+6. The status should say Last update sent successfully after a fresh statistics
+   snapshot is available. On the web page, allow about 20 seconds for both the
+   first upload and browser refresh.
+
+Viewers need only the dashboard link. No Tailscale or Windows app is required.
+The public link can be forwarded; anyone with it can see the summary figures.
+
+Included
+Today, this hour, best completed hour, best day, all-time total; passenger,
+SUV/4x4 and truck class counts; estimated kg and EPU; hourly bars; weekday totals;
+flow, average and optional target forecast; camera connection status; date and
+last-update time. No camera video, emails, supervisor names/comments, raw logs,
+credentials or full database are uploaded. Weight uses the existing owner-
+specified factors (8/16/45 kg). Classification depends on the active model.
+
+Updates and offline behaviour
+- The onsite PC sends a small summary at most once every ten seconds.
+- Uses existing in-memory snapshots; no extra production database scans.
+- Network request runs on a separate daemon thread with a four-second timeout.
+- No overlapping uploads or replay/test publication. No incoming PC ports.
+- Sharing is off until a connection file is loaded and enabled. The setting
+  persists in the existing private configuration folder.
+- Public viewers can only read; they cannot pause counting, change settings,
+  acknowledge alarms or edit production records.
+- If updates stop for 45 seconds, the page marks them paused and retains the
+  last received figures. Previous-day data is dated as the last received day.
+- The page stays hosted when the onsite PC is off, but figures cannot be live.
+- Both the onsite PC and the viewer need internet. PC clock must be within five
+  minutes of server time. Counts stay local if upload fails.
+- Switch off sharing in the app to stop future uploads. Previously published
+  summary figures remain on the hosted page until replaced.
+
+Verification
+Site deployed and browser-rendered. Summary validation/privacy tests and
+Windows app publisher/control tests passed locally, plus existing counter,
+forecast, weight, reply-dialog, UI and source-compatibility checks.
+Full Windows CI and real onsite upload still need verification.
+The initial hosted page intentionally contains no invented production figures.
