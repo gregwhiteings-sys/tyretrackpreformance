@@ -4088,6 +4088,7 @@ class Main(QMainWindow):
         table.setEditTriggers(QTableWidget.NoEditTriggers)
         table.setSelectionBehavior(QTableWidget.SelectRows)
         table.setAlternatingRowColors(True)
+        table.setStyleSheet("QTableWidget { background-color:#102338; alternate-background-color:#183149; color:#edf6ff; gridline-color:#35516a; selection-background-color:#206697; selection-color:#ffffff; } QHeaderView::section { background-color:#142b41; color:#edf6ff; padding:6px; border:1px solid #35516a; } QTableCornerButton::section { background-color:#142b41; }")
         table.horizontalHeader().setSectionResizeMode(QHeaderView.Interactive)
         table.horizontalHeader().setStretchLastSection(True)
         table.setColumnWidth(0, 195)
