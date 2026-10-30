@@ -25,7 +25,7 @@ for name,sha in contract['unchanged_files'].items():
  raw=(ROOT/name).read_bytes()
  if name=='no_count_replies.py':
   change=json.loads((ROOT/'no_count_reply_changes.json').read_text())
-  assert hashlib.sha256(raw).hexdigest()==change['new_sha256'],'Reply module differs from audited repair'
+  assert digest(raw,name)==change['new_sha256'],'Reply module differs from audited repair'
   raw=change['old'].encode()
  if name=='oak_rvc2.py':
   change=json.loads((ROOT/'preview_pipeline_change.json').read_text())
