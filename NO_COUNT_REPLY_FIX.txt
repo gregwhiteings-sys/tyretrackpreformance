@@ -1,0 +1,40 @@
+TYRETRACK - SUPERVISOR REPLY REPAIR - 30 OCTOBER 2026
+
+Cause
+The previous parser accepted the untouched Reason/Supervisor template in a
+self-sent alert. It marked the incident COMPLETED and then refused the genuine
+reply. Checking only unread emails also missed replies already opened in Gmail.
+
+Changes
+- Original alerts and blank/placeholder forms are rejected.
+- New response text is parsed above the quoted or unquoted original alert.
+- Recognisable bad template imports are reopened as AWAITING RESPONSE.
+- Original imported values and message IDs are retained in an audit table.
+- Incident IDs and start/end times, genuine responses and count data preserved.
+- Recent matching emails are checked whether read or unread (last 200 matches).
+- Mailbox remains read-only; messages are not marked read, moved or deleted.
+- Sender allow-list, known-incident checks and duplicate protection retained.
+- Report table uses readable dark alternating rows and white text.
+
+How to use
+Build the updated source using the existing GitHub Windows workflow. Preserve
+your existing data/settings/reports and replace the application as usual.
+Open Supervisor No Count Reports. Bad template rows should become AWAITING
+RESPONSE. Leave the app running with its existing Gmail settings. The email
+checker runs approximately every two minutes (allow three minutes), then press
+Refresh in the report window. If viewing a previous day's incident, untick
+Today only.
+For the test already sent for NC-20261030-050000, expect:
+Reason: Other
+Supervisor: Greg
+Comments: TEST ONLY - checking that the no-count email reply is received and
+         displayed on the TyreTrack dashboard.
+The test does not establish the actual operational cause of the count gap.
+No new outgoing email was sent as part of this software repair.
+
+Checks completed locally
+Seven parser/recovery/mocked-mail tests plus two original reply tests pass.
+Real Qt dialog test verifies reopening, imported name/reason, full comment
+selection and alternate-row colours. Database upgrade, live totals, forecast,
+history performance, schedule, three-line and compatibility checks pass.
+Full Windows CI, built EXE and real onsite Gmail import are still to be checked.
