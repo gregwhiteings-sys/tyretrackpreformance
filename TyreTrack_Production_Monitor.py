@@ -3235,6 +3235,25 @@ class Main(QMainWindow):
         reports_layout.addWidget(self.management_daily_btn)
         reports_layout.addWidget(self.management_weekly_btn)
         reports_layout.addWidget(self.management_report_status)
+        from web_dashboard import Publisher
+        self._web_publisher=Publisher(PRIVATE_CONFIG_DIR / "web_dashboard.json")
+        self.web_connect_btn=QPushButton("Web dashboard: Load connection file")
+        self.web_connect_btn.clicked.connect(self.load_web_connection)
+        self.web_enabled=QCheckBox("Share view-only statistics online (every 10 seconds)")
+        self.web_enabled.setChecked(bool(self._web_publisher.config and self._web_publisher.config['enabled']))
+        self.web_enabled.toggled.connect(self.toggle_web_sharing)
+        self.web_status=QLabel(self._web_publisher.status)
+        self.web_status.setWordWrap(True)
+        reports_layout.addWidget(self.web_connect_btn)
+        reports_layout.addWidget(self.web_enabled)
+        reports_layout.addWidget(self.web_status)
+        web_link=QLabel('<a href="https://tyretrack-production-live.astute-loom-2153.chatgpt.site">Open web dashboard</a>')
+        web_link.setOpenExternalLinks(True)
+        reports_layout.addWidget(web_link)
+        self._web_status_timer=QTimer(self)
+        self._web_status_timer.timeout.connect(lambda:self.web_status.setText(self._web_publisher.status))
+        self._web_status_timer.start(2000)
+
         reports_layout.addWidget(export_btn)
         reports_layout.addWidget(
             self.reset_btn
@@ -4831,6 +4850,37 @@ class Main(QMainWindow):
         text = forecast_text(now, self.production_target, data, test_mode)
         if self.forecast_label.text() != text: self.forecast_label.setText(text)
 
+    def load_web_connection(self):
+        if not self._confirm_admin_pin("configure web sharing"):return
+        path,_=QFileDialog.getOpenFileName(self,"Load TyreTrack web connection", "", "Connection file (*.json)")
+        if not path:return
+        try:
+            self._web_publisher.import_file(path)
+            self.web_enabled.setChecked(False)
+            self.web_status.setText(self._web_publisher.status)
+        except Exception as exc:QMessageBox.warning(self,"Web dashboard",str(exc))
+
+    def toggle_web_sharing(self,enabled):
+        try:self._web_publisher.enable(enabled)
+        except Exception as exc:
+            self.web_enabled.blockSignals(True);self.web_enabled.setChecked(False);self.web_enabled.blockSignals(False)
+            QMessageBox.warning(self,"Web dashboard",str(exc))
+        self.web_status.setText(self._web_publisher.status)
+
+    def publish_web_statistics(self):
+        publisher=getattr(self,"_web_publisher",None)
+        if not publisher or not publisher.config or not publisher.config['enabled']:return
+        if time.monotonic()-getattr(self,"_dashboard_cache_received",-1e9)>30:return
+        live=getattr(self,"_live_totals",None)
+        if not live or time.monotonic()-live.get('ready_mono',-1e9)>15:return
+        worker=self.worker
+        testing=bool(worker is not None and (worker.source_kind=="video" or worker.manual_test))
+        source=getattr(worker,"oak_source",None)
+        connected=bool(source is not None and time.monotonic()-getattr(source,"preview_last_received",-1e9)<10)
+        from web_dashboard import build_snapshot
+        payload=build_snapshot(live,self._dashboard_cache,brisbane_now(),connected,getattr(self,"production_target",0),testing)
+        publisher.request(payload)
+
     def request_live_totals(self):
         if getattr(self,"closing",False):return
         if not hasattr(self,"_live_loader"):
@@ -4844,6 +4894,7 @@ class Main(QMainWindow):
     def live_totals_received(self,data):
         if getattr(self,"closing",False):return
         self._live_totals=data
+        self.publish_web_statistics()
         self.gui_timing('live_totals_read',data.get('read_ms',0))
         self.gui_timing('live_totals_delivery',max(0,(time.monotonic()-data.get('ready_mono',time.monotonic()))*1000))
         self.apply_live_totals()
@@ -4896,6 +4947,7 @@ class Main(QMainWindow):
     def dashboard_data_ready(self, data):
         if getattr(self, "closing", False): return
         self._dashboard_cache = data
+        self._dashboard_cache_received=time.monotonic()
         self.gui_timing("dashboard_collect_background", data['collect_ms'])
         started = time.monotonic()
         self.refresh_counts(use_cached=True)
