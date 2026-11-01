@@ -2414,7 +2414,7 @@ class Main(QMainWindow):
         self.file_lbl.hide()
         self.manual_oak_test.hide()
         self.auto_schedule.hide()
-        self.oak_view_combo.setCurrentText("Show Boxes")
+        self.oak_view_combo.setCurrentText("Smooth")
         self.start_btn.setText("Resume")
         self.stop_btn.setText("Pause")
         self.setWindowTitle("TyreTrack · Targets update 2026-10-29")
@@ -2542,15 +2542,11 @@ class Main(QMainWindow):
         daily.layout().addWidget(self.total_weight_lbl)
         self.day_lbl.setStyleSheet("color:#40ead7;font:900 48px 'Consolas';")
         counters_layout.addWidget(daily)
-        self.target_button = QPushButton("Set daily production target")
-        self.target_button.clicked.connect(self.set_production_target)
-        counters_layout.addWidget(self.target_button)
-        self.forecast_label = QLabel("Set a daily target to enable the shift forecast")
+        self.forecast_label = QLabel("MONTHLY PROJECTION · Waiting for production history")
         self.forecast_label.setWordWrap(True)
-        self.forecast_label.setStyleSheet("color:#91bfff;font:600 16px 'Segoe UI';padding:6px;")
+        self.forecast_label.setStyleSheet("color:#66eddb;background:#102d3b;border:2px solid #26baa9;border-radius:8px;font:900 22px 'Segoe UI';padding:10px;")
         counters_layout.addWidget(self.forecast_label)
-        try: self.production_target = max(0, int(get_state("production_target", "0")))
-        except (ValueError, TypeError): self.production_target = 0
+        self.production_target = 0  # Legacy web payload compatibility; daily target retired.
 
 
         classes=QHBoxLayout();classes.setSpacing(5)
@@ -2922,7 +2918,7 @@ class Main(QMainWindow):
         source_layout.addWidget(self.overlay_mode_combo)
 
         self.show_tyre_labels = QCheckBox("Show Tyre Labels")
-        self.show_tyre_labels.setChecked(True)
+        self.show_tyre_labels.setChecked(False)
         self.show_tyre_labels.setToolTip(
             "Display tyre classification labels and IDs."
         )
@@ -4837,28 +4833,11 @@ class Main(QMainWindow):
             block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
             block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
-    def set_production_target(self):
-        value, accepted = QInputDialog.getInt(self, "Daily production target",
-            "Tyres per production day (0 disables forecast):",
-            self.production_target, 0, 10000000, 100)
-        if not accepted: return
-        self.production_target = value
-        set_state("production_target", str(value))
-        self._forecast_updated = 0
-        self.update_production_forecast()
-
     def update_production_forecast(self):
-        now = brisbane_now()
         worker = self.worker
         test_mode = worker is not None and (worker.source_kind == "video" or worker.manual_test)
-        stamp = time.monotonic()
-        key = (now.date(), self.production_target, test_mode)
-        if key == getattr(self, "_forecast_key", None) and stamp - getattr(self, "_forecast_updated", 0) < 30: return
-        self._forecast_key = key
-        self._forecast_updated = stamp
-        from production_forecast import forecast_text
-        data = getattr(self, "_live_totals", None)
-        text = forecast_text(now, self.production_target, data, test_mode)
+        from monthly_forecast import forecast_text
+        text = forecast_text((self._dashboard_cache or {}).get('monthly_forecast'), test_mode)
         if self.forecast_label.text() != text: self.forecast_label.setText(text)
 
     def load_web_connection(self):
@@ -4970,6 +4949,11 @@ class Main(QMainWindow):
                     hourly = hourly_snapshot(con, source=OAK_NAME)
                     from weekly_dashboard import weekday_snapshot
                     weekdays = weekday_snapshot(con, source=OAK_NAME, now=now)
+                    from monthly_forecast import snapshot as month_snapshot
+                    if time.monotonic()-getattr(self, '_month_collected', 0)>60 or not hasattr(self, '_month_data'):
+                        self._month_data=month_snapshot(con,OAK_NAME,now)
+                        self._month_collected=time.monotonic()
+                    monthly_forecast=self._month_data
                 best = best_daily_record()
                 day_key=now.date().isoformat()
                 if getattr(self,"_prior_best_date",None)!=day_key:
@@ -4977,7 +4961,7 @@ class Main(QMainWindow):
                     self._prior_best_date=day_key
                 prior_best=self._prior_best_value
                 self.dashboard_ready.emit(dict(metrics=metrics, types=types, hourly=hourly,
-                    best=best, prior_best=prior_best, weekdays=weekdays, collect_ms=(time.monotonic()-started)*1000))
+                    best=best, prior_best=prior_best, weekdays=weekdays, monthly_forecast=monthly_forecast, collect_ms=(time.monotonic()-started)*1000))
             self._dashboard_loader = CoalescedExport(collect,
                 lambda exc: log(f"Dashboard background refresh failed: {exc}"))
         self._dashboard_loader.request()
@@ -4985,6 +4969,7 @@ class Main(QMainWindow):
     def dashboard_data_ready(self, data):
         if getattr(self, "closing", False): return
         self._dashboard_cache = data
+        self.update_production_forecast()
         self._dashboard_cache_received=time.monotonic()
         self.gui_timing("dashboard_collect_background", data['collect_ms'])
         started = time.monotonic()
