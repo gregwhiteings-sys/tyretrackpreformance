@@ -1,0 +1,22 @@
+TYRETRACK MONTHLY PROJECTION UPDATE
+Daily target entry removed. Bold monthly tyre and tonne estimates added to dashboard,
+daily and weekly management emails, PDF, CSV and JSON.
+Camera startup defaults: Smooth view, Show Tyre Labels off. Both remain adjustable.
+
+Projection = month-to-date actual + observed hourly pace x remaining scheduled hours.
+Pace includes weekday scheduled hours from 05:00 on the first recorded production
+day this month, including stops and zero-count periods after that date.
+Schedule matches this build: Monday-Friday 05:00-17:05 Brisbane. Public holidays
+are treated as weekdays. At least one observed hour is required. No prior-month
+extrapolation. Only in-shift production OAK counts are used; future/test excluded.
+Estimated weights: passenger 8kg, SUV/4x4 16kg, truck 45kg. Unknown tyres remain in
+count but are excluded from weight with a warning. Forecast is not guaranteed
+output or measured scale tonnage. Actual history remains unchanged.
+Dashboard calculation runs in the existing background worker at most once a
+minute; reports calculate afresh at the report as-of timestamp.
+
+Use existing GitHub Windows build workflow. Preserve onsite data/configuration.
+No new settings required. Local monthly, Qt layout/defaults, report export and
+mocked daily/weekly email checks passed. No email sent. Full suite stopped at
+preview_performance_test because DepthAI is unavailable locally. Windows CI and
+physical camera validation remain required.

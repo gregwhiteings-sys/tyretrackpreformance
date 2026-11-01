@@ -51,8 +51,12 @@ assert w.record_progress.toolTip()=="Fixed message"
 w.set_flow_rate(4.9);assert '#FF5C68' in w.flow_lbl.styleSheet()
 w.set_flow_rate(5);assert not w.flow_lbl.styleSheet()
 assert not hasattr(w, 'flow_flash_timer')
-assert w.target_button.text() == 'Set daily production target'
-print('PASS: stationary accessible message, steady low-flow threshold, target control')
+assert w.oak_view_combo.currentText() == 'Smooth'
+assert not w.show_tyre_labels.isChecked()
+assert not hasattr(w, 'target_button')
+assert 'MONTHLY PROJECTION' in w.forecast_label.text()
+assert '900 22px' in w.forecast_label.styleSheet()
+print('PASS: stationary accessible message, steady low-flow threshold, monthly projection and smooth unlabelled defaults')
 print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines')
 w.controls_tabs.show();app.processEvents()
 for index in range(w.controls_tabs.count()):
