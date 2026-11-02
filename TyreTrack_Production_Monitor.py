@@ -2535,6 +2535,21 @@ class Main(QMainWindow):
         self.rail_heading=QLabel("CREW PERFORMANCE  /  BRISBANE")
         self.rail_heading.setObjectName("railHeading")
         counters_layout.addWidget(self.rail_heading)
+        self.system_health_label=QLabel("SYSTEM HEALTH · Starting checks")
+        self.system_health_label.setWordWrap(True)
+        self.system_health_label.setStyleSheet("color:#9be8dd;font:600 11px 'Segoe UI';")
+        counters_layout.addWidget(self.system_health_label)
+        timeline_key=QLabel("ACTIVITY · Green: counts · Amber: no counts · Red: camera issue · Grey: unobserved/upcoming")
+        timeline_key.setStyleSheet("color:#9caec0;font:9px 'Segoe UI';")
+        counters_layout.addWidget(timeline_key)
+        activity_row=QHBoxLayout();activity_row.setSpacing(2)
+        self.activity_blocks=[]
+        for hour in range(5,18):
+            block=QLabel(str(hour).zfill(2));block.setAlignment(Qt.AlignCenter)
+            block.setStyleSheet("background:#354052;color:white;font:10px 'Segoe UI';padding:2px;")
+            activity_row.addWidget(block,1);self.activity_blocks.append(block)
+        counters_layout.addLayout(activity_row)
+
         daily=metric_card("TODAY / TYRES",self.day_lbl,"#40ead7")
         daily.setFixedHeight(108)
         self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
@@ -2545,7 +2560,8 @@ class Main(QMainWindow):
         self.projection_labels={}
         projection_row=QHBoxLayout()
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
-            label=QLabel(f"PROJECTED {title}\n— tyres\n— tonnes")
+            label=QLabel(f'<span style="font-size:11px">PROJECTED {title}</span><br>— tyres<br>— tonnes')
+            label.setFixedHeight(80)
             label.setAlignment(Qt.AlignCenter)
             label.setWordWrap(True)
             label.setStyleSheet("color:#66eddb;background:#102d3b;border:2px solid #26baa9;border-radius:8px;font:900 20px 'Segoe UI';padding:6px;")
@@ -3227,6 +3243,13 @@ class Main(QMainWindow):
         supervisor_btn.setToolTip("View supervisor replies, outstanding incidents and comments")
         supervisor_btn.clicked.connect(self.open_supervisor_reports)
         reports_layout.addWidget(supervisor_btn)
+        self.backup_status=QLabel("Automatic local backups · Waiting for first check")
+        self.backup_status.setWordWrap(True)
+        reports_layout.addWidget(self.backup_status)
+        backup_folder_btn=QPushButton("Open private backup folder")
+        backup_folder_btn.clicked.connect(self.open_backup_folder)
+        reports_layout.addWidget(backup_folder_btn)
+
 
         self.management_report_status=QLabel("Daily PDF + CSV emailed after 17:05; Friday adds the weekly briefing.")
         self.management_report_status.setWordWrap(True)
@@ -4848,7 +4871,7 @@ class Main(QMainWindow):
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
             data=projections.get(period)
             value=(f"{data['projected_tyres']:,} tyres\n{data['projected_tonnes']:,.1f} tonnes" if data and data['ready'] else "— tyres\n— tonnes")
-            text=f"PROJECTED {title}\n"+("TEST · PAUSED" if test_mode else value)
+            text=f'<span style="font-size:11px">PROJECTED {title}</span><br>'+("TEST · PAUSED" if test_mode else value.replace("\n","<br>"))
             label=self.projection_labels[period]
             if label.text()!=text:label.setText(text)
             label.setToolTip(forecast_text(data,test_mode)+"\nBrisbane weekdays 05:00–17:05. Estimate, not guaranteed output.")
@@ -4968,6 +4991,15 @@ class Main(QMainWindow):
                         self._month_collected=time.monotonic()
                     production_projections=self._month_data
                     monthly_forecast=production_projections['month']
+                    from production_support import activity_bins,read_observations
+                    from management_reports import read_events
+                    if time.monotonic()-getattr(self,'_activity_collected',0)>60 or not hasattr(self,'_activity_data') or getattr(self,'_activity_day',None)!=now.date():
+                        begin=now.replace(hour=5,minute=0,second=0,microsecond=0)
+                        end=min(now,now.replace(hour=17,minute=5,second=0,microsecond=0))
+                        self._activity_data=activity_bins(read_events(con,OAK_NAME,begin,end),begin,end,read_observations(DATA/'system_health',begin,end)) if end>begin and now.weekday()<5 else []
+                        self._activity_collected=time.monotonic()
+                        self._activity_day=now.date()
+                    activity=self._activity_data
                 best = best_daily_record()
                 day_key=now.date().isoformat()
                 if getattr(self,"_prior_best_date",None)!=day_key:
@@ -4975,7 +5007,7 @@ class Main(QMainWindow):
                     self._prior_best_date=day_key
                 prior_best=self._prior_best_value
                 self.dashboard_ready.emit(dict(metrics=metrics, types=types, hourly=hourly,
-                    best=best, prior_best=prior_best, weekdays=weekdays, monthly_forecast=monthly_forecast, production_projections=production_projections, collect_ms=(time.monotonic()-started)*1000))
+                    best=best, prior_best=prior_best, weekdays=weekdays, monthly_forecast=monthly_forecast, production_projections=production_projections, activity=activity, collect_ms=(time.monotonic()-started)*1000))
             self._dashboard_loader = CoalescedExport(collect,
                 lambda exc: log(f"Dashboard background refresh failed: {exc}"))
         self._dashboard_loader.request()
@@ -5238,7 +5270,62 @@ class Main(QMainWindow):
         self.line_length.setValue(100)
         self.line_changed()
 
+    def open_backup_folder(self):
+        if not self._confirm_admin_pin("open private backups"):return
+        from PyQt5.QtGui import QDesktopServices
+        from PyQt5.QtCore import QUrl
+        folder=DATA/"backups";folder.mkdir(exist_ok=True)
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder)))
+
+    def update_system_support(self):
+        if getattr(self,"closing",False):return
+        from production_support import SupportService
+        if not hasattr(self,"_support"):
+            self._support=SupportService(DB,PRIVATE_CONFIG_DIR,DATA)
+        worker=self.worker;now=time.monotonic()
+        testing=bool(getattr(self,"offline_testing",False) or (worker and (worker.source_kind!="oak" or worker.manual_test)))
+        source=getattr(worker,"oak_source",None) if worker else None
+        running=bool(worker and worker.isRunning() and source is not None)
+        preview_at=getattr(source,"live_frame_at",None)
+        ai_at=getattr(source,"latest_frame_at",None)
+        preview_age=now-preview_at if preview_at else None
+        ai_age=now-ai_at if ai_at else None
+        camera='online' if running and preview_age is not None and preview_age<3 else 'stale'
+        recorder=getattr(source,"recorder",None)
+        recording=('off' if not RECORD_OAK_VIDEO else 'worker active' if running and recorder and recorder.is_alive() else 'check')
+        stamp=brisbane_now()
+        sample=dict(at=stamp.isoformat(),testing=testing,camera=camera,preview_age=preview_age,ai_age=ai_age,recording=recording,frames=getattr(worker,'processing_frame',0))
+        self._support.request(sample)
+        result=self._support.snapshot()
+        age=lambda v:'—' if v is None else f'{max(0,v):.1f}s'
+        if result.get('processing_fps') is not None and not testing:text_fps=f" · Processing {result['processing_fps']:.1f} FPS"
+        else:text_fps=''
+        disk=result.get('free_gb')
+        cpu=result.get('app_cpu')
+        text=("TEST · Health history paused" if testing else f"CAMERA {camera.upper()} · Preview {age(preview_age)} · AI result {age(ai_age)} · Recording {recording}")
+        text+=text_fps
+        text+=f"\nApp CPU {cpu:.0f}%" if cpu is not None else ""
+        if disk is not None:text+=f" · Disk free {disk:.1f} GB"+(' · LOW SPACE' if disk<10 else '')
+        warning=not testing and (camera!='online' or ai_age is None or ai_age>3 or recording=='check' or (disk is not None and disk<10))
+        self.system_health_label.setText(text)
+        self.system_health_label.setStyleSheet("color:"+('#ffbe66' if warning else '#9be8dd')+";font:600 11px 'Segoe UI';")
+        self.system_health_label.setToolTip("App CPU is TyreTrack process usage normalized across logical cores, not whole-PC CPU. Ages refer to received data; they do not verify detection accuracy. Recording worker active does not verify saved packets or completed files.")
+        backup_text="PRIVATE LOCAL BACKUP · "+result.get('backup','Pending')
+        if result.get('last_backup'):backup_text+=' · Last successful: '+result['last_backup']
+        if result.get('error'):backup_text+=" · "+result['error']
+        self.backup_status.setText(backup_text)
+        colours={'activity / camera issue':'#b53c48','activity':'#168c70','no counts observed':'#ad792b','camera issue':'#b53c48','unobserved':'#354052'}
+        slots=(self._dashboard_cache or {}).get('activity',[])
+        for label in self.activity_blocks:
+            label.setStyleSheet("background:#354052;color:white;font:10px 'Segoe UI';padding:2px;")
+            label.setToolTip('Unobserved or upcoming · no conveyor status inferred')
+        for label,slot in zip(self.activity_blocks,slots):
+            state=slot['state'];label.setStyleSheet(f"background:{colours[state]};color:white;font:10px 'Segoe UI';padding:2px;")
+            label.setToolTip(f"{slot['start'][11:16]}–{slot['end'][11:16]} · {state} · {slot['count']:,} tyres. No-count periods do not prove conveyor downtime; see supervisor reports.")
+
     def tick(self):
+        try:self.update_system_support()
+        except Exception:log("System support check failed: " + traceback.format_exc())
         for task_name, task in (("Alarm timer", self.alarm_tick),
                                 ("Auto-schedule timer", self.schedule_tick)):
             try:
@@ -5291,6 +5378,7 @@ class Main(QMainWindow):
         if getattr(self,"_replay_process",None) is not None and self._replay_process.poll() is None:
             self.stop_video_test()
         self.closing = True
+        if hasattr(self,"_support"):self._support.wait(3)
         self.oak_preview_timer.stop()
 
         if (

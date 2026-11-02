@@ -28,6 +28,8 @@ with DatabaseTemporaryDirectory() as folder:
   (incident/(name+'.json')).write_text(json.dumps(dict(timestamp=now.replace(hour=8).isoformat(),source_kind=kind,object='wheel_rim',confidence=.9,snapshot='rim.jpg')))
  (incident/'broken.json').write_text('{')
  r,paths=build_briefing(db,'oak',folder/'reports',now,incidents_dir=incident,recordings_dir=recordings.parent)
+ assert sum(x['count'] for x in r['activity'])==5
+ assert all(x['state'] in ('activity','unobserved') for x in r['activity'])
  assert r['total']==5 and r['weight']['total_kg']==77 and r['weight']['total_epu']==9
  assert r['weight']['weights']=={'passenger':16,'4x4':16,'truck':45}
  assert r['weight']['unknown']==1 and sum(s['count'] for s in r['slots'])==5
@@ -35,6 +37,7 @@ with DatabaseTemporaryDirectory() as folder:
  assert len(r['alarms'])==1 and r['unreadable_incidents']==1 and len(r['recordings'])==1
  assert r['supervisors'][0]['status']=='AWAITING RESPONSE'
  assert len(PdfReader(paths['pdf']).pages)>=2
+ assert 'Production activity timeline' in ''.join(p.extract_text() for p in PdfReader(paths['pdf']).pages)
  text=''.join(p.extract_text() for p in PdfReader(paths['pdf']).pages)
  assert 'MONTHLY PROJECTIONS' in text and 'PROJECTED OCTOBER 2026' in text
  assert r['monthly_forecast']['ready']
@@ -44,6 +47,7 @@ with DatabaseTemporaryDirectory() as folder:
  projection_row=next(x for x in rows if x['record_type']=='MONTHLY_PROJECTION')
  assert int(projection_row['tyres'])==r['monthly_forecast']['projected_tyres']
  assert float(projection_row['estimated_kg'])==round(r['monthly_forecast']['projected_tonnes']*1000,2)
+ assert sum(int(x['tyres']) for x in rows if x['record_type']=='ACTIVITY')==5
  assert sum(int(x['tyres']) for x in rows if x['record_type']=='HOURLY')==5
  assert sum(int(x['estimated_kg']) for x in rows if x['record_type']=='HOURLY')==77
  assert next(x for x in rows if x['record_type']=='WEEKDAY' and x['date']=='2026-10-30')['estimated_kg']=='77'
