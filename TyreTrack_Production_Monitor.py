@@ -4931,7 +4931,9 @@ class Main(QMainWindow):
         source=getattr(worker,"oak_source",None)
         connected=bool(source is not None and time.monotonic()-getattr(source,"preview_last_received",-1e9)<10)
         from web_dashboard import build_snapshot
-        payload=build_snapshot(live,self._dashboard_cache,brisbane_now(),connected,getattr(self,"production_target",0),testing)
+        cache=dict(self._dashboard_cache or {})
+        cache["public_health"]=getattr(self,"_public_health",None)
+        payload=build_snapshot(live,cache,brisbane_now(),connected,getattr(self,"production_target",0),testing)
         publisher.request(payload)
 
     def request_live_totals(self):
@@ -5288,8 +5290,8 @@ class Main(QMainWindow):
         running=bool(worker and worker.isRunning() and source is not None)
         preview_at=getattr(source,"live_frame_at",None)
         ai_at=getattr(source,"latest_frame_at",None)
-        preview_age=now-preview_at if preview_at else None
-        ai_age=now-ai_at if ai_at else None
+        preview_age=max(0,now-preview_at) if preview_at else None
+        ai_age=max(0,now-ai_at) if ai_at else None
         camera='online' if running and preview_age is not None and preview_age<3 else 'stale'
         recorder=getattr(source,"recorder",None)
         recording=('off' if not RECORD_OAK_VIDEO else 'worker active' if running and recorder and recorder.is_alive() else 'check')
@@ -5307,6 +5309,7 @@ class Main(QMainWindow):
         text+=f"\nApp CPU {cpu:.0f}%" if cpu is not None else ""
         if disk is not None:text+=f" · Disk free {disk:.1f} GB"+(' · LOW SPACE' if disk<10 else '')
         warning=not testing and (camera!='online' or ai_age is None or ai_age>3 or recording=='check' or (disk is not None and disk<10))
+        self._public_health=None if testing else dict(at=stamp.isoformat(),camera=camera,preview_age=preview_age,ai_age=ai_age,recording=recording,processing_fps=result.get('processing_fps'),app_cpu=cpu,free_gb=disk)
         self.system_health_label.setText(text)
         self.system_health_label.setStyleSheet("color:"+('#ffbe66' if warning else '#9be8dd')+";font:600 11px 'Segoe UI';")
         self.system_health_label.setToolTip("App CPU is TyreTrack process usage normalized across logical cores, not whole-PC CPU. Ages refer to received data; they do not verify detection accuracy. Recording worker active does not verify saved packets or completed files.")
