@@ -1,0 +1,11 @@
+WINDOWS SQLITE FIXTURE HANDLE CLEANUP FOLLOW-UP
+The previous worker-join repair is retained. Fixture connections now explicitly
+close cursors from execute/executemany/executescript as well as cursor(). Worker
+connections are tracked across threads and must be closed by their owner before
+directory cleanup; unfinished handles produce a diagnostic failure instead of
+being ignored or forcibly closed from another thread.
+New regression retains an unread cursor and its worker connection, checks their
+closure, then renames/deletes the database. It also checks detection of a worker
+connection intentionally left open. Production code and database logic unchanged.
+Local validation passed. Windows GitHub CI must still be rerun; no Windows pass
+is claimed from this Linux environment.

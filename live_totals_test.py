@@ -27,8 +27,28 @@ m.Main.tick=lambda self:None
 m.Main._confirm_admin_pin=lambda *a:True
 qt=QApplication.instance() or QApplication([])
 with DatabaseTemporaryDirectory() as folder:
- m.DATA=Path(folder);m.DB=m.DATA/'test.db';m.init_db();w=m.Main();w.clock.stop()
+ m.DATA=Path(folder);m.DB=m.DATA/'test.db';m.init_db()
  m.brisbane_now=lambda:now
+ # Main starts historical/live reads in its constructor. Do not orphan its
+ # original loader when installing the blocked-history fixture below.
+ startup_gate=threading.Event();startup_entered=threading.Event()
+ original_snapshot=m.production_snapshot
+ def startup_snapshot():
+  startup_entered.set()
+  if not startup_gate.wait(5):raise RuntimeError('Startup fixture timed out')
+  return original_snapshot()
+ m.production_snapshot=startup_snapshot
+ try:
+  w=m.Main();w.clock.stop()
+  assert startup_entered.wait(1)
+  startup_loader=w._dashboard_loader
+  assert not startup_loader.wait(.01), 'Startup worker must still be held for this regression'
+ finally:
+  startup_gate.set()
+  m.production_snapshot=original_snapshot
+ assert startup_loader.wait(10), 'Original startup collector must finish before replacement'
+ assert w._live_loader.wait(10), 'Original live totals collector must finish before replacement'
+ qt.processEvents()
  gate=threading.Event();entered=threading.Event()
  def slow():entered.set();gate.wait(5)
  w._dashboard_loader=CoalescedExport(slow,lambda e:None);w._dashboard_loader.request();assert entered.wait(1)
@@ -45,5 +65,13 @@ with DatabaseTemporaryDirectory() as folder:
   w.day_lbl.setText('old');w.apply_live_totals();assert '1' in w.day_lbl.text()
   worker=types.SimpleNamespace(source_kind='video',manual_test=False)
   w.worker=worker;w.day_lbl.setText('TEST');w.apply_live_totals();assert w.day_lbl.text()=='TEST';w.worker=None
- finally:gate.set();w._dashboard_loader.wait();w.close();qt.processEvents()
+ finally:
+  gate.set()
+  assert w._dashboard_loader.wait(10), 'Blocked fixture collector failed to stop'
+  assert w._live_loader.wait(10), 'Live totals reader failed to stop'
+  w.close();qt.processEvents()
+  assert not startup_loader.thread.is_alive(), 'Orphaned startup writer at directory cleanup'
+  assert not w._dashboard_loader.thread.is_alive()
+  assert not w._live_loader.thread.is_alive()
+print('PASS: original startup worker drained before fixture replacement; all readers stopped before directory cleanup')
 print('PASS: fast committed totals, legacy classes, shift boundaries, GUI heartbeat during blocked historical collection, stale-cache protection and video isolation')
