@@ -36,10 +36,11 @@ with DatabaseTemporaryDirectory() as folder:
  assert r['supervisors'][0]['status']=='AWAITING RESPONSE'
  assert len(PdfReader(paths['pdf']).pages)>=2
  text=''.join(p.extract_text() for p in PdfReader(paths['pdf']).pages)
- assert 'MONTHLY PROJECTION' in text and 'PROJECTED OCTOBER 2026' in text
+ assert 'MONTHLY PROJECTIONS' in text and 'PROJECTED OCTOBER 2026' in text
  assert r['monthly_forecast']['ready']
  assert all(x in text for x in ['TYRECYCLE / OZCOM','No-count review','Truck','25.0%','Recorded footage','Estimated weight by tyre class','58.4%'])
  with paths['csv'].open(encoding='utf-8-sig',newline='') as f:rows=list(csv.DictReader(f))
+ assert {'DAY_PROJECTION','WEEK_PROJECTION','MONTHLY_PROJECTION'} <= {x['record_type'] for x in rows}
  projection_row=next(x for x in rows if x['record_type']=='MONTHLY_PROJECTION')
  assert int(projection_row['tyres'])==r['monthly_forecast']['projected_tyres']
  assert float(projection_row['estimated_kg'])==round(r['monthly_forecast']['projected_tonnes']*1000,2)
@@ -51,7 +52,7 @@ with DatabaseTemporaryDirectory() as folder:
  snapshot=folder/'snapshot.png';Image.new('RGB',(16,9),'navy').save(snapshot)
  settings=('sender@example.org','TEST_ONLY','manager@example.org')
  email=make_email(settings,r,paths)
- assert 'PROJECTED OCTOBER 2026' in email.get_body(preferencelist=('html',)).get_content()
+ assert all(x in email.get_body(preferencelist=('html',)).get_content() for x in ('PROJECTED TODAY','PROJECTED THIS WEEK','PROJECTED OCTOBER 2026'))
  assert 'PROJECTED OCTOBER 2026' in email.get_body(preferencelist=('plain',)).get_content()
  assert email.get_body(preferencelist=('html',)) is not None
  assert any(p.get('Content-ID')=='<weight_mix>' and p.get_payload(decode=True).startswith(b'\x89PNG') for p in email.walk())
@@ -68,7 +69,7 @@ with DatabaseTemporaryDirectory() as folder:
  partial=collect(db,'oak',now.replace(hour=10),False);assert not partial['complete'] and partial['delta_percent'] is None
  week,wp=build_briefing(db,'oak',folder/'weekly',now,True)
  assert week['monthly_forecast']==r['monthly_forecast']
- assert 'MONTHLY PROJECTION' in ''.join(p.extract_text() for p in PdfReader(wp['pdf']).pages)
+ assert 'MONTHLY PROJECTIONS' in ''.join(p.extract_text() for p in PdfReader(wp['pdf']).pages)
  assert week['total']==10 and sum(d['count'] for d in week['weekdays'])==10 and sum(s['count'] for s in week['slots'])==10
  assert all(p.exists() and p.stat().st_size for p in wp.values())
  with closing(sqlite3.connect(db)) as con:assert con.execute('SELECT COUNT(*) FROM counts').fetchone()[0]==15

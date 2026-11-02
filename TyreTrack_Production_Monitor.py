@@ -2542,10 +2542,17 @@ class Main(QMainWindow):
         daily.layout().addWidget(self.total_weight_lbl)
         self.day_lbl.setStyleSheet("color:#40ead7;font:900 48px 'Consolas';")
         counters_layout.addWidget(daily)
-        self.forecast_label = QLabel("MONTHLY PROJECTION · Waiting for production history")
-        self.forecast_label.setWordWrap(True)
-        self.forecast_label.setStyleSheet("color:#66eddb;background:#102d3b;border:2px solid #26baa9;border-radius:8px;font:900 22px 'Segoe UI';padding:10px;")
-        counters_layout.addWidget(self.forecast_label)
+        self.projection_labels={}
+        projection_row=QHBoxLayout()
+        for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
+            label=QLabel(f"PROJECTED {title}\n— tyres\n— tonnes")
+            label.setAlignment(Qt.AlignCenter)
+            label.setWordWrap(True)
+            label.setStyleSheet("color:#66eddb;background:#102d3b;border:2px solid #26baa9;border-radius:8px;font:900 20px 'Segoe UI';padding:6px;")
+            projection_row.addWidget(label,1)
+            self.projection_labels[period]=label
+        counters_layout.addLayout(projection_row)
+        self.forecast_label=self.projection_labels['month']  # Compatibility for dashboard consumers.
         self.production_target = 0  # Legacy web payload compatibility; daily target retired.
 
 
@@ -4837,8 +4844,14 @@ class Main(QMainWindow):
         worker = self.worker
         test_mode = worker is not None and (worker.source_kind == "video" or worker.manual_test)
         from monthly_forecast import forecast_text
-        text = forecast_text((self._dashboard_cache or {}).get('monthly_forecast'), test_mode)
-        if self.forecast_label.text() != text: self.forecast_label.setText(text)
+        projections=(self._dashboard_cache or {}).get('production_projections',{})
+        for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
+            data=projections.get(period)
+            value=(f"{data['projected_tyres']:,} tyres\n{data['projected_tonnes']:,.1f} tonnes" if data and data['ready'] else "— tyres\n— tonnes")
+            text=f"PROJECTED {title}\n"+("TEST · PAUSED" if test_mode else value)
+            label=self.projection_labels[period]
+            if label.text()!=text:label.setText(text)
+            label.setToolTip(forecast_text(data,test_mode)+"\nBrisbane weekdays 05:00–17:05. Estimate, not guaranteed output.")
 
     def load_web_connection(self):
         if not self._confirm_admin_pin("configure web sharing"):return
@@ -4949,11 +4962,12 @@ class Main(QMainWindow):
                     hourly = hourly_snapshot(con, source=OAK_NAME)
                     from weekly_dashboard import weekday_snapshot
                     weekdays = weekday_snapshot(con, source=OAK_NAME, now=now)
-                    from monthly_forecast import snapshot as month_snapshot
+                    from monthly_forecast import all_snapshots
                     if time.monotonic()-getattr(self, '_month_collected', 0)>60 or not hasattr(self, '_month_data'):
-                        self._month_data=month_snapshot(con,OAK_NAME,now)
+                        self._month_data=all_snapshots(con,OAK_NAME,now)
                         self._month_collected=time.monotonic()
-                    monthly_forecast=self._month_data
+                    production_projections=self._month_data
+                    monthly_forecast=production_projections['month']
                 best = best_daily_record()
                 day_key=now.date().isoformat()
                 if getattr(self,"_prior_best_date",None)!=day_key:
@@ -4961,7 +4975,7 @@ class Main(QMainWindow):
                     self._prior_best_date=day_key
                 prior_best=self._prior_best_value
                 self.dashboard_ready.emit(dict(metrics=metrics, types=types, hourly=hourly,
-                    best=best, prior_best=prior_best, weekdays=weekdays, monthly_forecast=monthly_forecast, collect_ms=(time.monotonic()-started)*1000))
+                    best=best, prior_best=prior_best, weekdays=weekdays, monthly_forecast=monthly_forecast, production_projections=production_projections, collect_ms=(time.monotonic()-started)*1000))
             self._dashboard_loader = CoalescedExport(collect,
                 lambda exc: log(f"Dashboard background refresh failed: {exc}"))
         self._dashboard_loader.request()
