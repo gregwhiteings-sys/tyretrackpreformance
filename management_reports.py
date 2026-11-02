@@ -54,8 +54,9 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
         # SQLite aggregation avoids copying the entire count history into Python.
         stamp="CASE WHEN metric_utc IS NOT NULL THEN datetime(metric_utc,'unixepoch','+10 hours') WHEN substr(ts,11) LIKE '%+%' OR substr(ts,11) LIKE '%-%' OR ts LIKE '%Z' THEN datetime(ts,'+10 hours') ELSE datetime(ts) END"
         historical=con.execute(f"WITH e AS (SELECT {stamp} AS stamp FROM counts WHERE source=?) SELECT date(stamp),COUNT(*) FROM e WHERE stamp<? AND time(stamp)>='05:00:00' AND time(stamp)<'17:05:00' AND strftime('%w',stamp) BETWEEN '1' AND '5' GROUP BY date(stamp) ORDER BY COUNT(*) DESC,date(stamp) DESC LIMIT 1",(source,end.replace(tzinfo=None).isoformat(sep=' '))).fetchone()
-        from monthly_forecast import snapshot as month_snapshot
-        monthly_forecast=month_snapshot(con,source,now)
+        from monthly_forecast import all_snapshots
+        production_projections=all_snapshots(con,source,now)
+        monthly_forecast=production_projections['month']
         all_time=con.execute('SELECT COUNT(*) FROM counts WHERE source=?',(source,)).fetchone()[0]
         has_supervisor=con.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='supervisor_no_count'").fetchone()
         supervisors=[]
@@ -104,7 +105,7 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
             recordings.extend(path.name for path in candidates)
     complete=now>=close and (weekly or now.weekday()<5)
     delta=((len(events)-len(previous))/len(previous)*100) if complete and previous else None
-    return dict(monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
+    return dict(production_projections=production_projections,monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
         total=len(events),types=dict(kinds),weight=weight,slots=slots,weekdays=weekdays,best=best,
         average_hour=len(events)*60/minutes if minutes else 0,flow_minute=len(events)/minutes if minutes else 0,
         peak_flow=max((s['count']/s['minutes'] for s in completed if s['minutes']>0),default=0),
@@ -135,10 +136,10 @@ def write_csv(r,path):
             types=types or {};v=totals(types)
             w.writerow([safe_csv(x) for x in [kind,date,start,end,count,*[types.get(k,0) for k in KINDS],v['total_kg'],v['total_epu'],details]])
         row('PERIOD_TOTAL',r['start'][:10],r['start'],r['end'],r['total'],r['types'],'Estimated class weights; Brisbane UTC+10. '+commentary(r))
-        projection=r.get('monthly_forecast')
-        if projection:
-            from monthly_forecast import forecast_text
-            w.writerow(['MONTHLY_PROJECTION',r['as_of'][:10],'','',projection['projected_tyres'] if projection['ready'] else '', '', '', '', '', round(projection['projected_tonnes']*1000,2) if projection['ready'] else '', '', safe_csv(forecast_text(projection))])
+        from monthly_forecast import forecast_text
+        for period,projection in r.get('production_projections',{'month':r.get('monthly_forecast')}).items():
+            if projection:
+                w.writerow([period.upper()+'LY_PROJECTION' if period=='month' else period.upper()+'_PROJECTION',r['as_of'][:10],'','',projection['projected_tyres'] if projection['ready'] else '', '', '', '', '', round(projection['projected_tonnes']*1000,2) if projection['ready'] else '', '', safe_csv(forecast_text(projection))])
         for s in r['slots']:row('HOURLY',r['start'][:10],s['start'],s['end'],s['count'],s['types'])
         for d in r['weekdays']:row('WEEKDAY',d['date'],count='' if d['future'] else d['count'],types=d['types'],details='Upcoming' if d['future'] else 'Production total')
         for g in r['no_count_gaps']:row('NO_COUNT_GAP',start=g['start'],end=g['end'],details=f"{g['minutes']:.1f} minutes; conveyor/camera availability not inferred")
@@ -210,9 +211,9 @@ def write_pdf(r,path,logo=None):
     start=datetime.fromisoformat(r['start']);end=datetime.fromisoformat(r['end'])
     story=[heading(f"{start:%A %d %B %Y}" if not r['weekly'] else f"Week of {start:%d %B %Y}"),p(f"{start:%d %b %H:%M} - {end:%d %b %H:%M} Brisbane | {'FINAL' if r['complete'] else 'PROVISIONAL - shift in progress'}")]
     if r.get('demo'):story.insert(0,p('DEMONSTRATION DATA - layout preview; not site production results.'))
-    from monthly_forecast import forecast_text
-    projection_text=forecast_text(r.get('monthly_forecast'))
-    story += [heading('MONTHLY PROJECTION'), Paragraph(escape(projection_text).replace('\n','<br/>'),ParagraphStyle(name='Projection',parent=styles['BriefHeading'],fontSize=15,leading=20)),Spacer(1,8)]
+    from monthly_forecast import report_text
+    projection_text=report_text(r)
+    story += [heading('DAILY / WEEKLY / MONTHLY PROJECTIONS'), Paragraph(escape(projection_text).replace('\n','<br/>'),ParagraphStyle(name='Projection',parent=styles['BriefHeading'],fontSize=15,leading=20)),Spacer(1,8)]
     kpis=[('TOTAL TYRES',f"{r['total']:,}"),('ESTIMATED WEIGHT',f"{r['weight']['total_kg']/1000:,.2f} tonnes"),('TOTAL EPU',f"{r['weight']['total_epu']:,}"),('AVERAGE / HOUR',f"{r['average_hour']:,.1f}"),('BEST DAY',f"{r['best_day'][1]:,} tyres"),('ALL-TIME OAK COUNTS',f"{r['all_time']:,}")]
     tiles=[]
     for a in (0,3):tiles.append([Paragraph(f'<font size="7" color="#526779">{label}</font><br/><font name="BriefBold" size="17" color="#008b85">{value}</font>',ParagraphStyle(name='KPI',parent=styles['BriefBody'],leading=22)) for label,value in kpis[a:a+3]])
@@ -255,8 +256,8 @@ def make_email(settings,r,paths,snapshot=None):
     msg['Subject']=f"TYRECYCLE / OZCOM | {'Weekly' if r['weekly'] else 'Daily'} production | {r['start'][:10]} | {r['total']:,} tyres"
     msg.set_content('TYRECYCLE / OZCOM - TYRETRACK\n\n'+commentary(r)+f"\n\nEstimated weight: {r['weight']['total_kg']:,} kg\nEPU: {r['weight']['total_epu']:,}\nAverage: {r['average_hour']:.1f} tyres/hour\n\nOpen the attached PDF for charts and operational review, or the CSV in Excel.\nWeights are classification estimates. Times are Brisbane UTC+10.")
     html=f'<html><body style="font-family:Arial;color:#10283c"><h1 style="color:#008b85">TYRECYCLE / OZCOM</h1><h2>{"Weekly" if r["weekly"] else "Daily"} production briefing</h2><p>{escape(commentary(r))}</p><table cellpadding="14" style="background:#edf5f8"><tr><td><b>{r["total"]:,}</b><br>TYRES</td><td><b>{r["weight"]["total_kg"]:,} kg</b><br>ESTIMATED WEIGHT</td><td><b>{r["weight"]["total_epu"]:,}</b><br>EPU</td></tr></table><p><b>Attached:</b> PDF charts and management review; CSV for Excel.</p><p>Brisbane UTC+10. Weights are class-based estimates.</p></body></html>'
-    from monthly_forecast import forecast_text
-    projection_text=forecast_text(r.get('monthly_forecast'))
+    from monthly_forecast import report_text
+    projection_text=report_text(r)
     msg.set_content(msg.get_content()+'\n\n'+projection_text)
     html=html.replace('</body>', '<div style="background:#102d3b;color:#66eddb;padding:18px;font-size:22px;font-weight:bold">'+escape(projection_text).replace('\n','<br>')+'</div></body>')
     if snapshot and Path(snapshot).is_file():

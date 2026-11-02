@@ -54,8 +54,9 @@ assert not hasattr(w, 'flow_flash_timer')
 assert w.oak_view_combo.currentText() == 'Smooth'
 assert not w.show_tyre_labels.isChecked()
 assert not hasattr(w, 'target_button')
-assert 'MONTHLY PROJECTION' in w.forecast_label.text()
-assert '900 22px' in w.forecast_label.styleSheet()
+assert len(w.projection_labels)==3
+assert 'PROJECTED THIS MONTH' in w.forecast_label.text()
+assert '900 20px' in w.forecast_label.styleSheet()
 print('PASS: stationary accessible message, steady low-flow threshold, monthly projection and smooth unlabelled defaults')
 print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines')
 w.controls_tabs.show();app.processEvents()

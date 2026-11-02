@@ -26,3 +26,18 @@ assert r['remaining_hours']==0 and r['projected_tyres']==r['actual_tyres']
 assert snapshot(con,'OAK',datetime(2026,12,1,7,tzinfo=BRISBANE))['actual_tyres']==0
 con.close()
 print('PASS monthly schedule, pace, kg, aliases, legacy, source/shift/weekend/future exclusions, unknown weight, month rollover and test pause')
+from monthly_forecast import all_snapshots
+con=sqlite3.connect(':memory:')
+con.execute('CREATE TABLE counts(ts TEXT,metric_utc REAL,source TEXT,tyre_type TEXT)')
+for stamp,n in [('2026-10-30T06:00:00',100),('2026-11-02T06:00:00',20),('2026-11-03T06:00:00',30)]:
+ t=datetime.fromisoformat(stamp).replace(tzinfo=BRISBANE)
+ con.executemany('INSERT INTO counts VALUES(?,?,?,?)',[(t.isoformat(),t.timestamp(),'OAK','passenger')]*n)
+r=all_snapshots(con,'OAK',datetime(2026,11,3,7,tzinfo=BRISBANE))
+assert r['day']['actual_tyres']==30 and r['week']['actual_tyres']==50 and r['month']['actual_tyres']==50
+assert r['day']['observed_hours']==2 and abs(r['week']['observed_hours']-(12+5/60+2))<1e-8
+assert r['day']['projected_tyres']==round(30/2*(12+5/60))
+# Week can straddle a month; it must include Monday even on a new month.
+r=all_snapshots(con,'OAK',datetime(2026,11,1,12,tzinfo=BRISBANE))
+assert r['week']['actual_tyres']==100 and r['month']['actual_tyres']==0
+con.close()
+print('PASS independent daily/weekly/monthly pace and cross-month week')

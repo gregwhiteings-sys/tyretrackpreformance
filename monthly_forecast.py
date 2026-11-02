@@ -5,10 +5,17 @@ from datetime import datetime, timedelta
 from hourly_dashboard import BRISBANE
 from tyre_weight import totals
 
-def snapshot(con, source, now):
+def snapshot(con, source, now, period="month"):
     now=now.astimezone(BRISBANE)
-    begin=now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
-    end=(begin.replace(day=28)+timedelta(days=4)).replace(day=1)
+    begin=now.replace(hour=0,minute=0,second=0,microsecond=0)
+    if period=='day':
+        end=begin+timedelta(days=1)
+    elif period=='week':
+        begin-=timedelta(days=begin.weekday());end=begin+timedelta(days=7)
+    elif period=='month':
+        begin=begin.replace(day=1)
+        end=(begin.replace(day=28)+timedelta(days=4)).replace(day=1)
+    else:raise ValueError('Unknown projection period')
     # Aggregate indexed timestamps in SQLite; legacy timestamps retain Python parsing.
     rows=con.execute("SELECT strftime('%Y-%m-%d',metric_utc,'unixepoch','+10 hours'),tyre_type,COUNT(*) FROM counts WHERE source=? AND metric_utc>=? AND metric_utc<=? AND CAST(strftime('%w',metric_utc,'unixepoch','+10 hours') AS INTEGER) BETWEEN 1 AND 5 AND strftime('%H:%M:%S',metric_utc,'unixepoch','+10 hours')>='05:00:00' AND strftime('%H:%M:%S',metric_utc,'unixepoch','+10 hours')<'17:05:00' GROUP BY 1,2",(source,begin.timestamp(),min(now,end).timestamp())).fetchall()
     rows=list(rows)
@@ -36,11 +43,18 @@ def snapshot(con, source, now):
         day+=timedelta(days=1)
     count=sum(types.values());kg=actual['total_kg']
     ready=bool(first and elapsed>=1)
-    return dict(month=begin.strftime('%B %Y'),actual_tyres=count,actual_kg=kg,unknown=actual['unknown'],observed_hours=elapsed,remaining_hours=remaining,first_day=first,ready=ready,projected_tyres=round(count+count/elapsed*remaining) if ready else None,projected_tonnes=(kg+kg/elapsed*remaining)/1000 if ready else None)
+    return dict(period=period,label={'day':'TODAY','week':'THIS WEEK','month':begin.strftime('%B %Y').upper()}[period],as_of=now.isoformat(),month=begin.strftime('%B %Y'),actual_tyres=count,actual_kg=kg,unknown=actual['unknown'],observed_hours=elapsed,remaining_hours=remaining,first_day=first,ready=ready,projected_tyres=round(count+count/elapsed*remaining) if ready else None,projected_tonnes=(kg+kg/elapsed*remaining)/1000 if ready else None)
+
+def all_snapshots(con,source,now):
+    return {period:snapshot(con,source,now,period) for period in ('day','week','month')}
 
 def forecast_text(data,test_mode=False):
-    if test_mode:return 'Monthly projection paused during video/manual tests'
-    if not data or not data.get('ready'):return 'MONTHLY PROJECTION · Waiting for at least one observed production hour this month'
+    if test_mode:return 'Production projections paused during video/manual tests'
+    if not data or not data.get('ready'):return 'PROJECTION · Waiting for at least one observed production hour in this period'
     warning=' · Unclassified tyres excluded from weight' if data['unknown'] else ''
-    return (f"PROJECTED {data['month'].upper()} · {data['projected_tyres']:,} tyres · {data['projected_tonnes']:,.1f} tonnes\n"
+    return (f"PROJECTED {data['label']} · {data['projected_tyres']:,} tyres · {data['projected_tonnes']:,.1f} tonnes\n"
             f"Estimated from {data['observed_hours']:,.1f} scheduled hours since {data['first_day']}; includes stops. Class-based weight estimate.{warning}")
+
+def report_text(report):
+    data=report.get('production_projections') or {'month':report.get('monthly_forecast')}
+    return '\n\n'.join(forecast_text(data.get(period)) for period in ('day','week','month') if period in data)

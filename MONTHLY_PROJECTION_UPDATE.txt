@@ -1,11 +1,12 @@
 TYRETRACK MONTHLY PROJECTION UPDATE
-Daily target entry removed. Bold monthly tyre and tonne estimates added to dashboard,
+Daily target entry removed. Bold daily, weekly and monthly tyre and tonne estimates added to dashboard,
 daily and weekly management emails, PDF, CSV and JSON.
 Camera startup defaults: Smooth view, Show Tyre Labels off. Both remain adjustable.
 
-Projection = month-to-date actual + observed hourly pace x remaining scheduled hours.
+Projection = period-to-date actual + observed hourly pace x remaining scheduled hours.
+Today, this week (Monday-Friday) and this calendar month each use their own pace.
 Pace includes weekday scheduled hours from 05:00 on the first recorded production
-day this month, including stops and zero-count periods after that date.
+day in each period, including stops and zero-count periods after that date.
 Schedule matches this build: Monday-Friday 05:00-17:05 Brisbane. Public holidays
 are treated as weekdays. At least one observed hour is required. No prior-month
 extrapolation. Only in-shift production OAK counts are used; future/test excluded.
