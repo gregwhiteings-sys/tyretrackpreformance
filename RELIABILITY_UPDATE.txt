@@ -1,0 +1,41 @@
+TYRETRACK HEALTH, ACTIVITY AND BACKUP UPDATE
+
+No new dependencies or OAK pipeline changes. Existing defaults and forecasts remain.
+
+SYSTEM HEALTH
+Camera preview age and AI-result receive age are sampled from existing host state.
+Warning after three seconds without fresh data. Processing FPS is measured from
+worker frame progress over about ten seconds. App CPU is the TyreTrack process
+normalized over logical CPU cores; it is NOT total PC CPU. Recording 'worker active'
+is a thread check, not verification of recorded packets/files. Camera temperature
+and onboard CPU are not added, to preserve the audited camera graph.
+Disk-free warning below 10 GB; backups postponed below 2 GB. No recordings deleted.
+
+ACTIVITY
+Hourly blocks: green/counts, amber/observed no counts, red/camera issue, grey/no
+telemetry or upcoming. Hover for interval/count. Historical count activity works
+immediately; camera-health history begins with this build. A gap does not prove
+conveyor stoppage. Existing supervisor reasons remain in their report section.
+Daily and weekly PDF/CSV/JSON contain the activity timeline. Email points to it.
+Health history is local in data/system_health, coalesced to one entry per minute.
+Video/manual tests do not write production health observations or trigger backups.
+
+BACKUPS
+Automatic once per local Brisbane date while open, plus a separate after-17:05
+snapshot. App must be open; next launch catches up for the current date only.
+Stored in data/backups. Admin Settings > Reports shows status/last successful
+backup and an admin-protected Open private backup folder button.
+Uses SQLite's online backup API (including committed WAL data), quick_check,
+ZIP CRC validation and atomic completion. Includes database and private settings;
+these archives contain credentials and must not be shared publicly. No videos.
+No automatic deletion or remote copy. A same-disk backup does not protect against
+PC/disk loss: copy archives to protected external storage for disaster recovery.
+Restore instructions inside each ZIP: close app, preserve current data, restore
+DB/private settings. No automatic overwrite of the live database.
+
+VALIDATION
+Local SQLite WAL restore and ZIP integrity, start/after-close scheduling, low-space
+failure, preserved last-success status, test isolation, no-overlap and Qt heartbeat
+passed. Real Qt layouts/defaults, forecast, reports and web-snapshot privacy passed.
+Original source/model/dependency compatibility guard passed. Windows CI/build and
+physical OAK, disk/recording status under real load remain to be checked onsite.

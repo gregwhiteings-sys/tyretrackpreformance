@@ -103,9 +103,15 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
             candidates=list((Path(recordings_dir)/day.strftime('%Y-%m-%d')).glob('*.mp4'))
             candidates+=list(Path(recordings_dir).glob('OAK_RGB_'+day.strftime('%Y%m%d')+'*.mp4'))
             recordings.extend(path.name for path in candidates)
+    from production_support import activity_bins,read_observations
+    activity=[]
+    for index in range(5 if weekly else 1):
+        a=start+timedelta(days=index);b=min(a.replace(hour=17,minute=5),end)
+        if a<b and a.weekday()<5:
+            activity.extend(activity_bins(events,a,b,read_observations(Path(db).parent/'system_health',a,b)))
     complete=now>=close and (weekly or now.weekday()<5)
     delta=((len(events)-len(previous))/len(previous)*100) if complete and previous else None
-    return dict(production_projections=production_projections,monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
+    return dict(activity=activity,production_projections=production_projections,monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
         total=len(events),types=dict(kinds),weight=weight,slots=slots,weekdays=weekdays,best=best,
         average_hour=len(events)*60/minutes if minutes else 0,flow_minute=len(events)/minutes if minutes else 0,
         peak_flow=max((s['count']/s['minutes'] for s in completed if s['minutes']>0),default=0),
@@ -142,6 +148,7 @@ def write_csv(r,path):
                 w.writerow([period.upper()+'LY_PROJECTION' if period=='month' else period.upper()+'_PROJECTION',r['as_of'][:10],'','',projection['projected_tyres'] if projection['ready'] else '', '', '', '', '', round(projection['projected_tonnes']*1000,2) if projection['ready'] else '', '', safe_csv(forecast_text(projection))])
         for s in r['slots']:row('HOURLY',r['start'][:10],s['start'],s['end'],s['count'],s['types'])
         for d in r['weekdays']:row('WEEKDAY',d['date'],count='' if d['future'] else d['count'],types=d['types'],details='Upcoming' if d['future'] else 'Production total')
+        for slot in r.get('activity',[]):row('ACTIVITY',start=slot['start'],end=slot['end'],count=slot['count'],details=slot['state']+'; no-count periods do not establish conveyor downtime')
         for g in r['no_count_gaps']:row('NO_COUNT_GAP',start=g['start'],end=g['end'],details=f"{g['minutes']:.1f} minutes; conveyor/camera availability not inferred")
         for s in r['supervisors']:row('SUPERVISOR',start=s['started_brisbane'],end=s.get('ended_brisbane') or '',details=' | '.join(str(s.get(k) or '') for k in ('incident_id','status','reason','supervisor','comments')))
         for a in r['alarms']:row('FOREIGN_ALERT',start=a['timestamp'],details=f"Trial model: {a['object']}; confidence {a['confidence']:.3f}; {a['snapshot']}")
@@ -221,6 +228,8 @@ def write_pdf(r,path,logo=None):
     rows=[['Brisbane slot','Tyres','Passenger','SUV / 4x4','Truck','Est. kg']]
     for s in r['slots']:rows.append([s['start']+'-'+s['end'],f"{s['count']:,}",s['types'].get('passenger',0),s['types'].get('4x4',0),s['types'].get('truck',0),totals(s['types'])['total_kg']])
     story +=[table(rows,[width*.24,width*.12,width*.17,width*.17,width*.12,width*.18]),p(f"Average flow: {r['flow_minute']:.2f} tyres/min | Best completed-slot flow: {r['peak_flow']:.2f} tyres/min"),p(f"Best day: {r['best_day'][0] or 'No history'} | Previous {'week' if r['weekly'] else 'working day'} ({r['previous_label']}): {r['previous_total']:,} tyres"),heading('No-count review and supervisor responses'),p(f"{len(r['no_count_gaps'])} count {'gap' if len(r['no_count_gaps'])==1 else 'gaps'} of 10+ minutes ({sum(g['minutes'] for g in r['no_count_gaps']):.1f} minutes combined). A count gap does not establish conveyor stoppage or camera availability.")]
+    if r.get('activity'):
+        story += [heading('Production activity timeline'),p('Green/activity: counts recorded. No counts observed: telemetry exists but no tyres counted. Camera issue: stale preview observed. Unobserved: no health history available. None establishes the reason for conveyor downtime.'),table([['Brisbane period','Tyres','Observation']]+[[slot['start'][:10]+' '+slot['start'][11:16]+'–'+slot['end'][11:16],slot['count'],slot['state']] for slot in r['activity']],[width*.45,width*.15,width*.40])]
     if r['no_count_gaps']:
         story.append(table([['Count gap starts (Brisbane)','Ends','Minutes']]+[[datetime.fromisoformat(g['start']).strftime('%d %b %H:%M:%S'),datetime.fromisoformat(g['end']).strftime('%d %b %H:%M:%S'),f"{g['minutes']:.1f}"] for g in r['no_count_gaps']],[width*.43,width*.42,width*.15]))
     if r['supervisors']:
@@ -263,6 +272,7 @@ def make_email(settings,r,paths,snapshot=None):
     if snapshot and Path(snapshot).is_file():
         captured=datetime.fromtimestamp(Path(snapshot).stat().st_mtime,BRISBANE).strftime('%d %b %Y %H:%M:%S Brisbane')
         html=html.replace('</body>',f'<p>Dashboard captured {captured}:</p><img src="cid:dashboard_snapshot" alt="Dashboard reference" style="width:100%;max-width:900px;height:auto"></body>')
+    html=html.replace('</body>', '<p><b>Production activity timeline:</b> included in the attached PDF and CSV. Count gaps alone do not establish conveyor downtime.</p></body>')
     html=html.replace('</body>', '<h3>Estimated weight by tyre class</h3><img src="cid:weight_mix" alt="Estimated weight by class in kilograms" style="width:100%;max-width:620px"><p>Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre. Unclassified tyres excluded.</p></body>')
     msg.add_alternative(html,subtype='html')
     msg.get_body(preferencelist=('html',)).add_related(weight_chart_png(r),maintype='image',subtype='png',cid='<weight_mix>',disposition='inline',filename='Estimated_Weight_By_Class.png')

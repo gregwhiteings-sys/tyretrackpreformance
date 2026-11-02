@@ -66,4 +66,22 @@ for index in range(w.controls_tabs.count()):
  scroll=w.controls_tabs.widget(index);host=scroll.widget()
  assert host.width()==scroll.viewport().width()
 print('PASS: administration pages fit scroll viewport')
+
+# Exercise actual health label wiring without camera, files or background requests.
+from types import SimpleNamespace
+import time
+class SupportFixture:
+ def request(self,*args,**kwargs):pass
+ def snapshot(self):return dict(app_cpu=12,free_gb=5,processing_fps=8,backup='Saved fixture',last_backup='2026-11-02',error='')
+w._support=SupportFixture()
+saved_worker=w.worker
+w.worker=SimpleNamespace(source_kind='oak',manual_test=False,processing_frame=20,isRunning=lambda:True,oak_source=SimpleNamespace(live_frame_at=time.monotonic(),latest_frame_at=time.monotonic(),recorder=SimpleNamespace(is_alive=lambda:True)))
+w.update_system_support()
+assert 'CAMERA ONLINE' in w.system_health_label.text() and 'LOW SPACE' in w.system_health_label.text()
+assert 'Processing 8.0 FPS' in w.system_health_label.text()
+assert 'Last successful' in w.backup_status.text()
+w.worker=saved_worker
+print('PASS actual system-health CPU/FPS/disk and backup status labels')
+
+del w._support
 w.close();shutil.rmtree(folder,ignore_errors=True)
