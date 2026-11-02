@@ -1,0 +1,21 @@
+WEB PROJECTIONS UPDATE
+The existing public webpage now shows daily/weekly/monthly projected tyres and
+estimated tonnes, replacing the old daily target. It also shows public system
+health and hourly activity summaries. Missing values remain clearly marked as
+waiting for the updated onsite app; no projections are invented from incomplete
+web history. Actual totals and existing sharing settings remain unchanged.
+
+Build/install this ZIP through the existing GitHub Windows workflow. Keep the
+existing connection file and normal web sharing enabled. No new connection file
+or sharing permissions are required. The new values will arrive automatically.
+
+Only numeric projection/health summaries and activity states are uploaded.
+Private backups, configuration, credentials and supervisor comments are excluded.
+Projection data older than three minutes and health older than thirty seconds
+are omitted from new uploads. The webpage labels stale overall updates.
+The private dashboard still-image option is unchanged and remains opt-in.
+
+Validation: Python summary/privacy/date tests, Qt default/control tests, web image
+privacy tests and source compatibility guard passed. Website build and server
+validation tests passed; deployed page checked in browser. Live upload of the new
+fields from the actual onsite PC and the Windows build remain to be verified.

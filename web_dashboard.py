@@ -18,14 +18,36 @@ def build_snapshot(live,cache,now,camera_connected=False,target=0,test_mode=Fals
     if cache['metrics']['day_start'].date()!=now.date():return None
     v=tyre_weight.totals(live['types']);metrics=cache['metrics'];slots,best,_=cache['hourly']
     completed=[s for s in slots if s['completed']]
-    start=now.replace(hour=5,minute=0,second=0,microsecond=0);end=now.replace(hour=17,minute=5,second=0,microsecond=0)
-    elapsed=(min(now,end)-start).total_seconds();forecast=None
-    if target and now.weekday()<5 and elapsed>=900:forecast=round(live['daily']/elapsed*(end-start).total_seconds()) if now<end else live['daily']
-    return dict(schema=1,captured_at=now.astimezone(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),
+    projections={}
+    for period in ('day','week','month'):
+        item=cache.get('production_projections',{}).get(period)
+        if not item:continue
+        # Send public numeric summaries only, never arbitrary cached fields.
+        try:
+            from datetime import datetime
+            as_of=datetime.fromisoformat(item['as_of'])
+            if as_of.astimezone(now.tzinfo).date()!=now.date() or not 0<=(now-as_of).total_seconds()<=180:continue
+            projections[period]=dict(ready=bool(item['ready']),as_of=item['as_of'],
+                tyres=item['projected_tyres'],tonnes=item['projected_tonnes'],
+                observed_hours=item['observed_hours'],unknown=item['unknown'])
+        except (KeyError,ValueError,TypeError):continue
+    health=None
+    sample=cache.get('public_health')
+    if sample:
+        try:
+            from datetime import datetime
+            if 0<=(now-datetime.fromisoformat(sample['at'])).total_seconds()<=30:
+                health={k:sample.get(k) for k in ('at','camera','preview_age','ai_age','recording','processing_fps','app_cpu','free_gb')}
+        except (KeyError,ValueError,TypeError):pass
+    activity=[]
+    for slot in cache.get('activity',[])[:13]:
+        if slot.get('start','')[:10]==now.date().isoformat():
+            activity.append({k:slot[k] for k in ('start','end','count','state')})
+    return dict(schema=1,health=health,activity=activity,captured_at=now.astimezone(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),
         today=live['daily'],this_hour=live['current_hour'],best_hour=best['count'] if best else 0,best_day=cache['best'][1],all_time=live['all_time'],
         passenger=v['counts']['passenger'],suv=v['counts']['4x4'],truck=v['counts']['truck'],unclassified=v['unknown'],estimated_kg=v['total_kg'],epu=v['total_epu'],
         flow=metrics['flow_per_minute'],average_hour=sum(s['count'] for s in completed)/len(completed) if completed else 0,
-        production_status=metrics['no_count_status'],camera_connected=bool(camera_connected),target=target or None,forecast=forecast,
+        production_status=metrics['no_count_status'],camera_connected=bool(camera_connected),projections=projections,
         hours=[dict(label=s['start'].strftime('%H:%M'),count=s['count'],current=s['start']<=now<s['end']) for s in slots],
         days=[dict(label=s['date'].strftime('%a %d %b'),count=s['count'],current=s['current']) for s in cache['weekdays']])
 

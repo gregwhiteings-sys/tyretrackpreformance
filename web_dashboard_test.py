@@ -36,3 +36,23 @@ with tempfile.TemporaryDirectory() as tmp:
   except ValueError:pass
   else:raise AssertionError('Unsafe config accepted')
 print('PASS: kg/EPU summary, private-field exclusion, date/test isolation, opt-in persistence, nonblocking uploads, no overlap, ten-second limit, network failure isolation and connection-file validation')
+
+cache['production_projections']={period:dict(ready=True,as_of=now.isoformat(),projected_tyres=120,projected_tonnes=1.2,observed_hours=5,unknown=1,private_email='never share') for period in ('day','week','month')}
+payload=build_snapshot(live,cache,now,True,100)
+assert set(payload['projections'])=={'day','week','month'}
+assert payload['projections']['month']['tyres']==120 and payload['projections']['month']['tonnes']==1.2
+assert 'private_email' not in json.dumps(payload) and 'target' not in payload and 'forecast' not in payload
+cache['production_projections']['day']['as_of']=(now-timedelta(minutes=4)).isoformat()
+assert 'day' not in build_snapshot(live,cache,now)['projections']
+cache['production_projections']['week']['as_of']=(now-timedelta(days=1)).isoformat()
+assert 'week' not in build_snapshot(live,cache,now)['projections']
+print('PASS three-period public projection summaries, stale/date exclusion and retired target fields')
+
+cache['public_health']=dict(at=now.isoformat(),camera='online',preview_age=.1,ai_age=.2,processing_fps=8,app_cpu=20,free_gb=30,recording='worker active',token='never-shared',backup_path='never-shared')
+cache['activity']=[dict(start=start.isoformat(),end=now.isoformat(),count=4,state='activity',comments='never-shared')]
+payload=build_snapshot(live,cache,now)
+assert payload['health']['processing_fps']==8 and payload['activity'][0]['count']==4
+assert 'never-shared' not in json.dumps(payload)
+cache['public_health']['at']=(now-timedelta(minutes=1)).isoformat()
+assert build_snapshot(live,cache,now)['health'] is None
+print('PASS public health/activity field whitelists and stale health exclusion')
