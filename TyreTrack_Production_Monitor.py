@@ -1592,11 +1592,12 @@ class CounterWorker(QThread):
             now=time.monotonic()
             candidates=[]
             if self.source_kind == "oak":
+                from oak_rvc2 import decode as decode_foreign
                 item=self.oak_source.read_foreign()
                 if item is not None:
                     seq, inference_frame, raw, received=item
                     if now-received<=2:
-                        rows,_=decode(raw,self.foreign_confidence,.5)
+                        rows,_=decode_foreign(raw,self.foreign_confidence,.5)
                         candidates=[(row[:4].tolist(),int(row[5]),float(row[4])) for row in rows]
             else:
                 result=self.foreign_model.predict(frame,conf=self.foreign_confidence,
@@ -1678,7 +1679,7 @@ class CounterWorker(QThread):
                     log("Foreign model load failed: "+str(exc))
             if self.source_kind == "oak":
                 source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
-                if self.foreign_enabled:self.foreign_status.emit("Synthetic starter · OAK inference · 3 confirmations required")
+                if self.foreign_enabled:self.foreign_status.emit("OAK foreign-object model · 3 matching detections required")
                 self.oak_source = source
                 source_name = OAK_TEST_NAME if self.manual_test else OAK_NAME
             else:

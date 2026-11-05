@@ -27,10 +27,11 @@ for class_id in (0,):
   def release(self):pass
  m.OakSource=Source
  worker=m.CounterWorker('oak','','Bottom to Top',.35,.5);worker.foreign_enabled=True;worker.foreign_every=20
- events=[];statuses=[];worker.foreign_event.connect(events.append);worker.status.connect(statuses.append)
+ events=[];statuses=[];worker.foreign_event.connect(events.append);worker.status.connect(statuses.append);worker.foreign_status.connect(statuses.append)
  worker.run()
- assert len(events)==1 and events[0]['class_id']==class_id and events[0]['class_name']=='foreign_object',(events,statuses)
+ assert len(events)==1 and events[0]['class_id']==class_id and events[0]['class_name']=='foreign_object',(events,statuses,worker.foreign_boxes,worker.foreign_failed)
  assert worker.foreign_active and not worker.foreign_failed
+ assert not any(s.startswith('FAULT') for s in statuses),statuses
  assert not any(s.startswith('ERROR') for s in statuses),statuses
 print('PASS: real OAK counter worker decodes one-class YOLOv8 RVC2 outputs without CPU YOLO; each tracked object alerts once; OAK ignores PC-only frame interval')
 # Presence-based alarm clears as soon as its worker reports no object after the grace window.
