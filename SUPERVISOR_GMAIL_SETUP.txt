@@ -11,10 +11,15 @@ It does not create a new Gmail account or change existing hourly recipients.
    sender_email = existing_tyetrack_gmail@gmail.com
    sender_app_password = existing_app_password
    recipient_email = management@example.com
+   foreign_alert_recipient = safety@example.com
    supervisor_email = supervisor@example.com
 
    Only set supervisor_email to the real supervisor's email address.
    If omitted, the existing recipient_email is used for supervisor forms.
+   Foreign-object alerts use foreign_alert_recipient when set; leave it blank
+   to send them to recipient_email. One email with a snapshot is sent for each
+   newly confirmed object track. The audible alarm clears about 3 seconds after
+   the detector no longer sees a confirmed foreign object.
    Do not put real passwords into GitHub or share them in screenshots.
 
 2. Gmail inbox must permit IMAP and the existing credential must have
@@ -51,3 +56,5 @@ LIMITATIONS / PRODUCTION CHECKS
   before TyreTrack imports them.
 - The form is a plain text email, not an interactive HTML form.
 - Existing production build should remain installed until a full test.
+- Foreign-object email delivery requires valid Gmail SMTP settings and a live
+  camera run to confirm the detector and recipient configuration.

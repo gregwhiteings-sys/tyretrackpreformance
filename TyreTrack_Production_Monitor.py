@@ -87,7 +87,7 @@ from ultralytics import YOLO
 from count_line import segment_bounds, crosses_segment, count_point
 from three_line import ThreeLineCounter, simulation_checks, line_segments
 from hourly_dashboard import hourly_snapshot, brisbane_now
-from foreign_alarm import CLASSES, Confirmation, in_region, read_json, write_json, set_password, verify_password, make_tone
+from foreign_alarm import CLASSES, ForeignPresence, in_region, read_json, write_json, set_password, verify_password, make_tone
 
 from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, QPoint, QPointF, pyqtSignal
 from PyQt5.QtGui import QColor, QImage, QPainter, QPen, QPixmap
@@ -548,6 +548,7 @@ def ensure_email_config():
             "sender_email = your_gmail@gmail.com\n"
             "sender_app_password = your_app_password\n"
             "recipient_email = recipient@example.com\n"
+            "foreign_alert_recipient = \n"
             "supervisor_email = supervisor@example.com\n",
             encoding="utf-8",
         )
@@ -567,18 +568,34 @@ def email_settings():
     recipient = config.get(
         "EMAIL", "recipient_email", fallback=""
     ).strip()
+    foreign_recipient = config.get(
+        "EMAIL", "foreign_alert_recipient", fallback=""
+    ).strip()
+    valid_recipient = lambda address: bool(address and "example.com" not in address)
 
+    if not valid_recipient(recipient) and valid_recipient(foreign_recipient):
+        recipient = foreign_recipient
     if (
         not sender
         or "your_" in sender
         or not password
         or "your_" in password
-        or not recipient
-        or "example.com" in recipient
+        or not valid_recipient(recipient)
     ):
         return None
 
     return sender, password, recipient
+
+
+def foreign_alert_recipient():
+    """Use a dedicated foreign-alert address, falling back to the normal report recipient."""
+    config = configparser.ConfigParser(interpolation=None)
+    config.read(EMAIL_INI, encoding="utf-8")
+    address = config.get("EMAIL", "foreign_alert_recipient", fallback="").strip()
+    if address and "example.com" not in address:
+        return address
+    settings = email_settings()
+    return settings[2] if settings else ""
 
 
 def supervisor_recipient():
@@ -604,8 +621,8 @@ def send_message(subject, body, snapshot=None, recipient_override=None):
     if message.is_multipart():
         message.attach(MIMEText(body))
         with open(snapshot, "rb") as picture:
-            attachment = MIMEImage(picture.read(), _subtype="png")
-        attachment.add_header("Content-Disposition", "attachment", filename="TyreTrack_Dashboard.png")
+            attachment = MIMEImage(picture.read())
+        attachment.add_header("Content-Disposition", "attachment", filename="TyreTrack_Foreign_Alert.jpg")
         message.attach(attachment)
     message["Subject"] = subject
     message["From"] = sender
@@ -1466,6 +1483,7 @@ class CounterWorker(QThread):
     frame_ready = pyqtSignal(object)
     counted = pyqtSignal(int, float)
     foreign_event = pyqtSignal(object)
+    foreign_presence = pyqtSignal(object)
     foreign_status = pyqtSignal(str)
     status = pyqtSignal(str)
     finished_clean = pyqtSignal()
@@ -1534,12 +1552,13 @@ class CounterWorker(QThread):
         self.tracker_recoveries = 0
         self.oak_source = None
         self.foreign_enabled = False
-        self.foreign_latched = False
+        self.foreign_active = False
+        self.last_foreign_presence = ()
         self.foreign_reset_pending = False
         self.foreign_confidence = .45
         self.foreign_every = 5
         self.foreign_region = (.03,.98,.18,.82)
-        self.foreign_confirm = Confirmation()
+        self.foreign_presence_tracker = ForeignPresence(hits=3, clear_after=3.0)
         self.foreign_model = None
         self.foreign_boxes = []
         self.foreign_failed = False
@@ -1563,21 +1582,22 @@ class CounterWorker(QThread):
     def foreign_check(self, frame):
         self.foreign_boxes = []
         if self.foreign_reset_pending:
-            self.foreign_confirm.clear()
+            self.foreign_presence_tracker.clear()
             self.foreign_reset_pending = False
         if not self.foreign_enabled or self.foreign_failed:
             return
         if self.source_kind != "oak" and self.processing_frame % self.foreign_every:
             return
         try:
+            now=time.monotonic()
+            candidates=[]
             if self.source_kind == "oak":
-                from oak_rvc2 import decode
                 item=self.oak_source.read_foreign()
-                if item is None:return
-                seq, frame, raw, received=item
-                if time.monotonic()-received>2:return
-                rows,_=decode(raw,self.foreign_confidence,.5)
-                candidates=[(row[:4].tolist(),int(row[5]),float(row[4])) for row in rows]
+                if item is not None:
+                    seq, inference_frame, raw, received=item
+                    if now-received<=2:
+                        rows,_=decode(raw,self.foreign_confidence,.5)
+                        candidates=[(row[:4].tolist(),int(row[5]),float(row[4])) for row in rows]
             else:
                 result=self.foreign_model.predict(frame,conf=self.foreign_confidence,
                                                    imgsz=416,device="cpu",verbose=False)[0]
@@ -1586,14 +1606,26 @@ class CounterWorker(QThread):
             height,width=frame.shape[:2]
             detections=[]
             for box,c,confidence in candidates:
-                if c not in range(len(CLASSES)) or not in_region(box,width,height,*self.foreign_region):continue
-                detections.append(dict(class_id=c,box=box,confidence=float(confidence)))
+                if c not in (range(1) if self.source_kind == "oak" else range(len(CLASSES))):
+                    continue
+                if not in_region(box,width,height,*self.foreign_region):continue
+                detections.append(dict(class_id=c,class_name="foreign_object" if self.source_kind == "oak" else CLASSES[c],
+                                       box=box,confidence=float(confidence)))
             self.foreign_boxes=detections
-            event=self.foreign_confirm.update(detections,time.monotonic())
-            if event and not self.foreign_latched:
-                self.foreign_latched=True
-                self.foreign_event.emit(dict(event,frame=frame.copy(),source_kind="oak_test" if self.manual_test else self.source_kind,
-                                             source=str(self.source),timestamp=brisbane_now().isoformat()))
+            new_events,active=self.foreign_presence_tracker.update(detections,now)
+            active_payload=[dict(track_id=t["track_id"],class_id=t["class_id"],
+                                 class_name=t.get("class_name","foreign_object"),box=t["box"],
+                                 confidence=t["confidence"]) for t in active]
+            signature=tuple(sorted((t["track_id"],t["class_name"]) for t in active_payload))
+            self.foreign_active=bool(active_payload)
+            if signature!=self.last_foreign_presence:
+                self.last_foreign_presence=signature
+                self.foreign_presence.emit(active_payload)
+            for event in new_events:
+                event_frame=frame.copy()
+                self.foreign_event.emit(dict(event,frame=event_frame,
+                    source_kind="oak_test" if self.manual_test else self.source_kind,
+                    source=str(self.source),timestamp=brisbane_now().isoformat()))
         except Exception as exc:
             self.foreign_failed=True
             log("Foreign detector failed:\n"+traceback.format_exc())
@@ -1609,7 +1641,7 @@ class CounterWorker(QThread):
         for d in self.foreign_boxes:
             x1,y1,x2,y2=map(int,d['box'])
             cv2.rectangle(frame,(x1,y1),(x2,y2),(0,0,255),2)
-            cv2.putText(frame,CLASSES[d['class_id']],(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,(0,0,255),1)
+            cv2.putText(frame,d.get("class_name",CLASSES[d['class_id']]),(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,(0,0,255),1)
 
     def run(self):
         source = None
@@ -2359,10 +2391,13 @@ class Main(QMainWindow):
         self.closing = False
         self.alarm_state_path = PRIVATE_CONFIG_DIR / "foreign_alarm_state.json"
         self.admin_path = PRIVATE_CONFIG_DIR / "alarm_admin.json"
+        # Active alarms are presence-based and intentionally do not survive restart.
+        self.alarm_state = {"active":False}
+        self.foreign_presence_objects = []
         try:
-            self.alarm_state = read_json(self.alarm_state_path,{"latched":False})
-        except Exception:
-            self.alarm_state = {"latched":True,"object":"State file unreadable — admin check required","timestamp":brisbane_now().isoformat()}
+            write_json(self.alarm_state_path,{"active":False,"latched":False,"updated_at":brisbane_now().isoformat()})
+        except Exception as exc:
+            log(f"Could not clear stale foreign alarm state: {exc}")
         self.alarm_sound_active = False
         self.foreign_fault = ""
         self.foreign_monitor_status = "Off · enable in Admin Settings"
@@ -3001,11 +3036,12 @@ class Main(QMainWindow):
         self.foreign_conf.valueChanged.connect(self.save_foreign_settings)
         self.foreign_every.valueChanged.connect(self.save_foreign_settings)
         self.save_foreign_settings()
-        note=QLabel("Stop before changing settings. Orange trapezoid marks the conveyor region while running. A box centre must be inside it. Three matching detections latch the alarm. Only wheel_rim and person are trained. OAK processes every received foreign result; the frame interval applies to PC video tests. Video tests can also trigger the alarm.")
+        note=QLabel("Stop before changing settings. The orange trapezoid marks the conveyor region. Three matching detections confirm an object. The OAK-D model labels detected hazards as foreign_object; the PC starter uses wheel_rim/person. The audible alarm auto-stops about 3 seconds after the detector no longer sees an object. One email with a snapshot is sent for each newly confirmed object to the recipient in the existing Gmail settings.")
+        note.setWordWrap(True)
         foreign_layout.addWidget(note)
-        self.alarm_reset_btn=QPushButton("Admin: reset alarm")
-        self.alarm_reset_btn.clicked.connect(self.reset_foreign_alarm)
-        foreign_layout.addWidget(self.alarm_reset_btn)
+        email_note=QLabel("Foreign alerts use the existing Gmail sender and recipient settings. Set foreign_alert_recipient in the app's email_config.ini; leave it blank to use recipient_email.")
+        email_note.setWordWrap(True)
+        foreign_layout.addWidget(email_note)
         admin_btn=QPushButton("Set / change admin password")
         admin_btn.clicked.connect(self.configure_alarm_admin);foreign_layout.addWidget(admin_btn)
         incidents_btn=QPushButton("Open incident records")
@@ -3830,9 +3866,9 @@ class Main(QMainWindow):
             set_state("foreign_region_"+key,slider.value())
 
     def update_alarm_banner(self):
-        if self.alarm_state.get("latched"):
+        if self.alarm_state.get("active"):
             stamp=self.alarm_state.get("timestamp","")
-            self.alarm_banner.setText(f"FOREIGN OBJECT ALARM — {self.alarm_state.get('object','Object detected')} | {stamp} | Admin reset required")
+            self.alarm_banner.setText(f"FOREIGN OBJECT ALARM — {self.alarm_state.get('object','Object detected')} | {stamp} | clears when area is clear")
             self.alarm_banner.setStyleSheet("background:#a51d2d;color:white;font-size:18px;font-weight:900;padding:10px;border:3px solid #ff6a6a;")
         elif self.foreign_fault:
             self.alarm_banner.setText("FOREIGN DETECTOR FAULT — " + self.foreign_fault)
@@ -3851,37 +3887,59 @@ class Main(QMainWindow):
         self.foreign_fault=text if text.startswith("FAULT") else ""
         self.update_alarm_banner()
 
-    def on_foreign_alarm(self, event):
-        if self.alarm_state.get("latched"):return
-        record={k:v for k,v in event.items() if k!='frame'}
-        record['object']=CLASSES[event['class_id']]
-        record['snapshot']="Not saved"
-        record['latched']=True
-        self.alarm_state=record
+    def on_foreign_presence(self, objects):
+        objects=list(objects or [])
+        active=bool(objects)
+        labels=sorted(set(item.get("class_name","foreign_object") for item in objects))
+        self.foreign_presence_objects=objects
+        if active:
+            current=self.alarm_state.get("active",False)
+            self.alarm_state={"active":True,"object":", ".join(labels),
+                              "timestamp":self.alarm_state.get("timestamp") if current else brisbane_now().isoformat()}
+            self.alarm_tick()
+        else:
+            self.alarm_state={"active":False}
+            self.stop_alarm_sound()
         self.update_alarm_banner()
-        self.alarm_tick()
+
+    def on_foreign_alarm(self, event):
+        record={k:v for k,v in event.items() if k!='frame'}
+        record['object']=event.get('class_name',CLASSES[event['class_id']])
+        record['snapshot']="Not saved"
+        record['active']=True
+        incident=f"incident_{int(time.time()*1000)}"
         try:
-            # Persist the latch before writing potentially larger image evidence.
-            write_json(self.alarm_state_path,record)
             folder=DATA/"foreign_incidents";folder.mkdir(exist_ok=True)
-            name=f"incident_{int(time.time()*1000)}"
-            snapshot=folder/(name+'.jpg')
+            snapshot=folder/(incident+'.jpg')
             evidence=event['frame'].copy()
             x1,y1,x2,y2=map(int,event['box'])
             cv2.rectangle(evidence,(x1,y1),(x2,y2),(0,0,255),2)
             cv2.putText(evidence,record['object'],(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.5,(0,0,255),1)
             saved=cv2.imwrite(str(snapshot),evidence)
             record['snapshot']=str(snapshot) if saved else "Snapshot write failed"
-            write_json(self.alarm_state_path,record)
-            write_json(folder/(name+'.json'),record)
+            write_json(folder/(incident+'.json'),record)
             logfile=folder/'incidents.csv';exists=logfile.exists()
             with logfile.open('a',newline='',encoding='utf-8') as f:
                 writer=csv.writer(f)
                 if not exists:writer.writerow(['Brisbane timestamp','source kind','source','object','confidence','snapshot'])
                 writer.writerow([event['timestamp'],event['source_kind'],event['source'],record['object'],event['confidence'],record['snapshot']])
         except Exception:
-            log("Incident persistence failed:\n"+traceback.format_exc())
-            self.foreign_status_lbl.setText("ALARM active; incident could not be saved — check disk")
+            log("Incident persistence failed:\\n"+traceback.format_exc())
+            self.foreign_status_lbl.setText("Foreign alert could not be saved — check disk")
+        subject=f"TYRETRACK FOREIGN OBJECT — {record['object']} — {event.get('timestamp','')}"
+        body=(f"Foreign object confirmed on the TyreTrack conveyor.\\n\\n"
+              f"Object: {record['object']}\\n"
+              f"Confidence: {float(event.get('confidence',0)):.1%}\\n"
+              f"Detected: {event.get('timestamp','')} Brisbane time\\n"
+              f"Source: {event.get('source_kind','')} {event.get('source','')}\\n"
+              f"Track: {event.get('track_id','')}\\n\\n"
+              "The audible alarm stays on while a confirmed foreign object remains visible and auto-stops after about 3 seconds without a detection.")
+        snapshot=record.get('snapshot','')
+        if snapshot=="Snapshot write failed" or not Path(snapshot).is_file():snapshot=None
+        def send_alert():
+            sent=send_message(subject,body,snapshot,recipient_override=foreign_alert_recipient())
+            log(("Foreign-object email sent: " if sent else "Foreign-object email not sent: ")+subject)
+        threading.Thread(target=send_alert,name="foreign-object-email",daemon=True).start()
 
     def update_celebration_indicator(self, *_args):
         muted=self.celebration_mute.isChecked()
@@ -3931,7 +3989,7 @@ class Main(QMainWindow):
         elif time.time()-pending['created']>120:
             log("Celebration retry expired")
             pending=None
-        elif self.alarm_state.get("latched"):
+        elif self.alarm_state.get("active"):
             self.celebration_sound_status.setText("Celebration waiting: operational alarm has priority.")
         elif time.time()>=pending['next_attempt']:
             pending['attempts']+=1
@@ -3960,7 +4018,7 @@ class Main(QMainWindow):
         return True
 
     def play_celebration_sound(self, preview=False, backend=None):
-        if self.alarm_state.get("latched"):
+        if self.alarm_state.get("active"):
             self.celebration_sound_status.setText("Operational alarm active · celebration audio blocked.");return False
         if not preview and self.celebration_mute.isChecked():
             self.celebration_sound_status.setText("Automatic celebrations are muted. Uncheck Mute celebrations to enable.")
@@ -3999,7 +4057,7 @@ class Main(QMainWindow):
             self.celebration_sound_status.setText("Audio playback failed: "+str(exc));return False
 
     def stop_celebration_preview(self, backend=None):
-        if self.alarm_state.get("latched"):
+        if self.alarm_state.get("active"):
             self.celebration_sound_status.setText("Operational alarm remains active.");return False
         try:
             if backend is None:
@@ -4018,7 +4076,7 @@ class Main(QMainWindow):
         self.alarm_sound_active=False
 
     def alarm_tick(self):
-        if not self.alarm_state.get("latched"):return
+        if not self.alarm_state.get("active"):return
         if sys.platform=="win32":
             if not self.alarm_sound_active:
                 try:
@@ -4054,20 +4112,11 @@ class Main(QMainWindow):
         return True
 
     def reset_foreign_alarm(self):
-        if not self.alarm_state.get("latched"):return
-        if not self.admin_path.exists():
-            QMessageBox.information(self,"Alarm admin","Set the first admin password before resetting the alarm.")
-            if not self.configure_alarm_admin():return
-        if not self.ask_admin():return
-        state={"latched":False,"reset_at":brisbane_now().isoformat()}
-        try:write_json(self.alarm_state_path,state)
-        except Exception as exc:
-            QMessageBox.warning(self,"Reset failed",f"Could not save reset: {exc}");return
-        self.alarm_state=state
-        if self.worker is not None:
-            self.worker.foreign_reset_pending=True
-            self.worker.foreign_latched=False
-        self.stop_alarm_sound();self.update_alarm_banner()
+        if self.worker is not None and getattr(self.worker,"foreign_active",False):
+            QMessageBox.information(self,"Foreign object present",
+                "The alarm will stop automatically after the detector no longer sees the object.")
+            return
+        self.on_foreign_presence([])
 
     def update_overlay_mode(self, mode):
         worker = getattr(self, "worker", None)
@@ -4583,8 +4632,8 @@ class Main(QMainWindow):
             worker.foreign_confidence=self.foreign_conf.value()/100
             worker.foreign_every=self.foreign_every.value()
             worker.foreign_region=self.foreign_region_values()
-            worker.foreign_latched=bool(self.alarm_state.get("latched"))
             worker.foreign_event.connect(self.on_foreign_alarm)
+            worker.foreign_presence.connect(self.on_foreign_presence)
             worker.foreign_status.connect(self.on_foreign_status)
             self.on_foreign_status("Loading foreign model..." if worker.foreign_enabled else "Disabled")
             self.worker = worker

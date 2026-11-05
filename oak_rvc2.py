@@ -1,5 +1,5 @@
 """Detection-only dual OAK RVC2 adapter. No mask tensors or reconstruction.
-Tyres: supplied verified 384 RGB detection blob. Foreign: 416 BGR detector.
+Tyres: supplied verified 384 RGB detection blob. Foreign: 416 BGR YOLOv8 detector.
 Host performs detection decoding and ByteTrack; device performs inference/encoding.
 """
 from pathlib import Path
@@ -76,13 +76,9 @@ def read_layers(packet,kind):
         out=np.asarray(packet.getLayerFp16('output0'),dtype=np.float32)
         if out.size!=18144:raise ValueError('Malformed tyre detection tensor')
         return out
-    out={}
-    for i,s in enumerate((52,26,13),1):
-        name=f'output{i}_yolov6r2'
-        a=np.asarray(packet.getLayerFp16(name),dtype=np.float32)
-        if a.size!=7*s*s:raise ValueError('Malformed foreign detection head '+name)
-        out[name]=a.reshape(1,7,s,s)
-    return out
+    out=np.asarray(packet.getLayerFp16('output0'),dtype=np.float32)
+    if out.size!=5*3549:raise ValueError('Malformed foreign YOLOv8 output0 tensor')
+    return {'output0':out.reshape(1,5,3549)}
 
 def unletterbox(image,kind='tyre'):
     if kind=='tyre':
@@ -92,29 +88,23 @@ def unletterbox(image,kind='tyre'):
     return cv2.resize(image[91:325],FRAME_SIZE)
 
 def decode(raw,confidence=.1,iou=.5,agnostic=False):
-    """Return detection rows and None; no segmentation tensors are consumed."""
+    """Decode the one-class YOLOv8 [1,5,3549] RVC2 output."""
     if not isinstance(raw,dict):return decode_tyres(raw,confidence,iou,agnostic),None
-    rows=[]
-    for i,stride in enumerate((8,16,32),1):
-        s=416//stride;a=np.asarray(raw[f'output{i}_yolov6r2'],np.float32)
-        if a.shape!=(1,7,s,s):raise ValueError('Unexpected foreign head shape')
-        a=a[0];scores=a[5:7].max(0);classes=a[5:7].argmax(0)
-        valid=np.isfinite(a).all(0)&(a[4]>confidence)&(scores>=confidence)&(scores<=1.001)
-        for y,x in zip(*np.nonzero(valid)):
-            l,t,r,b=a[:4,y,x]
-            if min(l,t,r,b)<0:continue
-            xy=np.array([(x+.5-l)*stride,(y+.5-t)*stride,(x+.5+r)*stride,(y+.5+b)*stride],np.float32)
-            xy[[0,2]]=np.clip(xy[[0,2]],0,416);xy[[1,3]]=np.clip(xy[[1,3]],91,325)
-            if xy[2]<=xy[0] or xy[3]<=xy[1]:continue
-            rows.append([*xy,float(scores[y,x]),int(classes[y,x])])
-    if not rows:return np.empty((0,6),np.float32),None
-    rows=np.asarray(rows,np.float32);kept=[]
-    for cl in ([None] if agnostic else (0,1)):
-        ids=np.arange(len(rows)) if cl is None else np.flatnonzero(rows[:,5]==cl)
-        if not len(ids):continue
-        boxes=rows[ids,:4].copy();boxes[:,2:]-=boxes[:,:2]
-        sel=np.asarray(cv2.dnn.NMSBoxes(boxes.tolist(),rows[ids,4].tolist(),confidence,iou),int).ravel()
-        kept.extend(ids[sel].tolist())
-    kept=sorted(kept,key=lambda i:-rows[i,4])[:300];chosen=rows[kept].copy()
+    a=np.asarray(raw.get('output0'),dtype=np.float32)
+    if a.shape not in ((1,5,3549),(5,3549)):
+        raise ValueError(f'Unexpected foreign YOLOv8 output shape {a.shape}')
+    a=a.reshape(5,3549);scores=a[4]
+    valid=np.isfinite(a).all(0)&(scores>=confidence)&(scores<=1.001)&(a[2]>0)&(a[3]>0)
+    boxes=[];kept_scores=[]
+    for cx,cy,w,h,score in zip(a[0,valid],a[1,valid],a[2,valid],a[3,valid],scores[valid]):
+        x1=max(0.,float(cx-w/2));x2=min(416.,float(cx+w/2))
+        y1=max(91.,float(cy-h/2));y2=min(325.,float(cy+h/2))
+        if x2<=x1 or y2<=y1:continue
+        boxes.append([x1,y1,x2-x1,y2-y1]);kept_scores.append(float(score))
+    if not boxes:return np.empty((0,6),np.float32),None
+    indices=np.asarray(cv2.dnn.NMSBoxes(boxes,kept_scores,confidence,iou),dtype=int).reshape(-1)
+    if not len(indices):return np.empty((0,6),np.float32),None
+    chosen=np.asarray([[*boxes[i],kept_scores[i],0] for i in indices[:300]],dtype=np.float32)
     chosen[:,[0,2]]*=480/416;chosen[:,[1,3]]=(chosen[:,[1,3]]-91)*270/234
+    chosen[:,2]+=chosen[:,0];chosen[:,3]+=chosen[:,1]
     return chosen,None
