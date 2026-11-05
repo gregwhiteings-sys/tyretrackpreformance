@@ -1,7 +1,7 @@
 {
   "baseline": "TyreTrack_Stability_Fixed_20261018(3).zip",
   "status": "source compatibility checks passed",
-  "unchanged_function_or_class_contracts": 32,
+  "unchanged_function_or_class_contracts": 31,
   "unchanged_model_module_or_dependency_files": 10,
   "direct_video_preview_patch_validated": true,
   "checks": [
@@ -23,7 +23,8 @@
     "OAK-only production input and separate on-screen video tester",
     "Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total",
     "Additive database indexes and shift-only dashboard query",
-    "One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection"
+    "One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection",
+    "Malformed foreign-model output is isolated from the tyre capture stream and surfaces as a foreign-detector fault"
   ],
   "physical_site_validation": false,
   "windows_exe_built_in_this_environment": false,

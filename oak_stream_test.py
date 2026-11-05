@@ -7,14 +7,14 @@ import TyreTrack_Production_Monitor as m
 logs=[];m.log=logs.append;m.oak_frame_received=lambda:None;m.oak_stream_stopped=lambda:None
 m.RECORD_OAK_VIDEO=False
 class Packet:
- def __init__(self,seq,nn=False):self.seq=seq;self.nn=nn
+ def __init__(self,seq,nn=False,foreign=False):self.seq=seq;self.nn=nn;self.foreign=foreign
  def getSequenceNum(self):return self.seq
  def getTimestamp(self):return m.dai.Clock.now()
  def getCvFrame(self):
-  shape=(360,640,3) if self.seq==23 else ((416,416,3) if self.seq in (17,18) else (384,384,3))
+  shape=(360,640,3) if self.seq==23 else ((416,416,3) if self.seq in (17,18,28) else (384,384,3))
   return np.full(shape,self.seq,dtype=np.uint8)
  def getLayerFp16(self,name):
-  if name=='output0':return np.full(18144,.123,dtype=np.float32)
+  if name=='output0':return np.full(5*3549 if self.foreign else 18144,.123,dtype=np.float32)
   size={1:52,2:26,3:13}[int(name[6])]
   return np.full(7*size*size,.123,dtype=np.float32)
 class Q:
@@ -81,7 +81,7 @@ class ForeignDevice(Device):
  def __init__(self,*args):
   super().__init__(*args)
   self.queues['foreign_rgb']=Q([Packet(17),Packet(18)])
-  self.queues['foreign_nn']=Q([Packet(18,True),Packet(199,True)])
+  self.queues['foreign_nn']=Q([Packet(18,True,True),Packet(199,True,True)])
 try:
  m.dai.Device=ForeignDevice
  source=m.OakSource('',foreign_enabled=True)
@@ -100,3 +100,25 @@ finally:
  if source:source.release()
  m.dai.Device=original
 print('PASS: independent foreign/tyre sequence pairing, no replay confirmation, foreign stream stall detection')
+# A bad foreign tensor must disable only foreign monitoring, not tyre capture.
+class BadForeignPacket(Packet):
+ def getLayerFp16(self,name):return np.zeros(17,dtype=np.float32)
+class BrokenForeignDevice(Device):
+ def __init__(self,*args):
+  super().__init__(*args)
+  self.queues['foreign_rgb']=Q([Packet(28)])
+  self.queues['foreign_nn']=Q([BadForeignPacket(28,True,True)])
+try:
+ m.dai.Device=BrokenForeignDevice
+ source=m.OakSource('',foreign_enabled=True)
+ ok,frame,seq=source.read();assert ok and np.all(frame==10)
+ deadline=time.monotonic()+1
+ while source.foreign_error is None and time.monotonic()<deadline:time.sleep(.005)
+ assert source.foreign_error is not None and source.reader_error is None
+ try:source.read_foreign();raise AssertionError('Broken foreign detector did not report its fault')
+ except RuntimeError as exc:assert 'Malformed foreign YOLOv8' in str(exc)
+finally:
+ if source:source.release()
+ m.dai.Device=original
+assert not source.reader.is_alive()
+print('PASS: malformed foreign tensor reports detector fault while tyre capture remains live')
