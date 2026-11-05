@@ -12,21 +12,29 @@ for foreign in (False,True):
   assert camera.getPreviewSize()==(480,270)
   networks=[n for n in p.getAllNodes() if isinstance(n,dai.node.NeuralNetwork)]
   assert len(networks)==(2 if foreign else 1)
-def foreign_raw(c=0,x=26,y=26):
- out={f'output{i}_yolov6r2':np.zeros((1,7,s,s),np.float32) for i,s in enumerate((52,26,13),1)}
- out['output1_yolov6r2'][0,:,y,x]=[5,5,5,5,.95,.95 if c==0 else .01,.95 if c==1 else .01]
- return out
-raw=foreign_raw();boxes,masks=decode(raw)
-np.testing.assert_allclose(boxes[0,:4],[172*480/416,(172-91)*270/234,252*480/416,(252-91)*270/234],rtol=1e-5)
-assert masks is None
-raw['output1_yolov6r2'][0,:,26,27]=[5,5,5,5,.8,.8,.01]
+def foreign_raw(cx=208,cy=208,w=80,h=80,score=.95):
+ out=np.zeros((1,5,3549),np.float32)
+ out[0,:,0]=[cx,cy,w,h,score]
+ return {'output0':out}
+rows,masks=decode(foreign_raw())
+assert rows.shape==(1,6) and masks is None and int(rows[0,5])==0
+np.testing.assert_allclose(rows[0,:4],[168*480/416,(168-91)*270/234,248*480/416,(248-91)*270/234],rtol=1e-5)
+raw=foreign_raw();raw['output0'][0,:,1]=[210,208,80,80,.8]
 assert len(decode(raw)[0])==1
-raw['output1_yolov6r2'][0,5:7,26,27]=[.01,.8]
-assert len(decode(raw)[0])==2 and len(decode(raw,agnostic=True)[0])==1
-assert len(decode(foreign_raw(y=1))[0])==0
-bad=foreign_raw();bad['output1_yolov6r2']=np.zeros(3)
-try:decode(bad);raise AssertionError('Bad head accepted')
+assert len(decode(raw,agnostic=True)[0])==1
+assert len(decode(foreign_raw(cy=20))[0])==0
+bad={'output0':np.zeros(17,np.float32)}
+try:decode(bad);raise AssertionError('Bad YOLOv8 head accepted')
 except ValueError:pass
+from foreign_alarm import ForeignPresence
+presence=ForeignPresence(hits=3,clear_after=3.0)
+det=dict(class_id=0,class_name='foreign_object',box=rows[0,:4].tolist(),confidence=.95)
+events=[]
+for t in (0,.2,.4):
+ new,active=presence.update([det],t);events.extend(new)
+assert len(events)==1 and events[0]['class_name']=='foreign_object' and len(active)==1
+new,active=presence.update([],4.0)
+assert not active
 # Distinct channel colors check RGB tyre and BGR foreign preprocessing.
 a=np.zeros((384,384,3),np.uint8);a[84:300,:,0]=255
 frame=unletterbox(a);assert frame.shape==(270,480,3) and np.all(frame[:,:,2]==255) and not frame[:,:,0].any()
@@ -39,12 +47,6 @@ for y in range(250,110,-10):
  assert result.boxes.id is not None and result.masks is None
  ids.append(int(result.boxes.id[0]))
 assert len(set(ids))==1
-from foreign_alarm import CLASSES,Confirmation
+from foreign_alarm import CLASSES
 assert CLASSES==('wheel_rim','person')
-for cl in (0,1):
- c=Confirmation()
- for t in (0,.2,.4):
-  rows,_=decode(foreign_raw(cl),.45)
-  event=c.update([dict(class_id=int(r[5]),confidence=float(r[4]),box=r[:4].tolist()) for r in rows],t)
- assert event['class_id']==cl
-print('PASS: detection-only actual compiled contracts; four pipeline combinations; 384 RGB tyre/416 BGR foreign; full view; NMS; no masks; ByteTrack continuity; both foreign alarm classes')
+print('PASS: detection-only compiled contracts; four pipeline combinations; 384 RGB tyre/416 BGR foreign; YOLOv8 1-class decoding, NMS, no masks, ByteTrack continuity and auto-clear presence tracking')

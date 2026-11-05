@@ -2,7 +2,7 @@
 from test_resources import DatabaseTemporaryDirectory
 import ast,json,tempfile
 from pathlib import Path
-from foreign_alarm import Confirmation,in_region,set_password,verify_password,write_json,read_json
+from foreign_alarm import Confirmation,ForeignPresence,in_region,set_password,verify_password,write_json,read_json
 
 def detection(box=(10,10,30,30),cls=0):return dict(box=box,class_id=cls,confidence=.9)
 c=Confirmation()
@@ -14,6 +14,13 @@ assert c.update([detection()],3) is None
 assert c.update([detection((100,100,130,130))],4) is None
 assert c.update([],5) is None
 assert c.update([detection()],6) is None
+presence=ForeignPresence(hits=3,clear_after=3)
+events=[]
+for t in (0,.2,.4):
+    new,active=presence.update([dict(detection(),class_name='foreign_object')],t)
+    events.extend(new)
+assert len(events)==1 and events[0]['class_name']=='foreign_object' and active
+assert not presence.update([],4.0)[1]
 c.clear();c.update([detection()],0)
 assert c.update([detection()],10) is None
 assert in_region((280,160,360,220),640,360,.03,.98,.18,.82)
@@ -26,4 +33,4 @@ with DatabaseTemporaryDirectory() as folder:
  state=Path(folder)/'alarm.json';write_json(state,{'latched':True})
  assert read_json(state,{})['latched']
  write_json(state,{'latched':False});assert not read_json(state,{})['latched']
-print('PASS: confirmation, spatial matching, gaps, ROI exclusion, password hash and persistent latch')
+print('PASS: confirmation, per-object alerting, auto-clear timeout, spatial filtering and password hashing')

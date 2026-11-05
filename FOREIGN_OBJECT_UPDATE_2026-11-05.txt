@@ -1,0 +1,24 @@
+TYRETRACK FOREIGN OBJECT ALERT UPDATE — 5 NOVEMBER 2026
+
+This update integrates the supplied TyreTrack_ForeignObject_OAKD_S2_416 RVC2
+blob into the OAK-D S2 foreign-object pipeline.
+
+- OAK-D output is decoded as the one-class YOLOv8 tensor [1, 5, 3549].
+- A track is confirmed after three matching detections.
+- One email with an incident snapshot is sent for each newly confirmed track.
+- Configure the existing Gmail SMTP sender in data/private_config/email_config.ini.
+- Set foreign_alert_recipient for a dedicated alert inbox. If blank, alerts use
+  recipient_email. SMTP credentials and an actual recipient are required.
+- The audible alarm and dashboard alarm clear after approximately 3 seconds
+  without a confirmed detection. This brief grace period avoids stopping on one
+  missed camera frame.
+- Foreign detection remains OFF at application launch; enable it in Admin and
+  reconnect the camera.
+
+BUILD AND VALIDATION
+This is an updated Windows build source package, not a compiled EXE. The included
+BUILD_WINDOWS.py requires Windows x64 and Python 3.12. No connected TyreTrack
+GitHub repository or Windows build runner is available in this workspace, so an
+EXE could not be produced here. The changed Python modules passed syntax
+compilation. The supplied blob's runtime tensor contract and live camera/email
+behavior still need confirmation on an OAK-D S2 with Gmail configured.

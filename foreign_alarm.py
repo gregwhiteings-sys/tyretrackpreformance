@@ -1,4 +1,4 @@
-"""Foreign-object confirmation, persistent latch and local admin credentials."""
+"""Foreign-object confirmation/presence tracking and local admin credentials."""
 import hashlib,hmac,json,os,math,wave
 from array import array
 from pathlib import Path
@@ -32,6 +32,43 @@ class Confirmation:
             if hits>=self.hits and (event is None or d['confidence']>event['confidence']):event=t
         self.tracks=new
         return event
+
+class ForeignPresence:
+    """Confirm each object track once and keep the live alarm active while it remains visible."""
+    def __init__(self,hits=3,clear_after=2.5,iou_threshold=.2):
+        self.hits_required=int(hits)
+        self.clear_after=float(clear_after)
+        self.iou_threshold=float(iou_threshold)
+        self.tracks=[]
+        self.next_id=1
+
+    def clear(self):
+        self.tracks=[]
+
+    def update(self,detections,now):
+        old=[t for t in self.tracks if now-t['time']<=self.clear_after]
+        new=[];used=set();events=[]
+        for detection in detections:
+            matches=[(overlap(detection['box'],track['box']),i,track)
+                     for i,track in enumerate(old)
+                     if i not in used and track['class_id']==detection['class_id']]
+            best=max(matches,default=(0,None,None),key=lambda item:item[0])
+            if best[0]>=self.iou_threshold:
+                used.add(best[1]);previous=best[2]
+                track_id=previous['track_id'];hits=previous['hits']+1
+                alerted=previous['alerted']
+            else:
+                track_id=self.next_id;self.next_id+=1;hits=1;alerted=False
+            track=dict(detection,track_id=track_id,hits=hits,time=now,alerted=alerted)
+            if hits>=self.hits_required and not alerted:
+                events.append(dict(track))
+                track['alerted']=True
+            new.append(track)
+        new.extend(track for i,track in enumerate(old) if i not in used)
+        self.tracks=new
+        active=[dict(track) for track in new
+                if track['hits']>=self.hits_required and now-track['time']<=self.clear_after]
+        return events,active
 
 def read_json(path,default):
     p=Path(path)

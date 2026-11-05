@@ -7,6 +7,18 @@ Smooth live preview is lighter; PNG saving runs in the background.
 For Windows sign-in launch, run INSTALL_AUTOSTART.bat beside the built EXE.
 Read FULL_CHECK_REPORT.txt for verification, setup and on-site checks.
 
+FOREIGN OBJECT UPDATE — 5 NOVEMBER 2026
+The OAK-D foreign-object detector now uses the supplied one-class RVC2 blob.
+Enable Foreign detection in Admin and reconnect the camera to apply the setting.
+Each newly confirmed object track creates an incident snapshot and sends one
+email. The alarm clears automatically after the detector sees no object for
+about 3 seconds. Configure the existing Gmail sender in data/private_config/
+email_config.ini. Set foreign_alert_recipient to a dedicated address, or leave
+it blank to use recipient_email. SMTP must be configured for messages to send.
+The Windows portable EXE must be built using the included Windows x64 Python
+3.12 workflow. A physical OAK-D run is still required to confirm the blob on
+the camera and verify live Gmail delivery.
+
 TYRETRACK · PRODUCTION / VIDEO TEST BUILD · 20 OCTOBER 2026
 
 This ZIP is source plus models and a Windows build workflow, not a compiled EXE.
@@ -36,8 +48,9 @@ OPERATION
   No celebration in the first hour until a completed-hour benchmark exists.
   Mute setting is independent of foreign alarms. Alarms take priority.
 - Included sound is a generic public-domain crowd, NOT a verified Australian crowd/chant.
-- Foreign detection starts OFF each launch; existing starter model is not validated
-  as a reliable general foreign-object detector. Enable in Admin and reconnect to apply.
+- Foreign detection starts OFF each launch. The OAK-D uses the supplied one-class
+  foreign-object model; PC video testing still uses its older wheel_rim/person model.
+  Enable in Admin and reconnect to apply. Detection quality needs live validation.
 - OAK runs camera, tyre NN and H264 compression. PC retains decoding, ByteTrack,
   count logic, dashboard and reports. No extra default neural workload was added.
 
