@@ -19,6 +19,7 @@ OAK-only production input and separate on-screen video tester
 Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total
 Additive database indexes and shift-only dashboard query
 One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection
+Malformed foreign-model output is isolated from the tyre capture stream and surfaces as a foreign-detector fault
 
 READINESS
 Software compatibility checks passed. Use a separate trial folder and preserve existing data/reports.

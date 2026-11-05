@@ -1153,6 +1153,7 @@ class OakSource:
         self.last_foreign_sequence = -1
         self.foreign_started_at = time.monotonic()
         self.foreign_received_at = self.foreign_started_at
+        self.foreign_error = None
         self.foreign_pair_count = 0
 
         try:
@@ -1270,26 +1271,32 @@ class OakSource:
                     stall_reported = True
                 # Foreign frames pair independently: never apply a stale hazard to a new tyre frame.
                 if self.foreign_enabled:
-                    from oak_rvc2 import read_layers, unletterbox
-                    for q, pending in [(self.foreign_frame_queue,self.pending_foreign_frames),
-                                       (self.foreign_nn_queue,self.pending_foreign_outputs)]:
-                        for _ in range(32):
-                            incoming=q.tryGet()
-                            if incoming is None:break
-                            pending[int(incoming.getSequenceNum())]=incoming
-                            while len(pending)>16:pending.pop(min(pending))
-                    common=self.pending_foreign_frames.keys() & self.pending_foreign_outputs.keys()
-                    if common:
-                        seq=max(common)
-                        fr=unletterbox(self.pending_foreign_frames[seq].getCvFrame(), 'foreign')
-                        raw=read_layers(self.pending_foreign_outputs[seq], 'foreign')
-                        with self.condition:
-                            self.foreign_received_at=time.monotonic()
-                            self.latest_foreign=(seq,fr,raw,self.foreign_received_at)
-                            self.foreign_pair_count+=1
-                        for pending in (self.pending_foreign_frames,self.pending_foreign_outputs):
-                            for old in list(pending):
-                                if old<=seq:del pending[old]
+                    try:
+                        from oak_rvc2 import read_layers, unletterbox
+                        for q, pending in [(self.foreign_frame_queue,self.pending_foreign_frames),
+                                           (self.foreign_nn_queue,self.pending_foreign_outputs)]:
+                            for _ in range(32):
+                                incoming=q.tryGet()
+                                if incoming is None:break
+                                pending[int(incoming.getSequenceNum())]=incoming
+                                while len(pending)>16:pending.pop(min(pending))
+                        common=self.pending_foreign_frames.keys() & self.pending_foreign_outputs.keys()
+                        if common:
+                            seq=max(common)
+                            fr=unletterbox(self.pending_foreign_frames[seq].getCvFrame(), 'foreign')
+                            raw=read_layers(self.pending_foreign_outputs[seq], 'foreign')
+                            with self.condition:
+                                self.foreign_received_at=time.monotonic()
+                                self.latest_foreign=(seq,fr,raw,self.foreign_received_at)
+                                self.foreign_pair_count+=1
+                            for pending in (self.pending_foreign_frames,self.pending_foreign_outputs):
+                                for old in list(pending):
+                                    if old<=seq:del pending[old]
+                    except Exception as exc:
+                        self.foreign_error=exc
+                        self.foreign_enabled=False
+                        self.pending_foreign_frames.clear();self.pending_foreign_outputs.clear()
+                        log("OAK foreign detector stream failed; tyre counting continues:\n"+traceback.format_exc())
                 # Match NN output and passthrough by camera sequence before publishing.
                 for queue_source, pending in [(self.queue, self.pending_frames),
                                               (self.nn_queue, self.pending_outputs)]:
@@ -1428,6 +1435,8 @@ class OakSource:
 
     def read_foreign(self):
         with self.condition:
+            if self.foreign_error is not None:
+                raise RuntimeError(f"Foreign OAK detector stream failed: {self.foreign_error}") from self.foreign_error
             if time.monotonic()-self.foreign_received_at > 6:
                 raise RuntimeError("No matched foreign OAK result for 6 seconds")
             item=self.latest_foreign
