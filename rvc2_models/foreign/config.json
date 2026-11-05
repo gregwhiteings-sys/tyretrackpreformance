@@ -19,8 +19,16 @@
         ],
         "layout": "NCHW",
         "preprocessing": {
-          "mean": null,
-          "scale": null,
+          "mean": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "scale": [
+            1.0,
+            1.0,
+            1.0
+          ],
           "reverse_channels": false,
           "interleaved_to_planar": false,
           "dai_type": "BGR888p",

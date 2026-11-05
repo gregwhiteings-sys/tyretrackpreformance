@@ -16,5 +16,31 @@
   "number_of_shaves": 6,
   "number_of_cmx_slices": 6,
   "compress_to_fp16": true,
-  "preprocessing": "BGR888p from OAK image; 416x416 thumbnail letterbox; decoder outputs one class foreign_object"
+  "preprocessing": "BGR888p from OAK image; 416x416 thumbnail letterbox; decoder outputs one class foreign_object",
+  "hubai_model_name": "TyreTrack_ForeignObject_OAKD_S2_416_Normalized_8b867880",
+  "hubai_model_id": "aim_SmWv9L59bScHpPhCDmCsKi",
+  "hubai_variant_id": "aimv_SmWv9GU7mPNHWbnytLAm5X",
+  "hubai_instance_id": "aimi_SmWv9HF1ZFdWYcSgMG2sQ3",
+  "rvc2_export_job_id": "aij_SmWv9GTAxu9vk1HrVQ8nfV",
+  "input_preprocessing": {
+    "runtime_input": "Raw uint8 BGR888p; no host scaling or channel reversal",
+    "embedded_in_blob": [
+      "--reverse_input_channels",
+      "--mean_values images[0.0,0.0,0.0]",
+      "--scale_values images[255.0,255.0,255.0]"
+    ],
+    "runtime_identity": {
+      "mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "reverse_channels": false
+    }
+  }
 }
