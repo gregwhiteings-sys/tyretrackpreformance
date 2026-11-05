@@ -30,7 +30,7 @@ with DatabaseTemporaryDirectory() as folder:
  m.DATA=Path(folder);m.DB=Path(folder)/'test.db';m.init_db();
  windows=[]
  try:
-  w=m.Main();windows.append(w);w.clock.stop();w.alarm_state={'latched':False}
+  w=m.Main();windows.append(w);w.clock.stop();w.alarm_state={'active':False}
   backend=types.SimpleNamespace(SND_FILENAME=1,SND_ASYNC=2,SND_NODEFAULT=4,PlaySound=Mock())
   for key in m.CELEBRATION_SOUNDS:
    w.celebration_sound_combo.setCurrentIndex(w.celebration_sound_combo.findData(key))
@@ -73,10 +73,10 @@ with DatabaseTemporaryDirectory() as folder:
   assert not w.play_celebration_sound(backend=backend);backend.PlaySound.assert_not_called()
   assert w.play_celebration_sound(preview=True,backend=backend)
   assert w.stop_celebration_preview(backend=backend);assert backend.PlaySound.call_args.args==(None,0)
-  w.alarm_state={'latched':True};backend.PlaySound.reset_mock()
+  w.alarm_state={'active':True};backend.PlaySound.reset_mock()
   assert not w.play_celebration_sound(preview=True,backend=backend)
   assert not w.stop_celebration_preview(backend=backend);backend.PlaySound.assert_not_called()
-  w.alarm_state={'latched':False}
+  w.alarm_state={'active':False}
   saved=w.play_celebration_sound;w.play_celebration_sound=Mock();w.test_sound_btn.click()
   w.play_celebration_sound.assert_called_once_with(preview=True);w.play_celebration_sound=saved
   w.close()

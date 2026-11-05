@@ -30,7 +30,7 @@ with DatabaseTemporaryDirectory() as folder:
  p=Path(folder)/'admin.json';set_password(p,'testpass')
  assert verify_password(p,'testpass') and not verify_password(p,'wrongpass')
  assert 'testpass' not in p.read_text()
- state=Path(folder)/'alarm.json';write_json(state,{'latched':True})
- assert read_json(state,{})['latched']
- write_json(state,{'latched':False});assert not read_json(state,{})['latched']
+ state=Path(folder)/'alarm.json';write_json(state,{'active':True})
+ assert read_json(state,{})['active']
+ write_json(state,{'active':False});assert not read_json(state,{})['active']
 print('PASS: confirmation, per-object alerting, auto-clear timeout, spatial filtering and password hashing')

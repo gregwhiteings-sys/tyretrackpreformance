@@ -17,7 +17,7 @@ with DatabaseTemporaryDirectory() as folder:
         p.write_bytes(p.read_bytes().replace(b'\n',b'\r\n'))
     assert validate_models(dai,models), 'Windows line endings must not invalidate JSON'
     config=models/'foreign/config.json';original=config.read_bytes()
-    config.write_bytes(original.replace(b'wheel_rim',b'wrong_rim'))
+    config.write_bytes(original.replace(b'output0',b'wrongout'))
     try:validate_models(dai,models);raise AssertionError('Changed JSON accepted')
     except ValueError as exc:assert 'integrity mismatch' in str(exc)
     config.write_bytes(original)

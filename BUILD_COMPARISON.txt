@@ -2,7 +2,7 @@ WORKING BUILD VS CURRENT BUILD
 
 Audited best-day SQL aggregation replaces Python full-history scan; original semantics covered by 100k-event parity fixture
 Original camera capture class unchanged; PNG encoding moved off GUI thread
-Only live XLink source selected from existing camera outputs: 640x360 NV12 or original 480x270 BGR; reversing selector patch restores exact pipeline hash
+OAK preview patch and four real graph combinations are checked by preview_performance_test; foreign YOLOv8 decoding is checked separately by oak_rvc2_test
 Original hourly emails, alerts and count writes preserved; two audited daily/scheduler functions now produce PDF+CSV briefings
 Existing Windows dependency pins preserved; ReportLab 4.4.9 added for PDFs and pypdf 6.10.0 for CI validation
 
@@ -18,6 +18,7 @@ Experimental shared three-line counter with adjustable top/bottom and horizontal
 OAK-only production input and separate on-screen video tester
 Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total
 Additive database indexes and shift-only dashboard query
+One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection
 
 READINESS
 Software compatibility checks passed. Use a separate trial folder and preserve existing data/reports.

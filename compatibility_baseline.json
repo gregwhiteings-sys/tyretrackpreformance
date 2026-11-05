@@ -17,10 +17,7 @@
     "log_count": "02348bfd1d409b08b8f761e4e51809954106295de4e4e82325303d7d26e6a975",
     "export_classification_csv": "f323fcc4e7a4ded83bc1fb5431c7671970b015b386d6a7cf0ecbc8299df6c93a",
     "export_daily_csv": "47010c5fcadaeb4831ef498112ce427f7789ea31d8b752deb4f8c2f30c2982ff",
-    "ensure_email_config": "392d4f0afa24555321f655d80ede6d980e492fc53e41ca285d36e3fa93c2c998",
-    "email_settings": "d0a25fc54962a2540b60a3d6a133fd78c761076d5830da99db2c0610db2bfda5",
     "supervisor_recipient": "d38b896acb14618e715a520fed4feee365e61db646c0aa95149e4a836c52dd8b",
-    "send_message": "efe415e6d055373e967ac05c5085442ebcce96521251216d6bb81cb97bc5ee9b",
     "best_daily_record": "502a5ed5f8c37b3dad7d46f077908fd7d0afe61f05ac5e8432edcaf6ca75ef97",
     "production_report_counts": "711a9e5a7238d8ad895d4a86123e42c8f61dc9ff9da6e04f2d846aecbdfdc653",
     "build_hourly_report": "3b23bf0f23fc117c232aa1439ee6bd1b0840055e458442b1178bbb102fe8d23e",
@@ -42,17 +39,11 @@
     "background_export.py": "087dc5e9390f6ba0675356c0fd34401c23c6102d0d6420cd87bb4ecf190c42e9",
     "tyre_detector.pt": "78c4145d104c4d2f0ffdb2495ca1ac4443ff48c46af4c23f148685877b5ba192",
     "oak_ai.py": "379b49d948efe7809b5fa9df5a2822986bcfbcc9806d9945ec77ed754d0cb409",
-    "oak_rvc2.py": "4030f6f315249eb7967a0ffb3bd695b6fab4bb2e7faa58e71069d83f56db7f73",
     "tyre_detector_oak.blob": "758570aa248f73b16ef0801c636f7449b1a465dccdcbafdab6d2036d5ab15e2e",
     "no_count_replies.py": "3e33b7c9c7cafa3fbd8521234b530fb11845696d4e545e4ee6a033820943b3e6",
-    "foreign_alarm.py": "744969abcbaad97c6b243e1c4473f6e3ac18f0c4bb250060bb2346e04470d91c",
     "hourly_dashboard.py": "6155d11226c4467f295524801cf8ef909ed54f6f8ef8157c95fb39d2a675efd9",
     "requirements-windows.txt": "58f880afa5f15d201507eddd0a6a8c98497652cad04667847ea81ea4a6552cf1",
-    "rvc2_models/sha256.json": "9ee303afdd1e6dcdd9392e2630de62dca0edfb7cca5e115fbf75305c2fae79f7",
     "foreign_model/foreign_object.pt": "afa9d8ae617492c411b0ab47d3f300be3791bd56162c874eea97c38e6f60e7cc",
-    "foreign_model/classes.json": "9619be1b28c3a16fefef4dc813705a684b0c3ad53108a437fd1aeeb736758d24",
-    "rvc2_models/foreign/foreign_object.blob": "771f9952bd5d07941be228118988abb9890ceb482315a24e5d5123d39e9ca7e7",
-    "rvc2_models/foreign/config.json": "49152d0e0f482f4bcb12f2565ee8b77036941fc62980286a09b4a857c74ed025",
-    "rvc2_models/foreign/buildinfo.json": "699454d60ad837e915db8a53cde9f417ec47ba42317c8619b1a0f2fc1ad3bb03"
+    "foreign_model/classes.json": "9619be1b28c3a16fefef4dc813705a684b0c3ad53108a437fd1aeeb736758d24"
   }
 }

@@ -74,7 +74,8 @@ Brisbane time. A manual pause remains for that day; it clears the next day.
 Video tests suppress live reconnects and keep counts separate.
 
 VALIDATION
-All 34 scripts in run_ci_tests.py passed on the final source. They cover:
+HISTORICAL VALIDATION NOTE
+The following results describe the earlier source snapshot, not the November 5 foreign-object update. Run `python -u run_ci_tests.py` on the updated Windows build before packaging. The CI suite may have expanded since this report was written. Earlier coverage included:
 - weight/EPU formulas, three class cards, total, aliases and unknown exclusions;
 - visible count/weight labels at 1280x720, 1366x768 and 1450x850;
 - WAV format/content, ten-sound shuffle cycles, restart and failure state;
@@ -86,11 +87,11 @@ All 34 scripts in run_ci_tests.py passed on the final source. They cover:
 - actual child video inference and on-screen replay/progress;
 - schedule boundaries, database upgrades and persisted record celebrations;
 - hourly/daily reporting, CSV/count reconciliation and no-count reply processing;
-- foreign alarm confirmation, reset authorisation and persistent latch;
+- foreign-object confirmation and alarm integration (the November 5 update changes this to per-object email plus automatic clear);
 - recording packet handling, MP4 finalisation/playback and error recovery;
 - UI layout, native rendering and background dashboard data collection.
 
-Full source smoke check also passed with CPU Torch 2.5.1, torchvision 0.20.1,
+The earlier full source smoke check also passed with CPU Torch 2.5.1, torchvision 0.20.1,
 NumPy 1.26.4 and DepthAI 2.30. It checked real tyre and foreign checkpoints,
 CPU inference, ByteTrack, native operators, H264 remux/playback and every
 visible admin tab/control. The smoke fixture authorises its own test-window

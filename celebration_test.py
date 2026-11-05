@@ -80,11 +80,11 @@ with DatabaseTemporaryDirectory() as folder:
  w.deliver_record_celebration(['MUTED RECORD'])
  w.play_celebration_sound.assert_not_called()
  assert 'MUTED' in w.celebration_indicator.text()
- w.celebration_mute.setChecked(False);w.alarm_state={'latched':True}
+ w.celebration_mute.setChecked(False);w.alarm_state={'active':True}
  w.deliver_record_celebration(['DEFERRED RECORD'])
  w.play_celebration_sound.assert_not_called()
  assert w._pending_record_sound
- w.alarm_state={'latched':False};w.play_celebration_sound=Mock(return_value=True)
+ w.alarm_state={'active':False};w.play_celebration_sound=Mock(return_value=True)
  w.deliver_record_celebration();w.play_celebration_sound.assert_called_once_with()
  w.close()
 print('PASS: daily records require a prior day, beat ties, persist across restart, and reset next day')
