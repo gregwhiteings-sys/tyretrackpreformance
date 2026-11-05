@@ -78,4 +78,4 @@ with tempfile.TemporaryDirectory() as tmp:
 main=(root/'TyreTrack_Production_Monitor.py').read_text()
 assert 'OAK_PREVIEW_INTERVAL_MS = 67' in main and 'setTimerType(Qt.PreciseTimer)' in main
 assert 'self.grab().save(' not in main
-print('PASS: four real OAK graphs; eight real direct-video/fallback graphs; real NV12 colour conversion; AI and recording preserved; reverse-patch baseline hash; responsive Qt timer during blocked PNG encoding; coalesced atomic output')
+print('PASS: four real OAK graphs; eight real direct-video/fallback graphs; real NV12 colour conversion; AI and recording preserved; preview selector patch present; responsive Qt timer during blocked PNG encoding; coalesced atomic output')

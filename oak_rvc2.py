@@ -105,6 +105,8 @@ def decode(raw,confidence=.1,iou=.5,agnostic=False):
     indices=np.asarray(cv2.dnn.NMSBoxes(boxes,kept_scores,confidence,iou),dtype=int).reshape(-1)
     if not len(indices):return np.empty((0,6),np.float32),None
     chosen=np.asarray([[*boxes[i],kept_scores[i],0] for i in indices[:300]],dtype=np.float32)
-    chosen[:,[0,2]]*=480/416;chosen[:,[1,3]]=(chosen[:,[1,3]]-91)*270/234
+    chosen[:,[0,2]]*=480/416
+    chosen[:,1]=(chosen[:,1]-91)*270/234
+    chosen[:,3]*=270/234
     chosen[:,2]+=chosen[:,0];chosen[:,3]+=chosen[:,1]
     return chosen,None
