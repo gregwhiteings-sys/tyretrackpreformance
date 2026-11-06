@@ -1,18 +1,13 @@
-TYRETRACK FOREIGN OBJECT ALERT UPDATE — 5 NOVEMBER 2026
+TYRETRACK MONDAY FOREIGN-OBJECT UPDATE
 
-This package replaces the foreign-object RVC2 blob with the successful
-HubAI conversion of the new one-class YOLOv8 detector. It preserves the
-416x416 OAK-D S2 pipeline and matches the previous working input preprocessing.
+The OAK-D S2 (RVC2) foreign-object pipeline loads the Monday model from
+rvc2_models/foreign/foreign_object.blob. The 416x416 input is raw planar BGR.
+The blob reverses the channels to RGB and divides by 255. Output is one
+foreign_object class in the YOLOv8 tensor [1, 5, 3549].
 
-- Input: 416x416 BGR888p, raw uint8 from the OAK image manip.
-- Embedded in the blob: reverse input channels, zero mean, scale by 255.
-- Runtime metadata uses identity preprocessing to prevent double normalization.
-- Output: one-class YOLOv8 tensor [1, 5, 3549].
-- New model remains the detector; application code and resolution are unchanged.
-- Blob SHA-256: 2d82476803845b4765005ece7a3f1d00a334c2543a4c515b140698ebec8884e5
-- HubAI instance: aimi_SmWv9HF1ZFdWYcSgMG2sQ3
-- RVC2 export job: aij_SmWv9GTAxu9vk1HrVQ8nfV
+Blob SHA-256
+3e1288a7e7c6c24f7a341b2153c8cdeff6c612f25b80b836ad8a10557d2c38c0
 
-This is the updated Windows build source package, not a compiled EXE. The
-included BUILD_WINDOWS.py requires Windows x64 and Python 3.12. Live false-alarm
-behavior still needs confirmation on the OAK-D S2 conveyor.
+This is the Windows source package. Build it on Windows x64 with Python 3.12
+using BUILD_WINDOWS.py. Live camera and conveyor alarm tests are pending.
+The Monday conveyor ROI has not been wired into the app in this update.

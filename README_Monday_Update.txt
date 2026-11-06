@@ -1,0 +1,1 @@
+Close TyreTrack. Extract this ZIP into the existing ForeignObject Email AutoClear source folder that contains BUILD_WINDOWS.py. Allow Windows to replace the matching files and merge rvc2_models. Run BUILD_WINDOWS.py on Windows to package the updated model into the EXE.
