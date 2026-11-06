@@ -1,5 +1,5 @@
 {
-  "source_model": "TyreTrack one-class YOLOv8 ONNX",
+  "source_model": "Monday foreign_object_416.onnx",
   "source_input_shape": [
     1,
     3,
@@ -14,14 +14,14 @@
   "target": "RVC2",
   "is_superblob": false,
   "number_of_shaves": 6,
+  "number_of_cmx_slices": 6,
   "compress_to_fp16": true,
-  "hubai_model_name": "TyreTrack_ForeignObject_OAKD_S2_416_20261106_015555_9b2a11",
+  "preprocessing": "BGR888p from OAK image; 416x416 thumbnail letterbox; decoder outputs one class foreign_object",
   "input_preprocessing": {
-    "runtime_input": "Raw uint8 BGR888p; no host scaling or reversal",
+    "runtime_input": "Raw uint8 BGR888p; no host scaling or channel reversal",
     "embedded_in_blob": [
       "--reverse_input_channels",
-      "--mean_values=[0.0,0.0,0.0]",
-      "--scale_values=[255.0,255.0,255.0]"
+      "--scale=255"
     ],
     "runtime_identity": {
       "mean": [
@@ -37,5 +37,6 @@
       "reverse_channels": false
     }
   },
-  "app_contract": "OAK-D S2 DepthAI v2; 416x416 thumbnail; output0 [1,5,3549]; one class foreign_object"
+  "source_onnx_sha256": "bfd574dab3f8b777cb07fa8cea47d9d790957f461a65bb2da061fbadbef5fd7d",
+  "converter": "Luxonis BlobConverter 1.4.3, OpenVINO 2022.1"
 }
