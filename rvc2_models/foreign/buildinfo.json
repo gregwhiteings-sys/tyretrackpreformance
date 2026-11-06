@@ -1,5 +1,5 @@
 {
-  "source_model": "TyreTrack_ForeignObject_OAKD_S2_416 ONNX",
+  "source_model": "TyreTrack one-class YOLOv8 ONNX",
   "source_input_shape": [
     1,
     3,
@@ -14,20 +14,14 @@
   "target": "RVC2",
   "is_superblob": false,
   "number_of_shaves": 6,
-  "number_of_cmx_slices": 6,
   "compress_to_fp16": true,
-  "preprocessing": "BGR888p from OAK image; 416x416 thumbnail letterbox; decoder outputs one class foreign_object",
-  "hubai_model_name": "TyreTrack_ForeignObject_OAKD_S2_416_Normalized_8b867880",
-  "hubai_model_id": "aim_SmWv9L59bScHpPhCDmCsKi",
-  "hubai_variant_id": "aimv_SmWv9GU7mPNHWbnytLAm5X",
-  "hubai_instance_id": "aimi_SmWv9HF1ZFdWYcSgMG2sQ3",
-  "rvc2_export_job_id": "aij_SmWv9GTAxu9vk1HrVQ8nfV",
+  "hubai_model_name": "TyreTrack_ForeignObject_OAKD_S2_416_20261106_015555_9b2a11",
   "input_preprocessing": {
-    "runtime_input": "Raw uint8 BGR888p; no host scaling or channel reversal",
+    "runtime_input": "Raw uint8 BGR888p; no host scaling or reversal",
     "embedded_in_blob": [
       "--reverse_input_channels",
-      "--mean_values images[0.0,0.0,0.0]",
-      "--scale_values images[255.0,255.0,255.0]"
+      "--mean_values=[0.0,0.0,0.0]",
+      "--scale_values=[255.0,255.0,255.0]"
     ],
     "runtime_identity": {
       "mean": [
@@ -42,5 +36,6 @@
       ],
       "reverse_channels": false
     }
-  }
+  },
+  "app_contract": "OAK-D S2 DepthAI v2; 416x416 thumbnail; output0 [1,5,3549]; one class foreign_object"
 }
