@@ -17,6 +17,8 @@ Camera stays connected outside shift; count gate remains weekday 05:00–17:05 B
 Experimental shared three-line counter with adjustable top/bottom and horizontal span
 OAK-only production input and separate on-screen video tester
 Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total
+Camera-first dashboard layout with class totals beside the live view, forecast and KPI cards, and hourly/weekday totals grouped in the statistics panel
+Hourly pace colours reuse the existing completed-hour average: red below rounded average, orange on it, green above it; upcoming hours remain neutral
 Additive database indexes and shift-only dashboard query
 One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection
 Malformed foreign-model output is isolated from the tyre capture stream and surfaces as a foreign-detector fault

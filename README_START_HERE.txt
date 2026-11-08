@@ -21,6 +21,14 @@ the camera and verify live Gmail delivery.
 
 TYRETRACK · PRODUCTION / VIDEO TEST BUILD · 20 OCTOBER 2026
 
+DASHBOARD UPDATE
+- The main screen uses a camera-first left column and production-statistics right column.
+- Hourly and weekday totals sit with the statistics; hourly tiles compare with the average
+  of completed production hours. Red is below the rounded average, orange is on it,
+  and green is above it. The current hour compares with completed hours so far.
+- This reuses the existing dashboard refresh and cached totals; it adds no camera or
+  model work and no additional polling.
+
 This ZIP is source plus models and a Windows build workflow, not a compiled EXE.
 Extract it first. Upload the contents, including .github/workflows/windows-portable.yml,
 to your TyreTrack GitHub repository. Run the Windows Portable workflow from Actions.
