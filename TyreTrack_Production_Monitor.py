@@ -2635,6 +2635,7 @@ class Main(QMainWindow):
             card.layout().addWidget(weight);self.weight_labels[key]=weight
             card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
             classes.addWidget(card)
+        counters_layout.addWidget(self.class_summary)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
         self.current_hour_card=hour
@@ -2702,12 +2703,12 @@ class Main(QMainWindow):
             label=QLabel(f"{index+5:02d}:00–{end}\n—")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
-            label.setMinimumWidth(0);label.setFixedHeight(52)
+            label.setMinimumWidth(0);label.setFixedHeight(48)
             label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;font-size:12px;")
             blocks.addWidget(label,0,index);blocks.setColumnStretch(index,1)
             self.dashboard_hour_blocks.append(label)
         strip_layout.addLayout(blocks)
-        self.hourly_strip.setFixedHeight(76)
+        self.hourly_strip.setFixedHeight(68)
         # Added to the right-hand dashboard rail below the main production KPIs.
 
         self.weekday_strip=QFrame()
@@ -2725,13 +2726,13 @@ class Main(QMainWindow):
             label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;")
             daily_blocks.addWidget(label,1);self.dashboard_day_blocks.append(label)
         daily_layout.addLayout(daily_blocks)
-        self.weekday_strip.setFixedHeight(64)
+        self.weekday_strip.setFixedHeight(60)
         # Added to the right-hand dashboard rail below hourly totals.
 
-        # These strips are constructed after the KPI widgets above, then placed
-        # in the statistics rail in their intended dashboard order.
-        counters_layout.addWidget(self.hourly_strip)
-        counters_layout.addWidget(self.weekday_strip)
+        # Keep the full-width totals below the dashboard so each weekday tile
+        # has enough room at the app's smaller supported window sizes.
+        outer.addWidget(self.hourly_strip)
+        outer.addWidget(self.weekday_strip)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -2761,13 +2762,12 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         left.addWidget(self.video, 1)
-        left.addWidget(self.class_summary)
         # Windows font metrics can make status/control rows taller. Let this
         # secondary area scroll instead of taking height from the live video.
         self.operator_controls_scroll=ControlScrollArea()
         self.operator_controls_scroll.setFrameShape(QFrame.NoFrame)
         self.operator_controls_scroll.setMinimumHeight(44)
-        self.operator_controls_scroll.setMaximumHeight(136)
+        self.operator_controls_scroll.setMaximumHeight(80)
         self.operator_controls=QWidget()
         self.operator_controls.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
         operator_layout=QVBoxLayout(self.operator_controls)
@@ -4992,7 +4992,7 @@ class Main(QMainWindow):
         if not config or not config['enabled'] or not config.get('snapshot_enabled'):return
         from web_dashboard import operator_image
         # The hourly and weekday strips now live inside the stats viewport.
-        safe_widgets=[self.video,self.class_summary,self.stats_scroll.viewport()]
+        safe_widgets=[self.video,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
         rectangles=[]
         for widget in safe_widgets:
             if widget.isVisible():
