@@ -1,9 +1,12 @@
-TYRETRACK DASHBOARD PATCH
+TYRETRACK DASHBOARD + MODEL INTEGRITY PATCH
 
-IMPORTANT: Extract this ZIP directly into the TyreTrack project root, the same folder as run_ci_tests.py. When asked, replace the existing TyreTrack_Production_Monitor.py.
+Extract this ZIP directly into the TyreTrack project root, the same folder as run_ci_tests.py. Choose Replace for existing files.
 
-The Python file is at the top level of this ZIP. Do not extract it into a subfolder.
+Included at the ZIP root:
+- TyreTrack_Production_Monitor.py: dashboard changes and responsive full-width hourly/weekday totals.
+- rvc2_models/sha256.json and rvc2_models/foreign/: the matching model manifest, configuration, build metadata and blob from the supplied TyreTrack source bundle. These files restore a consistent checksum set.
 
-Then run: python -u run_ci_tests.py
+After extraction, commit the replaced files to the TyreTrack GitHub repository and run:
+python -u run_ci_tests.py
 
-The hourly tiles use the average of completed hours: red is below the rounded average, orange is on it, and green is above it. The current hour compares with completed hours so far. This patch adds no camera processing or polling.
+This is a source patch, not a compiled Windows EXE.
