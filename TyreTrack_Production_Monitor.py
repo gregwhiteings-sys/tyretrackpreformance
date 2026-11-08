@@ -94,6 +94,7 @@ from PyQt5.QtGui import QColor, QImage, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
+    QBoxLayout,
     QComboBox,
     QDialog,
     QFileDialog,
@@ -2617,18 +2618,23 @@ class Main(QMainWindow):
         self.production_target = 0  # Legacy web payload compatibility; daily target retired.
 
 
-        classes=QHBoxLayout();classes.setSpacing(5)
+        # Compact class totals sit below the camera, matching the operator-first
+        # dashboard concept while keeping the summary work on the UI thread trivial.
+        classes=QVBoxLayout();classes.setSpacing(4)
+        self.class_summary=QFrame();self.class_summary.setObjectName("classSummary")
+        self.class_summary.setLayout(classes)
         self.truck_lbl=QLabel("0")
         self.weight_labels={}
         for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#edbc72",45,5)):
-            card=metric_card(name,label,colour);card.setFixedHeight(105)
-            label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
-            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:12px;font-weight:800;")
-            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 22px 'Consolas';")
+            card=metric_card(name,label,colour);card.setFixedHeight(43)
+            card.layout().setDirection(QBoxLayout.LeftToRight)
+            card.layout().setContentsMargins(8,2,8,2)
+            label.setStyleSheet("color:"+colour+";font:900 16px 'Consolas';")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:10px;font-weight:800;min-width:100px;")
+            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
             card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
             classes.addWidget(card)
-        counters_layout.addLayout(classes)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
         self.current_hour_card=hour
@@ -2657,6 +2663,8 @@ class Main(QMainWindow):
         averages.setFixedHeight(67)
         self.production_average.setStyleSheet("color:#91bfff;font:700 22px 'Consolas';")
         counters_layout.addWidget(averages)
+        counters_layout.addWidget(self.hourly_strip)
+        counters_layout.addWidget(self.weekday_strip)
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
             label.setStyleSheet("font:700 12px 'Segoe UI';color:#a3b9cf;")
@@ -2688,7 +2696,7 @@ class Main(QMainWindow):
         self.hourly_strip=QFrame()
         strip_layout=QVBoxLayout(self.hourly_strip)
         strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
-        strip_layout.addWidget(QLabel("HOURLY TOTALS · BRISBANE · 05:00–17:05"))
+        strip_layout.addWidget(QLabel("HOURLY TOTALS · BRISBANE · 05:00–17:05  |  RED BELOW AVG · ORANGE ON AVG · GREEN ABOVE AVG"))
         blocks=QGridLayout();blocks.setSpacing(4)
         self.dashboard_hour_blocks=[]
         for index in range(13):
@@ -2702,7 +2710,7 @@ class Main(QMainWindow):
             self.dashboard_hour_blocks.append(label)
         strip_layout.addLayout(blocks)
         self.hourly_strip.setFixedHeight(76)
-        outer.addWidget(self.hourly_strip)
+        # Added to the right-hand dashboard rail below the main production KPIs.
 
         self.weekday_strip=QFrame()
         daily_layout=QVBoxLayout(self.weekday_strip)
@@ -2720,7 +2728,7 @@ class Main(QMainWindow):
             daily_blocks.addWidget(label,1);self.dashboard_day_blocks.append(label)
         daily_layout.addLayout(daily_blocks)
         self.weekday_strip.setFixedHeight(64)
-        outer.addWidget(self.weekday_strip)
+        # Added to the right-hand dashboard rail below hourly totals.
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -2750,6 +2758,7 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         left.addWidget(self.video, 1)
+        left.addWidget(self.class_summary)
         # Windows font metrics can make status/control rows taller. Let this
         # secondary area scroll instead of taking height from the live video.
         self.operator_controls_scroll=ControlScrollArea()
@@ -4904,8 +4913,18 @@ class Main(QMainWindow):
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
                 block.setText(f'<span style="font-size:10px">{period}</span><br><span style="font-size:22px;font-weight:900">{amount}</span>')
-                block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
-                block.setToolTip(("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming"))
+                if completed or current:
+                    baseline=round(average)
+                    pace_colour=("#ff5c68" if slot['count']<baseline else
+                                 "#ffb84d" if slot['count']==baseline else "#38d996")
+                    pace_label=("below" if slot['count']<baseline else
+                                "on" if slot['count']==baseline else "above")
+                else:
+                    pace_colour="#84929e"
+                    pace_label="upcoming"
+                block.setStyleSheet(f"background:#0e1b2c;border:1px solid {pace_colour};border-radius:6px;color:{pace_colour};")
+                baseline_note=(f" · {slot['count']:,} is {pace_label} the {average:,.1f} tyre average" if completed or current else "")
+                block.setToolTip(("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming")+baseline_note)
             if completed or current:
                 active = index
         self.production_scroll.ensureWidgetVisible(self.production_slots[active])
@@ -4969,7 +4988,8 @@ class Main(QMainWindow):
         config=self._web_publisher.config
         if not config or not config['enabled'] or not config.get('snapshot_enabled'):return
         from web_dashboard import operator_image
-        safe_widgets=[self.video,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
+        # The hourly and weekday strips now live inside the stats viewport.
+        safe_widgets=[self.video,self.class_summary,self.stats_scroll.viewport()]
         rectangles=[]
         for widget in safe_widgets:
             if widget.isVisible():
