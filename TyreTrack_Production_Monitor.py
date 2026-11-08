@@ -2663,8 +2663,6 @@ class Main(QMainWindow):
         averages.setFixedHeight(67)
         self.production_average.setStyleSheet("color:#91bfff;font:700 22px 'Consolas';")
         counters_layout.addWidget(averages)
-        counters_layout.addWidget(self.hourly_strip)
-        counters_layout.addWidget(self.weekday_strip)
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
             label.setStyleSheet("font:700 12px 'Segoe UI';color:#a3b9cf;")
@@ -2729,6 +2727,11 @@ class Main(QMainWindow):
         daily_layout.addLayout(daily_blocks)
         self.weekday_strip.setFixedHeight(64)
         # Added to the right-hand dashboard rail below hourly totals.
+
+        # These strips are constructed after the KPI widgets above, then placed
+        # in the statistics rail in their intended dashboard order.
+        counters_layout.addWidget(self.hourly_strip)
+        counters_layout.addWidget(self.weekday_strip)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
