@@ -2618,18 +2618,18 @@ class Main(QMainWindow):
         self.production_target = 0  # Legacy web payload compatibility; daily target retired.
 
 
-        # Compact class totals sit below the camera, matching the operator-first
-        # dashboard concept while keeping the summary work on the UI thread trivial.
+        # Class totals use the established large count type and sit with the
+        # right-hand production statistics.
         classes=QVBoxLayout();classes.setSpacing(4)
         self.class_summary=QFrame();self.class_summary.setObjectName("classSummary")
         self.class_summary.setLayout(classes)
         self.truck_lbl=QLabel("0")
         self.weight_labels={}
         for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#edbc72",45,5)):
-            card=metric_card(name,label,colour);card.setFixedHeight(43)
+            card=metric_card(name,label,colour);card.setFixedHeight(56)
             card.layout().setDirection(QBoxLayout.LeftToRight)
             card.layout().setContentsMargins(8,2,8,2)
-            label.setStyleSheet("color:"+colour+";font:900 16px 'Consolas';")
+            label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
             card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:10px;font-weight:800;min-width:100px;")
             weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
