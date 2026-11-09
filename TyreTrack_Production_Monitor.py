@@ -2435,6 +2435,7 @@ class Main(QMainWindow):
         self.build_ui()
         # Keep the main dashboard usable on 720 px tall operator displays.
         self.setMinimumHeight(720)
+        self.apply_dashboard_density()
 
         self.refresh_counts()
 
@@ -2587,6 +2588,7 @@ class Main(QMainWindow):
         counters_layout=QVBoxLayout(self.counters_panel)
         counters_layout.setContentsMargins(0,0,0,0)
         counters_layout.setSpacing(5)
+        counters_layout.setAlignment(Qt.AlignTop)
         self.rail_heading=QLabel("CREW PERFORMANCE  /  BRISBANE")
         self.rail_heading.setObjectName("railHeading")
         self.rail_heading.hide()
@@ -2613,18 +2615,19 @@ class Main(QMainWindow):
         # row with the three class totals.
         daily=metric_card("TODAY",self.day_lbl,"#f1b82d")
         daily.setFixedHeight(176)
+        self.today_metric_card=daily
         self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
         self.total_weight_lbl.setStyleSheet("color:#e2e7ec;font:700 16px 'Segoe UI';letter-spacing:1px;")
         daily.layout().addWidget(self.total_weight_lbl)
-        self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 60px 'Consolas';")
+        self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 82px 'Consolas';")
         self.projection_labels={}
         projection_row=QHBoxLayout()
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
             label=QLabel(f'<span style="font-size:11px">PROJECTED {title}</span><br>— tyres<br>— tonnes')
-            label.setFixedHeight(80)
+            label.setFixedHeight(88)
             label.setAlignment(Qt.AlignCenter)
             label.setWordWrap(True)
-            label.setStyleSheet("color:#f4f7f9;background:#17251f;border:1px solid #42c879;border-radius:8px;font:900 20px 'Segoe UI';padding:6px;")
+            label.setStyleSheet("color:#f4f7f9;background:#17251f;border:1px solid #42c879;border-radius:8px;font:900 24px 'Segoe UI';padding:6px;")
             projection_row.addWidget(label,1)
             self.projection_labels[period]=label
         self.forecast_label=self.projection_labels['month']  # Compatibility for dashboard consumers.
@@ -2636,6 +2639,7 @@ class Main(QMainWindow):
         classes=QVBoxLayout();classes.setSpacing(4);classes.setContentsMargins(0,0,0,0)
         self.class_summary=QFrame();self.class_summary.setObjectName("classSummary")
         self.class_summary.setLayout(classes)
+        self.class_summary.setFixedHeight(176)
         self.truck_lbl=QLabel("0")
         self.weight_labels={}
         for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#edbc72",45,5)):
@@ -2659,7 +2663,7 @@ class Main(QMainWindow):
         self.best_hour_card.setToolTip("Highest completed production hour, Brisbane time")
         self.best_daily_lbl=QLabel("0 tyres")
         self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#f1b82d")
-        self.best_daily_lbl.setStyleSheet("color:#f7f8fa;font:900 40px 'Consolas';")
+        self.best_daily_lbl.setStyleSheet("color:#f7f8fa;font:900 48px 'Consolas';")
         self.best_daily_lbl.setWordWrap(True)
         alltime=metric_card("ALL TIME",self.total_lbl,"#e4edff")
         for c,card in enumerate((hour,self.best_hour_card,self.best_daily_card)):
@@ -2669,7 +2673,7 @@ class Main(QMainWindow):
         self.alltime_metric_card=alltime
         for card,label in ((hour,self.hour_lbl),(self.best_hour_card,self.session_lbl)):
             card.findChild(QLabel,"metricName").setStyleSheet("color:#f3f7ff;font-size:18px;font-weight:900;letter-spacing:1px;")
-            label.setStyleSheet("font:900 46px 'Consolas';color:#f7f8fa;")
+            label.setStyleSheet("font:900 54px 'Consolas';color:#f7f8fa;")
         counters_layout.addLayout(grid)
         self.record_progress=ScrollingRecordLabel("Build the next best hour")
         self.record_progress.setStyleSheet("color:#55f1d7;font:800 18px 'Segoe UI';")
@@ -2677,7 +2681,8 @@ class Main(QMainWindow):
         flow_card.setFixedHeight(57)
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
-        averages.setFixedHeight(67)
+        averages.setFixedHeight(88)
+        self.averages_metric_card=averages
         self.production_average.setStyleSheet("color:#f1b82d;font:700 20px 'Consolas';")
         average_forecast_row=QHBoxLayout();average_forecast_row.setSpacing(5)
         average_forecast_row.addWidget(averages,1)
@@ -2688,7 +2693,6 @@ class Main(QMainWindow):
             card=metric_card(name,label);card.setFixedHeight(46)
             label.setStyleSheet("font:700 12px 'Segoe UI';color:#a3b9cf;")
             label.setWordWrap(True);secondary_metric_cards.append(card)
-        counters_layout.addStretch()
         # Detailed history and secondary metrics stay available in Admin > Performance.
         self.history_frame=QFrame();history_layout=QVBoxLayout(self.history_frame)
         self.history_heading=QLabel("HOURLY HISTORY · BRISBANE")
@@ -2713,13 +2717,16 @@ class Main(QMainWindow):
         outer.addWidget(self.alarm_banner)
         self.update_alarm_banner()
 
+        self.dashboard_top_spacer=QWidget()
+        self.dashboard_top_spacer.setFixedHeight(0)
+        outer.addWidget(self.dashboard_top_spacer)
         body = QHBoxLayout()
         outer.addLayout(body, 1)
         self.hourly_strip=QFrame()
         strip_layout=QVBoxLayout(self.hourly_strip)
         strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
-        hour_heading=QLabel("▏  HOURLY TOTALS · BRISBANE · 05:00–17:05  |  RED BELOW AVG · ORANGE ON AVG · GREEN ABOVE AVG")
-        hour_heading.setStyleSheet("color:#f1b82d;font-size:11px;font-weight:900;letter-spacing:1px;")
+        hour_heading=QLabel("▏  HOURLY TOTALS · BRISBANE · 05:00–17:05   |   RED BELOW · ORANGE AVERAGE · GREEN ABOVE")
+        hour_heading.setStyleSheet("color:#f1b82d;font-size:10px;font-weight:900;letter-spacing:0.5px;")
         strip_layout.addWidget(hour_heading)
         blocks=QGridLayout();blocks.setSpacing(4)
         self.dashboard_hour_blocks=[]
@@ -2728,12 +2735,12 @@ class Main(QMainWindow):
             label=QLabel(f"{index+5:02d}:00–{end}\n—")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
-            label.setMinimumWidth(0);label.setFixedHeight(48)
+            label.setMinimumWidth(0);label.setFixedHeight(56)
             label.setStyleSheet("background:#252d33;border:1px solid #56636d;border-radius:6px;color:#b8c1c8;font-size:12px;")
             blocks.addWidget(label,0,index);blocks.setColumnStretch(index,1)
             self.dashboard_hour_blocks.append(label)
         strip_layout.addLayout(blocks)
-        self.hourly_strip.setFixedHeight(68)
+        self.hourly_strip.setFixedHeight(78)
         # Added to the right-hand dashboard rail below the main production KPIs.
 
         self.weekday_strip=QFrame()
@@ -2748,17 +2755,17 @@ class Main(QMainWindow):
             label=QLabel(name+" · —")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
-            label.setMinimumWidth(0);label.setFixedHeight(42)
+            label.setMinimumWidth(0);label.setFixedHeight(62)
             label.setStyleSheet("background:#252d33;border:1px solid #56636d;border-radius:6px;color:#b8c1c8;")
             daily_blocks.addWidget(label,1);self.dashboard_day_blocks.append(label)
         daily_layout.addLayout(daily_blocks)
-        self.weekday_strip.setFixedHeight(60)
+        self.weekday_strip.setFixedHeight(82)
         # Added to the right-hand dashboard rail below hourly totals.
 
-        # Keep the full-width totals below the dashboard so each weekday tile
-        # has enough room at the app's smaller supported window sizes.
-        outer.addWidget(self.hourly_strip)
-        outer.addWidget(self.weekday_strip)
+        # Keep both totals strips in the right-hand production rail, matching
+        # the selected dashboard sample and removing the detached footer band.
+        counters_layout.addWidget(self.hourly_strip)
+        counters_layout.addWidget(self.weekday_strip)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -2780,6 +2787,7 @@ class Main(QMainWindow):
         self.video.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         self.video.setObjectName("cameraViewport")
         self.video.setMinimumHeight(360)
+        self.video.setMaximumHeight(420)
         self.test_transport=QLabel("OAK CAMERA / LIVE VIEW")
         self.test_transport.setObjectName("transport")
         self.test_transport.setWordWrap(True)
@@ -2795,41 +2803,40 @@ class Main(QMainWindow):
         # cards and add no extra database or camera work.
         self.left_class_summary=QWidget()
         self.left_class_summary.setObjectName("leftClassSummary")
-        # Three compact class tiles preserve the reference dashboard's class
-        # breakdown while leaving enough vertical room for a 360 px live view
-        # and the hourly/day strips on a 720 px display.
-        left_class_layout=QHBoxLayout(self.left_class_summary)
+        # The reference dashboard uses one readable horizontal class bar per type.
+        left_class_layout=QVBoxLayout(self.left_class_summary)
         left_class_layout.setContentsMargins(0,0,0,0)
         left_class_layout.setSpacing(4)
         self.left_class_count_labels={}
         self.left_class_weight_labels={}
+        self.left_class_strips=[]
         for key,name,colour in (("passenger","PASSENGER","#38D996"),("4x4","SUV / 4X4","#42B7FF"),("truck","TRUCK","#F1B82D")):
             strip=QFrame();strip.setObjectName("leftClassStrip")
             strip.setStyleSheet(f"QFrame#leftClassStrip {{background:#20282e;border:1px solid {colour};border-left:6px solid {colour};border-radius:6px;}}")
-            strip_layout=QVBoxLayout(strip);strip_layout.setContentsMargins(6,3,4,3);strip_layout.setSpacing(0)
-            class_name=QLabel(name);class_name.setAlignment(Qt.AlignCenter)
-            class_name.setStyleSheet(f"color:{colour};font-size:10px;font-weight:900;")
-            class_count=QLabel("0 tyres");class_count.setAlignment(Qt.AlignCenter)
-            class_count.setStyleSheet("color:#f7f8fa;font:900 16px 'Consolas';")
-            class_weight=QLabel("0 kg");class_weight.setAlignment(Qt.AlignCenter)
-            class_weight.setStyleSheet("color:#d5dce1;font:700 11px 'Consolas';")
-            strip_layout.addWidget(class_name);strip_layout.addWidget(class_count);strip_layout.addWidget(class_weight)
-            strip.setMinimumHeight(58)
-            left_class_layout.addWidget(strip,1)
+            strip_layout=QHBoxLayout(strip);strip_layout.setContentsMargins(9,3,9,3);strip_layout.setSpacing(6)
+            class_name=QLabel(name);class_name.setStyleSheet(f"color:{colour};font-size:12px;font-weight:900;")
+            class_count=QLabel("0 tyres");class_count.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+            class_count.setStyleSheet("color:#f7f8fa;font:900 19px 'Consolas';")
+            class_weight=QLabel("0 kg");class_weight.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+            class_weight.setStyleSheet("color:#d5dce1;font:700 12px 'Consolas';")
+            strip_layout.addWidget(class_name,2);strip_layout.addWidget(class_count,2);strip_layout.addWidget(class_weight,1)
+            strip.setFixedHeight(38)
+            left_class_layout.addWidget(strip)
+            self.left_class_strips.append(strip)
             self.left_class_count_labels[key]=class_count
             self.left_class_weight_labels[key]=class_weight
         left.addWidget(self.left_class_summary)
         self.fod_badge=QLabel("●  FOD: OFF")
         self.fod_badge.setAlignment(Qt.AlignCenter)
+        self.fod_badge.setFixedHeight(34)
         self.fod_badge.setStyleSheet("background:#20282e;border:1px solid #596771;border-radius:6px;color:#c8d0d6;font-weight:800;padding:3px 8px;")
         left.addWidget(self.fod_badge)
         # Windows font metrics can make status/control rows taller. Let this
         # secondary area scroll instead of taking height from the live video.
         self.operator_controls_scroll=ControlScrollArea()
         self.operator_controls_scroll.setFrameShape(QFrame.NoFrame)
-        self.operator_controls_scroll.setMinimumSize(0,44)
-        self.operator_controls_scroll.setFixedHeight(64)
-        self.operator_controls_scroll.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+        self.operator_controls_scroll.setMinimumHeight(44)
+        self.operator_controls_scroll.setMaximumHeight(80)
         self.operator_controls=QWidget()
         self.operator_controls.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
         operator_layout=QVBoxLayout(self.operator_controls)
@@ -2890,16 +2897,21 @@ class Main(QMainWindow):
         tabs = QTabWidget()
         self.controls_tabs = tabs
         tabs.setMinimumWidth(360)
-        tabs.setMaximumWidth(410)
         tabs.setUsesScrollButtons(True)
-        body.addWidget(tabs, 1)
+        body.addWidget(tabs, 2)
         tabs.hide()
         admin_btn = QPushButton("Admin Settings")
         def toggle_admin():
             if tabs.isVisible():
                 tabs.hide()
+                self.stats_scroll.show()
+                admin_btn.setText("Admin Settings")
             elif self._confirm_admin_pin("open settings"):
+                # Settings take the right-hand dashboard rail instead of adding
+                # a third squeezed column that makes its controls unreadable.
+                self.stats_scroll.hide()
                 tabs.show()
+                admin_btn.setText("Dashboard")
         admin_btn.clicked.connect(toggle_admin)
         tools_row.addWidget(admin_btn)
         video_test_btn=QPushButton("Upload video test")
@@ -4983,7 +4995,7 @@ class Main(QMainWindow):
                 else:
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
-                block.setText(f'<span style="font-size:10px">{period}</span><br><span style="font-size:22px;font-weight:900">{amount}</span>')
+                block.setText(f'<span style="font-size:9px">{period}</span><br><span style="font-size:18px;font-weight:900">{amount}</span>')
                 if completed or current:
                     baseline=round(average)
                     pace_colour=("#ff5c68" if slot['count']<baseline else
@@ -5009,7 +5021,7 @@ class Main(QMainWindow):
             colour="#42b7ff" if day['current'] else "#38d996" if day['completed'] else "#84929e"
             amount="—" if day['future'] else f"{day['count']:,}"
             tag=" · TODAY" if day['current'] else ""
-            block.setText(f'<span style="font-size:11px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:22px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
+            block.setText(f'<span style="font-size:10px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:24px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
             block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};")
             block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
@@ -5524,6 +5536,39 @@ class Main(QMainWindow):
                 daemon=True,
             )
             self.email_thread.start()
+
+    def apply_dashboard_density(self):
+        """Use the sample's roomier cards on full displays and compact cards on short screens."""
+        if not hasattr(self, "hourly_strip"):
+            return
+        expanded = self.height() >= 800
+        self.dashboard_top_spacer.setFixedHeight(26 if expanded else 0)
+        self.today_metric_card.setFixedHeight(196 if expanded else 176)
+        for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
+            card.setFixedHeight(116 if expanded else 108)
+        self.averages_metric_card.setFixedHeight(124 if expanded else 88)
+        for label in self.projection_labels.values():
+            label.setFixedHeight(124 if expanded else 88)
+            label.setStyleSheet(
+                "color:#f4f7f9;background:#17251f;border:1px solid #42c879;"
+                "border-radius:8px;font:900 " + ("24px" if expanded else "20px") + " 'Segoe UI';padding:6px;"
+            )
+        self.hourly_strip.setFixedHeight(96 if expanded else 78)
+        for block in self.dashboard_hour_blocks:
+            block.setFixedHeight(68 if expanded else 56)
+        self.weekday_strip.setFixedHeight(112 if expanded else 82)
+        for block in self.dashboard_day_blocks:
+            block.setFixedHeight(86 if expanded else 62)
+        self.video.setMaximumHeight(420 if expanded else 380)
+        self.counters_panel.layout().setSpacing(10 if expanded else 5)
+        self.test_transport.setFixedHeight(23 if expanded else 20)
+        self.fod_badge.setFixedHeight(42 if expanded else 34)
+        for strip in self.left_class_strips:
+            strip.setFixedHeight(38 if expanded else 34)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.apply_dashboard_density()
 
     def closeEvent(self, event):
         if not self._confirm_admin_pin("close TyreTrack"):

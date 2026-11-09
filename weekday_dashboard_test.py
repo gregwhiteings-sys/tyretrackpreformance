@@ -60,7 +60,7 @@ with DatabaseTemporaryDirectory() as folder:
     for block in w.dashboard_day_blocks:
      pos=block.mapTo(w,block.rect().topLeft())
      assert pos.x()>=0 and pos.x()+block.width()<=w.width() and pos.y()+block.height()<=w.height()
-     assert block.width()>=200 and block.height()>=42
+     assert block.width()>=max(128,int(width*0.11)) and block.height()>=42
   qt.setStyle('Fusion');w.resize(1280,720);qt.processEvents()
   w.grab().save(str(Path(__file__).parent/'weekday_dashboard_preview.png'))
   before=[b.text() for b in w.dashboard_day_blocks]
