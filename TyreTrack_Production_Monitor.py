@@ -2463,7 +2463,7 @@ class Main(QMainWindow):
         self.oak_view_combo.setCurrentText("Smooth")
         self.start_btn.setText("Resume")
         self.stop_btn.setText("Pause")
-        self.setWindowTitle("TyreTrack · Targets update 2026-10-29")
+        self.setWindowTitle("TyreTrack · TyreCycle / Ozcom")
         self.apply_2070_theme()
         self.tick()
 
@@ -2495,7 +2495,7 @@ class Main(QMainWindow):
 
         brand = QLabel("TYRETRACK")
         brand.setObjectName("brand")
-        subtitle = QLabel("TYRECYCLE  ·  PRODUCTION MONITOR")
+        subtitle = QLabel("TYRECYCLE  /  OZCOM")
         subtitle.setObjectName("subtitle")
 
         title_column.addWidget(brand)
@@ -2520,6 +2520,13 @@ class Main(QMainWindow):
                 header.addWidget(logo_label)
         header.addLayout(title_column)
         header.addStretch()
+        design_badge=QLabel("05 / INDUSTRIAL CLARITY")
+        design_badge.setAlignment(Qt.AlignCenter)
+        design_badge.setStyleSheet("background:#303a41;border:1px solid #67737b;border-radius:5px;color:#f1b82d;font-size:13px;font-weight:900;letter-spacing:1px;padding:8px 14px;")
+        live_dashboard_tag=QLabel("OPERATOR DASHBOARD")
+        live_dashboard_tag.setStyleSheet("color:#d4dbe0;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 10px;")
+        header.addWidget(design_badge)
+        header.addWidget(live_dashboard_tag)
 
         self.counters_btn = QPushButton("Hide counters")
         self.counters_btn.setToolTip("Show or hide production counters to enlarge the camera")
@@ -2562,7 +2569,7 @@ class Main(QMainWindow):
             layout = QVBoxLayout(frame)
             layout.setContentsMargins(10, 3, 10, 3)
             layout.setSpacing(0)
-            title = QLabel(name)
+            title = QLabel("▏  " + name)
             title.setObjectName("metricName")
             label.setObjectName("metricValue")
             label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
@@ -2580,29 +2587,34 @@ class Main(QMainWindow):
         counters_layout.setSpacing(5)
         self.rail_heading=QLabel("CREW PERFORMANCE  /  BRISBANE")
         self.rail_heading.setObjectName("railHeading")
+        self.rail_heading.hide()
         counters_layout.addWidget(self.rail_heading)
         self.system_health_label=QLabel("SYSTEM HEALTH · Starting checks")
         self.system_health_label.setWordWrap(True)
         self.system_health_label.setStyleSheet("color:#9be8dd;font:600 11px 'Segoe UI';")
+        self.system_health_label.hide()
         counters_layout.addWidget(self.system_health_label)
         timeline_key=QLabel("ACTIVITY · Green: counts · Amber: no counts · Red: camera issue · Grey: unobserved/upcoming")
         timeline_key.setStyleSheet("color:#9caec0;font:9px 'Segoe UI';")
+        timeline_key.hide()
         counters_layout.addWidget(timeline_key)
         activity_row=QHBoxLayout();activity_row.setSpacing(2)
         self.activity_blocks=[]
         for hour in range(5,18):
             block=QLabel(str(hour).zfill(2));block.setAlignment(Qt.AlignCenter)
             block.setStyleSheet("background:#354052;color:white;font:10px 'Segoe UI';padding:2px;")
+            block.hide()
             activity_row.addWidget(block,1);self.activity_blocks.append(block)
         counters_layout.addLayout(activity_row)
 
-        daily=metric_card("TODAY / TYRES",self.day_lbl,"#40ead7")
-        daily.setFixedHeight(108)
+        # Match the reference composition: the main Today card shares the top
+        # row with the three class totals.
+        daily=metric_card("TODAY",self.day_lbl,"#f1b82d")
+        daily.setFixedHeight(176)
         self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
-        self.total_weight_lbl.setStyleSheet("color:#9be8dd;font:700 18px 'Consolas';")
+        self.total_weight_lbl.setStyleSheet("color:#e2e7ec;font:700 16px 'Segoe UI';letter-spacing:1px;")
         daily.layout().addWidget(self.total_weight_lbl)
-        self.day_lbl.setStyleSheet("color:#40ead7;font:900 48px 'Consolas';")
-        counters_layout.addWidget(daily)
+        self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 60px 'Consolas';")
         self.projection_labels={}
         projection_row=QHBoxLayout()
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
@@ -2610,17 +2622,16 @@ class Main(QMainWindow):
             label.setFixedHeight(80)
             label.setAlignment(Qt.AlignCenter)
             label.setWordWrap(True)
-            label.setStyleSheet("color:#66eddb;background:#102d3b;border:2px solid #26baa9;border-radius:8px;font:900 20px 'Segoe UI';padding:6px;")
+            label.setStyleSheet("color:#f4f7f9;background:#17251f;border:1px solid #42c879;border-radius:8px;font:900 20px 'Segoe UI';padding:6px;")
             projection_row.addWidget(label,1)
             self.projection_labels[period]=label
-        counters_layout.addLayout(projection_row)
         self.forecast_label=self.projection_labels['month']  # Compatibility for dashboard consumers.
         self.production_target = 0  # Legacy web payload compatibility; daily target retired.
 
 
         # Class totals use the established large count type and sit with the
         # right-hand production statistics.
-        classes=QVBoxLayout();classes.setSpacing(4)
+        classes=QVBoxLayout();classes.setSpacing(4);classes.setContentsMargins(0,0,0,0)
         self.class_summary=QFrame();self.class_summary.setObjectName("classSummary")
         self.class_summary.setLayout(classes)
         self.truck_lbl=QLabel("0")
@@ -2630,49 +2641,59 @@ class Main(QMainWindow):
             card.layout().setDirection(QBoxLayout.LeftToRight)
             card.layout().setContentsMargins(8,2,8,2)
             label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
-            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:10px;font-weight:800;min-width:100px;")
-            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:10px;font-weight:800;min-width:75px;")
+            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 12px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
             card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
             classes.addWidget(card)
-        counters_layout.addWidget(self.class_summary)
+        today_row=QHBoxLayout();today_row.setSpacing(5)
+        today_row.addWidget(daily,2)
+        today_row.addWidget(self.class_summary,1)
+        counters_layout.addLayout(today_row)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
         self.current_hour_card=hour
-        self.best_hour_card=metric_card("BEST HOUR",self.session_lbl,"#ac93ff")
+        self.best_hour_card=metric_card("BEST HOUR",self.session_lbl,"#f1b82d")
         self.best_hour_card.setToolTip("Highest completed production hour, Brisbane time")
         self.best_daily_lbl=QLabel("0 tyres")
-        self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#ac93ff")
-        self.best_daily_lbl.setStyleSheet("color:#ac93ff;font:700 24px 'Consolas';")
+        self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#f1b82d")
+        self.best_daily_lbl.setStyleSheet("color:#f7f8fa;font:900 40px 'Consolas';")
         self.best_daily_lbl.setWordWrap(True)
         alltime=metric_card("ALL TIME",self.total_lbl,"#e4edff")
-        for r,c,card in ((0,0,hour),(0,1,self.best_hour_card),(1,0,self.best_daily_card),(1,1,alltime)):
-            card.setFixedHeight(82);grid.addWidget(card,r,c)
-            if card is not self.best_daily_card: card.findChild(QLabel,"metricValue").setStyleSheet("font:900 44px 'Consolas';color:#c2b0ff;")
+        for c,card in enumerate((hour,self.best_hour_card,self.best_daily_card)):
+            card.setFixedHeight(108);grid.addWidget(card,0,c);grid.setColumnStretch(c,1)
+            if card is not self.best_daily_card: card.findChild(QLabel,"metricValue").setStyleSheet("font:900 44px 'Consolas';color:#f7f8fa;")
+        alltime.hide()  # Retain the value for exports, but keep the main screen focused.
+        self.alltime_metric_card=alltime
         for card,label in ((hour,self.hour_lbl),(self.best_hour_card,self.session_lbl)):
-            card.setFixedHeight(108)
             card.findChild(QLabel,"metricName").setStyleSheet("color:#f3f7ff;font-size:18px;font-weight:900;letter-spacing:1px;")
-            label.setStyleSheet("font:900 54px 'Consolas';color:#c2b0ff;")
+            label.setStyleSheet("font:900 46px 'Consolas';color:#f7f8fa;")
         counters_layout.addLayout(grid)
         self.record_progress=ScrollingRecordLabel("Build the next best hour")
-        self.record_progress.setStyleSheet("color:#55f1d7;font:800 24px 'Segoe UI';")
-        counters_layout.addWidget(self.record_progress)
+        self.record_progress.setStyleSheet("color:#55f1d7;font:800 18px 'Segoe UI';")
         flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#40ead7")
-        flow_card.setFixedHeight(57);counters_layout.addWidget(flow_card)
+        flow_card.setFixedHeight(57)
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
         averages.setFixedHeight(67)
-        self.production_average.setStyleSheet("color:#91bfff;font:700 22px 'Consolas';")
-        counters_layout.addWidget(averages)
+        self.production_average.setStyleSheet("color:#f1b82d;font:700 20px 'Consolas';")
+        average_forecast_row=QHBoxLayout();average_forecast_row.setSpacing(5)
+        average_forecast_row.addWidget(averages,1)
+        average_forecast_row.addLayout(projection_row,4)
+        counters_layout.addLayout(average_forecast_row)
+        secondary_metric_cards=[]
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
             label.setStyleSheet("font:700 12px 'Segoe UI';color:#a3b9cf;")
-            label.setWordWrap(True);counters_layout.addWidget(card)
+            label.setWordWrap(True);secondary_metric_cards.append(card)
         counters_layout.addStretch()
         # Detailed history and secondary metrics stay available in Admin > Performance.
         self.history_frame=QFrame();history_layout=QVBoxLayout(self.history_frame)
         self.history_heading=QLabel("HOURLY HISTORY · BRISBANE")
         history_layout.addWidget(self.history_heading)
+        history_layout.addWidget(QLabel("RECORD PACE"));history_layout.addWidget(self.record_progress)
+        history_layout.addWidget(flow_card)
+        for card in secondary_metric_cards:history_layout.addWidget(card)
         self.production_flow_best=QLabel("0 tyres per min")
         history_layout.addWidget(QLabel("BEST FLOW AVERAGE TODAY"));history_layout.addWidget(self.production_flow_best)
         history_layout.addWidget(QLabel("NO-FLOW TIME"));history_layout.addWidget(self.gap_lbl)
@@ -2695,7 +2716,9 @@ class Main(QMainWindow):
         self.hourly_strip=QFrame()
         strip_layout=QVBoxLayout(self.hourly_strip)
         strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
-        strip_layout.addWidget(QLabel("HOURLY TOTALS · BRISBANE · 05:00–17:05  |  RED BELOW AVG · ORANGE ON AVG · GREEN ABOVE AVG"))
+        hour_heading=QLabel("▏  HOURLY TOTALS · BRISBANE · 05:00–17:05  |  RED BELOW AVG · ORANGE ON AVG · GREEN ABOVE AVG")
+        hour_heading.setStyleSheet("color:#f1b82d;font-size:11px;font-weight:900;letter-spacing:1px;")
+        strip_layout.addWidget(hour_heading)
         blocks=QGridLayout();blocks.setSpacing(4)
         self.dashboard_hour_blocks=[]
         for index in range(13):
@@ -2704,7 +2727,7 @@ class Main(QMainWindow):
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             label.setMinimumWidth(0);label.setFixedHeight(48)
-            label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;font-size:12px;")
+            label.setStyleSheet("background:#252d33;border:1px solid #56636d;border-radius:6px;color:#b8c1c8;font-size:12px;")
             blocks.addWidget(label,0,index);blocks.setColumnStretch(index,1)
             self.dashboard_hour_blocks.append(label)
         strip_layout.addLayout(blocks)
@@ -2714,7 +2737,8 @@ class Main(QMainWindow):
         self.weekday_strip=QFrame()
         daily_layout=QVBoxLayout(self.weekday_strip)
         daily_layout.setContentsMargins(0,0,0,0);daily_layout.setSpacing(2)
-        self.weekday_heading=QLabel("DAILY TOTALS · THIS WEEK · BRISBANE")
+        self.weekday_heading=QLabel("▏  DAILY TOTALS · THIS WEEK · BRISBANE")
+        self.weekday_heading.setStyleSheet("color:#f1b82d;font-size:11px;font-weight:900;letter-spacing:1px;")
         daily_layout.addWidget(self.weekday_heading)
         daily_blocks=QHBoxLayout();daily_blocks.setSpacing(4)
         self.dashboard_day_blocks=[]
@@ -2723,7 +2747,7 @@ class Main(QMainWindow):
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             label.setMinimumWidth(0);label.setFixedHeight(42)
-            label.setStyleSheet("background:#0e1b2c;border:1px solid #27445c;border-radius:6px;color:#84929e;")
+            label.setStyleSheet("background:#252d33;border:1px solid #56636d;border-radius:6px;color:#b8c1c8;")
             daily_blocks.addWidget(label,1);self.dashboard_day_blocks.append(label)
         daily_layout.addLayout(daily_blocks)
         self.weekday_strip.setFixedHeight(60)
@@ -2740,7 +2764,7 @@ class Main(QMainWindow):
         left = QVBoxLayout(self.camera_panel)
         left.setContentsMargins(0,0,0,0)
         left.setSpacing(6)
-        body.addWidget(self.camera_panel, 2)
+        body.addWidget(self.camera_panel, 1)
 
         self.video = VideoLabel()
         self.video.fullscreen_requested.connect(
@@ -2762,6 +2786,35 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         left.addWidget(self.video, 1)
+        # The reference dashboard repeats the class totals below the live view
+        # so operators can read production classes without looking away from
+        # the conveyor. These labels mirror the same cached totals as the KPI
+        # cards and add no extra database or camera work.
+        self.left_class_summary=QWidget()
+        self.left_class_summary.setObjectName("leftClassSummary")
+        left_class_layout=QVBoxLayout(self.left_class_summary)
+        left_class_layout.setContentsMargins(0,0,0,0)
+        left_class_layout.setSpacing(4)
+        self.left_class_count_labels={}
+        self.left_class_weight_labels={}
+        for key,name,colour in (("passenger","PASSENGER","#38D996"),("4x4","SUV / 4X4","#42B7FF"),("truck","TRUCK","#F1B82D")):
+            strip=QFrame();strip.setObjectName("leftClassStrip")
+            strip.setStyleSheet(f"QFrame#leftClassStrip {{background:#20282e;border:1px solid {colour};border-left:6px solid {colour};border-radius:6px;}}")
+            strip_layout=QHBoxLayout(strip);strip_layout.setContentsMargins(9,3,9,3);strip_layout.setSpacing(6)
+            class_name=QLabel(name);class_name.setStyleSheet(f"color:{colour};font-size:12px;font-weight:900;")
+            class_count=QLabel("0 tyres");class_count.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+            class_count.setStyleSheet("color:#f7f8fa;font:900 19px 'Consolas';")
+            class_weight=QLabel("0 kg");class_weight.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
+            class_weight.setStyleSheet("color:#d5dce1;font:700 12px 'Consolas';")
+            strip_layout.addWidget(class_name,2);strip_layout.addWidget(class_count,2);strip_layout.addWidget(class_weight,1)
+            left_class_layout.addWidget(strip)
+            self.left_class_count_labels[key]=class_count
+            self.left_class_weight_labels[key]=class_weight
+        left.addWidget(self.left_class_summary)
+        self.fod_badge=QLabel("●  FOD: OFF")
+        self.fod_badge.setAlignment(Qt.AlignCenter)
+        self.fod_badge.setStyleSheet("background:#20282e;border:1px solid #596771;border-radius:6px;color:#c8d0d6;font-weight:800;padding:7px 10px;")
+        left.addWidget(self.fod_badge)
         # Windows font metrics can make status/control rows taller. Let this
         # secondary area scroll instead of taking height from the live video.
         self.operator_controls_scroll=ControlScrollArea()
@@ -2780,7 +2833,7 @@ class Main(QMainWindow):
         self.stats_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.stats_scroll.setMinimumWidth(0)
         self.stats_scroll.setWidget(self.counters_panel)
-        body.addWidget(self.stats_scroll, 3)
+        body.addWidget(self.stats_scroll, 2)
 
         run_row = QHBoxLayout()
 
@@ -2797,12 +2850,11 @@ class Main(QMainWindow):
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self.stop)
 
-        run_row.addWidget(self.start_btn)
-        run_row.addWidget(self.stop_btn)
+        run_row.addWidget(self.start_btn,1)
+        run_row.addWidget(self.stop_btn,1)
         operator_layout.addLayout(run_row)
         tools_row=QHBoxLayout()
         operator_layout.addLayout(tools_row)
-
         self.status_lbl = QLabel(
             "OAK-D auto-connect · counting follows Brisbane production hours"
         )
@@ -2840,7 +2892,7 @@ class Main(QMainWindow):
             elif self._confirm_admin_pin("open settings"):
                 tabs.show()
         admin_btn.clicked.connect(toggle_admin)
-        run_row.addWidget(admin_btn)
+        tools_row.addWidget(admin_btn)
         video_test_btn=QPushButton("Upload video test")
         video_test_btn.clicked.connect(self.open_video_test)
         tools_row.addWidget(video_test_btn)
@@ -3529,44 +3581,44 @@ class Main(QMainWindow):
 
     def apply_2070_theme(self):
         self.setStyleSheet(self.styleSheet()+"""
-            QMainWindow,QWidget {background:#060b15;color:#e1edff;font-family:'Segoe UI';font-size:12px;}
-            #brand {color:#f1f7ff;font-size:24px;font-weight:900;letter-spacing:3px;}
-            #subtitle {color:#6f8ca9;font-size:10px;letter-spacing:2px;}
+            QMainWindow,QWidget {background:#151b20;color:#edf1f4;font-family:'Segoe UI';font-size:12px;}
+            #brand {color:#f7f8fa;font-size:24px;font-weight:900;letter-spacing:3px;}
+            #subtitle {color:#b0bbc4;font-size:10px;letter-spacing:2px;}
             #metricRail {background:transparent;border:none;}
-            #railHeading {font-size:9px;letter-spacing:2px;color:#61849c;padding:2px;}
-            #metric {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #102034,stop:1 #0a1423);border:1px solid #21334d;border-radius:9px;}
-            #metricName {font-size:9px;color:#8aa3be;letter-spacing:1px;font-weight:600;background:transparent;}
-            #metricValue {font:700 23px 'Consolas';color:#e9f3ff;background:transparent;}
-            #cameraViewport {border:1px solid #28475b;border-radius:10px;background:#02050b;}
-            #transport {color:#55d9e9;letter-spacing:2px;font:700 10px 'Consolas';padding:3px 0;}
+            #railHeading {font-size:9px;letter-spacing:2px;color:#aab5be;padding:2px;}
+            #metric {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #242c32,stop:1 #1b2228);border:1px solid #53616b;border-radius:9px;}
+            #metricName {font-size:11px;color:#f1b82d;letter-spacing:1px;font-weight:800;background:transparent;}
+            #metricValue {font:700 23px 'Consolas';color:#f7f8fa;background:transparent;}
+            #cameraViewport {border:1px solid #58636c;border-radius:10px;background:#090c0f;}
+            #transport {color:#e8edf1;letter-spacing:2px;font:700 10px 'Consolas';padding:3px 0;}
             #geometryBadge {color:#ad95ff;font:700 11px 'Consolas';padding:5px;}
-            #status {background:#0a1525;color:#8faac7;border:1px solid #1b3048;border-radius:6px;font-size:11px;padding:5px;}
-            #health {background:#0c2030;border:1px solid #22566a;border-radius:7px;color:#51dfd1;padding:7px 12px;font-size:11px;}
-            QPushButton {background:#0e2033;color:#b9d0e6;border:1px solid #29465d;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:600;}
-            QPushButton:hover {background:#16334b;border-color:#42b6c7;color:#f3fbff;}
-            #start {background:#103532;border:1px solid #286a5d;color:#62e9bd;font-size:12px;padding:7px 12px;}
-            #stop {background:#2d1825;border:1px solid #68364f;color:#f49db5;font-size:12px;padding:7px 12px;}
-            QProgressBar {border:0;background:#101e32;border-radius:2px;}
-            QProgressBar::chunk {background:#44dce8;border-radius:2px;}
-            QLineEdit,QComboBox {background:#0d1b2e;border:1px solid #2b445e;border-radius:5px;padding:7px;color:#dce9ff;}
+            #status {background:#20282e;color:#d9e0e5;border:1px solid #56636d;border-radius:6px;font-size:11px;padding:5px;}
+            #health {background:#17291e;border:1px solid #3ba95b;border-radius:7px;color:#76e48d;padding:7px 12px;font-size:11px;}
+            QPushButton {background:#2b353d;color:#edf1f4;border:1px solid #687781;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;}
+            QPushButton:hover {background:#3a4851;border-color:#f1b82d;color:#ffffff;}
+            #start {background:#15863e;border:1px solid #53ce72;color:#ffffff;font-size:14px;padding:8px 12px;}
+            #stop {background:#a3292e;border:1px solid #e25458;color:#ffffff;font-size:14px;padding:8px 12px;}
+            QProgressBar {border:0;background:#252d33;border-radius:2px;}
+            QProgressBar::chunk {background:#f1b82d;border-radius:2px;}
+            QLineEdit,QComboBox {background:#20282e;border:1px solid #66747e;border-radius:5px;padding:7px;color:#edf1f4;}
         """)
 
         self.counters_panel.setStyleSheet("""
-            QFrame#metric {background:#0e1b2c;border:1px solid #21334d;border-radius:9px;}
+            QFrame#metric {background:#20282e;border:1px solid #596771;border-radius:9px;}
             QLabel {background:transparent;border:none;}
-            QLabel#metricName {color:#8aa3be;font-size:9px;letter-spacing:1px;}
-            QLabel#railHeading {color:#61849c;font-size:9px;letter-spacing:2px;}
+            QLabel#metricName {color:#f1b82d;font-size:11px;letter-spacing:1px;font-weight:800;}
+            QLabel#railHeading {color:#aab5be;font-size:9px;letter-spacing:2px;}
         """)
         self.stats_scroll.setStyleSheet("""
-            QScrollArea {border:none;background:#060b15;}
-            #metricRail {background:#060b15;border:none;}
-            QFrame#metric {background:#0e1b2c;border:1px solid #21334d;border-radius:9px;}
-            QLabel {background:transparent;border:none;color:#e1edff;}
-            #metricName {font-size:9px;color:#8aa3be;letter-spacing:1px;font-weight:600;}
-            #metricValue {font:700 23px 'Consolas';color:#e9f3ff;}
-            #railHeading {font-size:9px;letter-spacing:2px;color:#61849c;}
-            QScrollBar:vertical {background:#0a1423;width:9px;}
-            QScrollBar::handle:vertical {background:#29465d;min-height:24px;border-radius:4px;}
+            QScrollArea {border:none;background:#151b20;}
+            #metricRail {background:#151b20;border:none;}
+            QFrame#metric {background:#20282e;border:1px solid #596771;border-radius:9px;}
+            QLabel {background:transparent;border:none;color:#edf1f4;}
+            #metricName {font-size:11px;color:#f1b82d;letter-spacing:1px;font-weight:800;}
+            #metricValue {font:700 23px 'Consolas';color:#f7f8fa;}
+            #railHeading {font-size:9px;letter-spacing:2px;color:#aab5be;}
+            QScrollBar:vertical {background:#20282e;width:9px;}
+            QScrollBar::handle:vertical {background:#687781;min-height:24px;border-radius:4px;}
             QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {height:0;}
         """)
 
@@ -3873,6 +3925,9 @@ class Main(QMainWindow):
 
     def foreign_enabled_changed(self, enabled):
         set_state("foreign_enabled","1" if enabled else "0")
+        if hasattr(self,"fod_badge"):
+            self.fod_badge.setText("●  FOD: ON" if enabled else "●  FOD: OFF")
+            self.fod_badge.setStyleSheet("background:#27301c;border:1px solid #657c39;border-radius:6px;color:#b8e879;font-weight:800;padding:7px 10px;" if enabled else "background:#172432;border:1px solid #405364;border-radius:6px;color:#bdc9d5;font-weight:800;padding:7px 10px;")
         self.on_foreign_status("Requested ON · reconnect to apply" if enabled else "Requested OFF · reconnect to apply")
 
     def foreign_region_values(self):
@@ -3907,6 +3962,10 @@ class Main(QMainWindow):
         self.foreign_monitor_status=text
         self.foreign_status_lbl.setText(text)
         self.foreign_fault=text if text.startswith("FAULT") else ""
+        if hasattr(self,"fod_badge"):
+            enabled=bool(getattr(self,"foreign_switch",None) and self.foreign_switch.isChecked())
+            self.fod_badge.setText("●  FOD: ON" if enabled else "●  FOD: OFF")
+            self.fod_badge.setStyleSheet("background:#27301c;border:1px solid #657c39;border-radius:6px;color:#b8e879;font-weight:800;padding:7px 10px;" if enabled else "background:#172432;border:1px solid #405364;border-radius:6px;color:#bdc9d5;font-weight:800;padding:7px 10px;")
         self.update_alarm_banner()
 
     def on_foreign_presence(self, objects):
@@ -4925,7 +4984,8 @@ class Main(QMainWindow):
                 else:
                     pace_colour="#84929e"
                     pace_label="upcoming"
-                block.setStyleSheet(f"background:#0e1b2c;border:1px solid {pace_colour};border-radius:6px;color:{pace_colour};")
+                tile_bg=("#48262a" if pace_label=="below" else "#47391f" if pace_label=="on" else "#1b3b2a" if pace_label=="above" else "#252d33")
+                block.setStyleSheet(f"background:{tile_bg};border:2px solid {pace_colour};border-radius:6px;color:#f7f8fa;")
                 baseline_note=(f" · {slot['count']:,} is {pace_label} the {average:,.1f} tyre average" if completed or current else "")
                 block.setToolTip(("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming")+baseline_note)
             if completed or current:
@@ -4941,7 +5001,7 @@ class Main(QMainWindow):
             amount="—" if day['future'] else f"{day['count']:,}"
             tag=" · TODAY" if day['current'] else ""
             block.setText(f'<span style="font-size:11px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:22px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
-            block.setStyleSheet(f"background:#0e1b2c;border:1px solid {colour};border-radius:6px;color:{colour};")
+            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};")
             block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
     def update_production_forecast(self):
@@ -4991,8 +5051,8 @@ class Main(QMainWindow):
         config=self._web_publisher.config
         if not config or not config['enabled'] or not config.get('snapshot_enabled'):return
         from web_dashboard import operator_image
-        # The hourly and weekday strips now live inside the stats viewport.
-        safe_widgets=[self.video,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
+        # Capture only the visible production dashboard; admin tabs and controls stay excluded.
+        safe_widgets=[self.video,self.left_class_summary,self.fod_badge,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
         rectangles=[]
         for widget in safe_widgets:
             if widget.isVisible():
@@ -5176,8 +5236,6 @@ class Main(QMainWindow):
         best_date, best_count = self._dashboard_cache['best'] if self._dashboard_cache else (None, 0)
         self.best_daily_lbl.setText(f"{best_count:,} tyres")
         self.best_daily_lbl.setToolTip(f"Best production day: {best_date or 'No OAK counts yet'} · 05:00–17:05 Brisbane; includes today")
-        if best_date:
-            self.best_daily_lbl.setText(f"{best_count:,} tyres\n{best_date}")
         self.gap_lbl.setStyleSheet("color:#FF5C68;font-size:22px;font-weight:900;")
         self.no_count_lbl.setStyleSheet("color:#a1b8cf;font-size:12px;font-weight:700;")
         alert = "NO COUNT" in self.production_status_lbl.text()
@@ -5197,6 +5255,9 @@ class Main(QMainWindow):
         for key,label in (("passenger",self.passenger_lbl),("4x4",self.suv_lbl),("truck",self.truck_lbl)):
             label.setText(f"{values['counts'][key]:,}")
             self.weight_labels[key].setText(f"{values['weights'][key]:,} kg")
+            if hasattr(self,"left_class_count_labels"):
+                self.left_class_count_labels[key].setText(f"{values['counts'][key]:,} tyres")
+                self.left_class_weight_labels[key].setText(f"{values['weights'][key]:,} kg")
         prefix="TEST ESTIMATED WEIGHT" if test_mode else "ESTIMATED WEIGHT"
         self.total_weight_lbl.setText(f"{prefix}: {values['total_kg']:,} kg · {values['total_epu']:,} EPU")
         self.total_weight_lbl.setToolTip(f"{'Test session' if test_mode else 'Today’s production'}: {values['total_count']:,} counted tyres. Passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU. Weight is an estimate. {values['unknown']:,} unclassified tyres excluded from weight and EPU. Truck uses the requested 45 kg directly, not 5 × 8 kg.")
