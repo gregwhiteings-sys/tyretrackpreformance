@@ -1,7 +1,7 @@
 TYRETRACK SECOND CAMERA SETUP
 
 Dashboard
-- The dashboard displays Camera 1 and Camera 2 side by side.
+- The dashboard displays Camera 1 and Camera 2 side by side. Camera 1 occupies the larger two-thirds of the preview area; Camera 2 uses the remaining third.
 - Camera 1 is the designated counting camera.
 - Camera 2 is a verification view at 480x270 and 5 fps. It runs no tyre detector, tracker, recording pipeline, or database writer.
 

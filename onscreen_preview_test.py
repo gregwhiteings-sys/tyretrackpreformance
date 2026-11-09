@@ -15,6 +15,7 @@ with DatabaseTemporaryDirectory() as folder:
  w=m.Main();w.clock.stop();w.resize(1280,720);w.show()
  app.processEvents()
  assert w.video.height()>=360 and w.video.width()>=350,(w.video.width(),w.video.height())
+ assert w.camera2_view.width()>=150,("second preview width",w.camera2_view.width())
  w.offline_testing=True;w._replay_output=root;w.test_progress.show()
  frame=np.zeros((270,480,3),dtype=np.uint8);frame[:]=(40,60,80)
  cv2.line(frame,(0,210),(479,60),(0,255,255),2)

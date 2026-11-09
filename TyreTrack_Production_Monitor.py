@@ -2868,7 +2868,7 @@ class Main(QMainWindow):
         self.camera2_view.setStyleSheet("background:#05080d;color:#718096;border:1px solid #263241;border-radius:8px;font-size:12px;")
         secondary_layout.addWidget(self.camera2_view,1)
         primary_layout.addWidget(self.video,1)
-        camera_views_layout.addWidget(primary_view,1);camera_views_layout.addWidget(secondary_view,1)
+        camera_views_layout.addWidget(primary_view,2);camera_views_layout.addWidget(secondary_view,1)
         left.addWidget(camera_views,1)
         # The reference dashboard repeats the class totals below the live view
         # so operators can read production classes without looking away from
