@@ -2,7 +2,7 @@ LATEST UPDATE — 26 OCTOBER 2026
 Today’s class counts now show estimated kg and a combined weight/EPU total.
 Passenger = 8 kg/1 EPU; SUV = 16 kg/2 EPU; Truck = 45 kg/5 EPU.
 Truck recognition still needs a truck-capable model; current model is two-class.
-Ten new supplied sounds replace old celebrations; Random shuffles all of them.
+The supplied Like Wooh Wooh recording is the only alert; it plays for a new best hour.
 Smooth live preview is lighter; PNG saving runs in the background.
 For Windows sign-in launch, run INSTALL_AUTOSTART.bat beside the built EXE.
 Read FULL_CHECK_REPORT.txt for verification, setup and on-site checks.
@@ -151,12 +151,11 @@ The selected span applies to live counting, uploaded video tests and comparisons
 Only crossings on the selected segments are accepted. Geometry changes clear motion
 references while retaining accepted counts. Set and lock the geometry before measuring.
 
-CELEBRATION SOUND CHECK
-Admin Settings > Performance > Celebration sound offers Crowd cheer (8 seconds),
-Short applause (3 seconds) and Victory chime (2 seconds). Test selected celebration
-sound plays a preview even if automatic celebrations are muted. Stop celebration
-preview stops only when no operational alarm is active. Operational alarms have priority.
-The crowd recording is generic, not a verified Australian chant.
+BEST-HOUR ALERT CHECK
+Admin Settings > Performance shows the single Like Wooh Wooh alert. Test best-hour
+alert previews it; mute controls automatic playback. It plays only for a new best
+hour. A daily-total record alone stays visual. Stop celebration preview stops it
+when no operational alarm is active. Operational alarms have priority.
 
 BUILD COMPARISON
 See BUILD_COMPARISON.txt / .json for checks against your original working source.

@@ -9,14 +9,14 @@ Existing Windows dependency pins preserved; ReportLab 4.4.9 added for PDFs and p
 INTENTIONAL CHANGES
 Independent grouped live totals; five-second historical refresh with no busy queue; fractional-position marquee on precise 33 ms timer
 Branded daily and Friday weekly PDF+CSV management briefings; manual background export; HTML email
-Ten replacement sounds with persisted shuffle and WAV import
+One owner-supplied WAV alert, fixed to best-hour records only
 Today class counts and owner-specified kg/EPU estimates
 Native 640x360 live view with original-preview fallback; background PNG encoding retained
 Optional sign-in shortcut installer and duplicate-instance lock
 Camera stays connected outside shift; count gate remains weekday 05:00–17:05 Brisbane
 Experimental shared three-line counter with adjustable top/bottom and horizontal span
 OAK-only production input and separate on-screen video tester
-Statistics-focused dashboard, smaller video, random no-repeat celebrations for best hour and best daily total
+Statistics-focused dashboard, dual-camera preview-only second view, primary-only counting, and one supplied best-hour alert
 Additive database indexes and shift-only dashboard query
 One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection
 Malformed foreign-model output is isolated from the tyre capture stream and surfaces as a foreign-detector fault

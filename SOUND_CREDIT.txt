@@ -1,4 +1,2 @@
-Celebration clips supplied by the app owner on 26 October 2026.
-The ten converted WAV files correspond to celebration_sounds/manifest.json.
-Previous celebration clips have been removed from the source and Windows bundle.
-Foreign-object alarm audio is separate and is unchanged.
+Best-hour alert audio supplied by the TyreTrack app owner in this build request. Bundled as 22.05 kHz mono, 16-bit PCM WAV for Windows playback.
+Foreign-object alarm audio is separate and unchanged.

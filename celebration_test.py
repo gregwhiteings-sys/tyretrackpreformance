@@ -1,4 +1,4 @@
-"""Daily record celebration fires once per hour; later hours and days can win."""
+"""Only new best hours play the fixed alert; daily records remain visual."""
 from test_resources import DatabaseTemporaryDirectory
 import os,sys,types,tempfile,shutil
 from pathlib import Path
@@ -51,8 +51,15 @@ with DatabaseTemporaryDirectory() as folder:
  w.celebration_banner.clear();w.refresh_production_hours()
  assert not w.celebration_banner.text()
  w.play_celebration_sound.assert_called_once_with()
+ # A daily-only record remains visual and must not play the alert.
+ now=now.replace(day=23,hour=17,minute=5,second=0)
+ populate({0:12})
+ w._dashboard_cache.update(metrics={'daily':51},prior_best=('2026-10-22',50))
+ w.play_celebration_sound.reset_mock();w.refresh_production_hours()
+ assert 'NEW BEST DAILY TOTAL' in w.celebration_banner.text()
+ w.play_celebration_sound.assert_not_called()
  # First completed hour establishes a record, caught at the hour boundary.
- now=now.replace(day=23,hour=6,minute=0,second=0)
+ now=now.replace(day=24,hour=6,minute=0,second=0)
  populate({0:12,1:0});w.play_celebration_sound.reset_mock()
  w.refresh_production_hours();w.play_celebration_sound.assert_called_once_with()
  assert 'NEW BEST HOUR' in w.celebration_banner.text()
@@ -63,29 +70,29 @@ with DatabaseTemporaryDirectory() as folder:
  now=now.replace(hour=8);populate({0:12,1:12,2:13})
  w.play_celebration_sound.reset_mock();w.refresh_production_hours()
  w.play_celebration_sound.assert_called_once_with()
- # Daily total crossed on the last frame still celebrates at the cutoff.
+ # Daily total crossing alone remains visual at the cutoff.
  now=now.replace(hour=17,minute=5);populate({0:12})
  w._dashboard_cache.update(metrics={'daily':51},prior_best=('2026-10-22',50))
  w.play_celebration_sound.reset_mock();w.refresh_production_hours()
  assert 'NEW BEST DAILY TOTAL' in w.celebration_banner.text()
- w.play_celebration_sound.assert_called_once_with()
- # Failed audio is retried; success clears the pending record.
+ w.play_celebration_sound.assert_not_called()
+ # Failed best-hour audio is retried; success clears the pending record.
  w.play_celebration_sound=Mock(side_effect=[False,True])
- w.deliver_record_celebration(['TEST RECORD'])
+ w.deliver_record_celebration(['NEW BEST HOUR TODAY!'])
  assert w._pending_record_sound['attempts']==1
  w._pending_record_sound['next_attempt']=0
  w.deliver_record_celebration()
  assert w._pending_record_sound is None and w.play_celebration_sound.call_count==2
  w.play_celebration_sound.reset_mock();w.celebration_mute.setChecked(True)
- w.deliver_record_celebration(['MUTED RECORD'])
+ w.deliver_record_celebration(['NEW BEST HOUR TODAY!'])
  w.play_celebration_sound.assert_not_called()
  assert 'MUTED' in w.celebration_indicator.text()
  w.celebration_mute.setChecked(False);w.alarm_state={'active':True}
- w.deliver_record_celebration(['DEFERRED RECORD'])
+ w.deliver_record_celebration(['NEW BEST HOUR TODAY!'])
  w.play_celebration_sound.assert_not_called()
  assert w._pending_record_sound
  w.alarm_state={'active':False};w.play_celebration_sound=Mock(return_value=True)
  w.deliver_record_celebration();w.play_celebration_sound.assert_called_once_with()
  w.close()
 print('PASS: daily records require a prior day, beat ties, persist across restart, and reset next day')
-print('PASS: first completed hour, late crossings at rollover, daily cutoff, no duplicate records, mute/alarm priority and failed-playback retry')
+print('PASS: best-hour-only alert, daily-only record stays silent, no duplicate records, mute/alarm priority and failed-playback retry')

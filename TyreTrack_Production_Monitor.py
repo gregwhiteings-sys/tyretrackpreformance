@@ -20,7 +20,6 @@ import threading
 import queue
 import json
 import random
-import celebration_library
 import tyre_weight
 from PyQt5.QtCore import QLockFile
 import time
@@ -130,7 +129,7 @@ except Exception:
 
 APP_NAME = "TYRECYCLE | TYRETRACK"
 MODEL_NAME = "tyre_detector.pt"
-CELEBRATION_SOUNDS={'ao_theme': ('AO theme', 'celebration_sounds/ao_theme.wav'), 'rage_credits': ('Rage end credits', 'celebration_sounds/rage_credits.wav'), 'enough': ('That’s enough for me', 'celebration_sounds/enough.wav'), 'hard': ('You don’t understand how hard it is', 'celebration_sounds/hard.wav'), 'australia': ('Australia', 'celebration_sounds/australia.wav'), 'australia_ins': ('Australia instrumental', 'celebration_sounds/australia_ins.wav'), 'crowd_storegraphic': ('Crowd cheering · Storegraphic', 'celebration_sounds/crowd_storegraphic.wav'), 'crowd_hill': ('Crowd · The Hill', 'celebration_sounds/crowd_hill.wav'), 'crowd_dragon': ('Cheer and applause · Dragon Studio', 'celebration_sounds/crowd_dragon.wav'), 'crowd_mykelu': ('Crowd cheering · Mykelu', 'celebration_sounds/crowd_mykelu.wav')}
+CELEBRATION_SOUNDS={'best_hour_alert': ('Like Wooh Wooh · Best hour alert', 'celebration_sounds/best_hour_alert.wav')}
 
 OAK_NAME = "OAK-D S2 PoE / CAT5"
 OAK_TEST_NAME = "OAK-D S2 / MANUAL TEST"
@@ -1489,6 +1488,58 @@ class OakSource:
 
 
 
+class SecondaryOakPreview(QThread):
+    """Low-rate preview-only connection for the second OAK camera.
+
+    It runs no neural network, recorder, tracker, or counter. Production totals
+    remain owned by the primary camera until cross-camera calibration exists.
+    """
+    frame_ready = pyqtSignal(object)
+    status = pyqtSignal(str)
+
+    def __init__(self, mxid):
+        super().__init__()
+        self.mxid = str(mxid).strip()
+
+    def run(self):
+        device = None
+        try:
+            if not DEPTHAI_OK:
+                raise RuntimeError("DepthAI is not installed")
+            pipeline = dai.Pipeline()
+            camera = pipeline.create(dai.node.ColorCamera)
+            camera.setBoardSocket(dai.CameraBoardSocket.CAM_A)
+            camera.setResolution(dai.ColorCameraProperties.SensorResolution.THE_1080_P)
+            camera.setPreviewSize(480, 270)
+            camera.setPreviewKeepAspectRatio(True)
+            camera.setInterleaved(False)
+            camera.setColorOrder(dai.ColorCameraProperties.ColorOrder.BGR)
+            camera.setFps(5)
+            camera.setIspScale(1, 3)
+            output = pipeline.create(dai.node.XLinkOut)
+            output.setStreamName("camera2_preview")
+            output.input.setBlocking(False)
+            output.input.setQueueSize(1)
+            camera.preview.link(output.input)
+            device = dai.Device(pipeline, dai.DeviceInfo(self.mxid))
+            queue = device.getOutputQueue("camera2_preview", maxSize=1, blocking=False)
+            self.status.emit("CAMERA 2 · CONNECTED · VERIFY VIEW ONLY")
+            while not self.isInterruptionRequested():
+                packet = queue.tryGet()
+                if packet is not None:
+                    self.frame_ready.emit(packet.getCvFrame())
+                self.msleep(80)
+        except Exception as exc:
+            self.status.emit("CAMERA 2 · OFFLINE · " + str(exc)[:100])
+        finally:
+            if device is not None:
+                try:
+                    device.close()
+                except Exception:
+                    pass
+            self.status.emit("CAMERA 2 · DISCONNECTED")
+
+
 class CounterWorker(QThread):
     frame_ready = pyqtSignal(object)
     counted = pyqtSignal(int, float)
@@ -2415,6 +2466,7 @@ class Main(QMainWindow):
         self.email_thread = None
         self.email_retry_at = 0.0
         self.worker = None
+        self.secondary_camera_worker = None
         self.offline_testing = False
         self.video_test_dialog = None
         self.video_test_pending = False
@@ -2476,6 +2528,8 @@ class Main(QMainWindow):
         self.setWindowTitle("TyreTrack · TyreCycle / Ozcom")
         self.apply_2070_theme()
         self.tick()
+        if get_state("secondary_oak_mxid",""):
+            QTimer.singleShot(2500, self.restore_secondary_camera)
 
     def card(self, heading):
         frame = QFrame()
@@ -2798,12 +2852,24 @@ class Main(QMainWindow):
         self.test_transport=QLabel("OAK CAMERA / LIVE VIEW")
         self.test_transport.setObjectName("transport")
         self.test_transport.setWordWrap(True)
-        self.test_transport.setFixedHeight(23)
+        self.test_transport.setFixedHeight(20)
         left.addWidget(self.test_transport)
         self.test_progress=QProgressBar();self.test_progress.setRange(0,1000)
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
-        left.addWidget(self.video, 1)
+        camera_views=QWidget();camera_views.setObjectName("cameraViews")
+        camera_views_layout=QHBoxLayout(camera_views);camera_views_layout.setContentsMargins(0,0,0,0);camera_views_layout.setSpacing(6)
+        primary_view=QWidget();primary_layout=QVBoxLayout(primary_view);primary_layout.setContentsMargins(0,0,0,0);primary_layout.setSpacing(3)
+        primary_title=QLabel("CAMERA 1 · COUNTING");primary_title.setObjectName("transport");primary_layout.addWidget(primary_title)
+        secondary_view=QWidget();secondary_layout=QVBoxLayout(secondary_view);secondary_layout.setContentsMargins(0,0,0,0);secondary_layout.setSpacing(3)
+        self.camera2_status=QLabel("CAMERA 2 · NOT CONFIGURED");self.camera2_status.setObjectName("transport");self.camera2_status.setWordWrap(True);self.camera2_status.setMinimumHeight(20);secondary_layout.addWidget(self.camera2_status)
+        self.camera2_view=QLabel("SECOND OAK CAMERA\nNOT CONNECTED")
+        self.camera2_view.setAlignment(Qt.AlignCenter);self.camera2_view.setMinimumSize(0,120);self.camera2_view.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding)
+        self.camera2_view.setStyleSheet("background:#05080d;color:#718096;border:1px solid #263241;border-radius:8px;font-size:12px;")
+        secondary_layout.addWidget(self.camera2_view,1)
+        primary_layout.addWidget(self.video,1)
+        camera_views_layout.addWidget(primary_view,1);camera_views_layout.addWidget(secondary_view,1)
+        left.addWidget(camera_views,1)
         # The reference dashboard repeats the class totals below the live view
         # so operators can read production classes without looking away from
         # the conveyor. These labels mirror the same cached totals as the KPI
@@ -2971,29 +3037,23 @@ class Main(QMainWindow):
         self.celebration_mute.show()
         hours_tab.addWidget(QLabel("Celebration sound"))
         self.celebration_sound_combo=QComboBox()
-        self.celebration_sound_combo.addItem("Random celebration · all sounds", "random")
-        if get_state("celebration_pack","")!="aussie_ten_v1":
-            set_state("celebration_sound","random")
-            set_state("celebration_shuffle","{}")
-            set_state("celebration_pack","aussie_ten_v1")
-        self.celebration_sounds=celebration_library.catalog(CELEBRATION_SOUNDS,DATA/"celebration_sounds_v2")
-        for key,(label,filename) in self.celebration_sounds.items():self.celebration_sound_combo.addItem(label,key)
-        if get_state("celebration_policy","legacy")!="random_records_v1":
-            set_state("celebration_sound","random")
-            set_state("celebration_policy","random_records_v1")
-        selected=self.celebration_sound_combo.findData(get_state("celebration_sound","random"))
-        self.celebration_sound_combo.setCurrentIndex(max(0,selected))
+        self.celebration_sound_combo.addItem("Like Wooh Wooh · Best hour only", "best_hour_alert")
+        self.celebration_sound_combo.setEnabled(False)
+        self.celebration_sound_combo.setToolTip("This build uses the supplied alert as its only celebration sound.")
+        self.celebration_sounds=CELEBRATION_SOUNDS
+        set_state("celebration_sound","best_hour_alert")
+        set_state("celebration_policy","best_hour_only_v2")
+        set_state("celebration_pack","best_hour_alert_v2")
+        set_state("celebration_shuffle","{}")
         self.celebration_sound_combo.currentIndexChanged.connect(self.celebration_selection_changed)
         hours_tab.addWidget(self.celebration_sound_combo)
-        add_sound=QPushButton("Add celebration sound (WAV)")
-        add_sound.clicked.connect(self.add_celebration_sound);hours_tab.addWidget(add_sound)
         self.update_celebration_indicator()
-        self.test_sound_btn=QPushButton("Test selected celebration sound")
+        self.test_sound_btn=QPushButton("Test best-hour alert")
         self.test_sound_btn.clicked.connect(lambda:self.play_celebration_sound(preview=True))
         hours_tab.addWidget(self.test_sound_btn)
         stop_sound=QPushButton("Stop celebration preview")
         stop_sound.clicked.connect(lambda:self.stop_celebration_preview());hours_tab.addWidget(stop_sound)
-        self.celebration_sound_status=QLabel("Test plays even when celebrations are muted. Operational alarms have priority.")
+        self.celebration_sound_status=QLabel("This alert plays automatically for a new best hour only. Daily-total records do not play it. Test works even when automatic alerts are muted.")
         self.celebration_sound_status.setWordWrap(True);hours_tab.addWidget(self.celebration_sound_status)
         test_tab = tab_page("COUNT LOGIC TEST")
         test_note = QLabel("Live shadow test · OAK only. Production counting continues on its schedule. Test counters and exports never change production totals or reports. Show fixed lines for a visual comparison.")
@@ -3101,7 +3161,24 @@ class Main(QMainWindow):
         self.file_lbl.setWordWrap(True)
         source_layout.addWidget(self.file_lbl)
 
+        camera2_card, camera2_layout = self.card("SECOND OAK-D · PREVIEW & COUNT POLICY")
+        camera2_note=QLabel("Camera 2 runs a 480×270 preview at 5 fps with no AI inference, tracking, recording, or database writes. It verifies the second angle; Camera 1 remains the sole source of production counts until both views are physically calibrated.")
+        camera2_note.setWordWrap(True);camera2_note.setObjectName("helper");camera2_layout.addWidget(camera2_note)
+        self.camera2_devices=QComboBox();self.camera2_devices.setEditable(True);self.camera2_devices.setInsertPolicy(QComboBox.NoInsert)
+        saved_mxid=get_state("secondary_oak_mxid","")
+        if saved_mxid:self.camera2_devices.addItem(saved_mxid,saved_mxid)
+        camera2_layout.addWidget(self.camera2_devices)
+        camera2_buttons=QHBoxLayout()
+        camera2_scan=QPushButton("Find OAK cameras")
+        camera2_scan.clicked.connect(self.scan_secondary_cameras)
+        self.camera2_connect_btn=QPushButton("Connect Camera 2")
+        self.camera2_connect_btn.clicked.connect(self.connect_secondary_camera)
+        camera2_disconnect=QPushButton("Disconnect")
+        camera2_disconnect.clicked.connect(self.disconnect_secondary_camera)
+        camera2_buttons.addWidget(camera2_scan);camera2_buttons.addWidget(self.camera2_connect_btn);camera2_buttons.addWidget(camera2_disconnect)
+        camera2_layout.addLayout(camera2_buttons)
         source_tab.addWidget(source_card)
+        source_tab.addWidget(camera2_card)
         source_tab.addStretch()
 
         foreign_card, foreign_layout = self.card("FOREIGN OBJECT DETECTOR · SYNTHETIC STARTER")
@@ -4052,33 +4129,12 @@ class Main(QMainWindow):
 
     def update_celebration_indicator(self, *_args):
         muted=self.celebration_mute.isChecked()
-        key=get_state("celebration_sound","random")
-        catalog=getattr(self,"celebration_sounds",CELEBRATION_SOUNDS)
-        label="Random · shuffle all sounds" if key=="random" else catalog.get(key,("Selected sound unavailable",None))[0]
-        self.celebration_indicator.setText("Celebrations: MUTED · enable in Admin → Performance" if muted else "Celebrations: ON · "+label)
+        self.celebration_indicator.setText("Best-hour alert: MUTED · enable in Admin → Performance" if muted else "Best-hour alert: ON · Like Wooh Wooh")
         self.celebration_indicator.setStyleSheet("color:#eeb85a;font-size:11px;" if muted else "color:#7295b3;font-size:11px;")
 
     def celebration_selection_changed(self, *_args):
-        set_state("celebration_sound",self.celebration_sound_combo.currentData())
+        set_state("celebration_sound","best_hour_alert")
         self.update_celebration_indicator()
-
-    def add_celebration_sound(self):
-        path,_=QFileDialog.getOpenFileName(self,"Add celebration sound","","PCM WAV (*.wav)")
-        if not path:return
-        try:
-            key=celebration_library.import_wav(path,DATA/"celebration_sounds_v2")
-            self.celebration_sounds=celebration_library.catalog(CELEBRATION_SOUNDS,DATA/"celebration_sounds_v2")
-            self.celebration_sound_combo.blockSignals(True)
-            self.celebration_sound_combo.clear()
-            self.celebration_sound_combo.addItem("Random celebration · shuffle all sounds","random")
-            for k,(label,filename) in self.celebration_sounds.items():self.celebration_sound_combo.addItem(label,k)
-            # Add to the random pool; keep Random selected for automatic records.
-            self.celebration_sound_combo.setCurrentIndex(0)
-            self.celebration_sound_combo.blockSignals(False)
-            self.celebration_selection_changed()
-            self.celebration_sound_status.setText("Added: "+self.celebration_sounds[key][0]+" · included in Random. Select it to preview.")
-        except (OSError,ValueError) as exc:
-            self.celebration_sound_status.setText("Cannot add sound: "+str(exc))
 
     def deliver_record_celebration(self, achievements=None):
         """Persist a short-lived retry when Windows cannot start the sound."""
@@ -4087,8 +4143,12 @@ class Main(QMainWindow):
             try:pending=json.loads(get_state("pending_record_sound","null"))
             except (ValueError,TypeError):pending=None
         if achievements:
-            pending=dict(created=time.time(),attempts=0,next_attempt=0,text=" · ".join(achievements))
-            log("Celebration record reached: "+pending['text'])
+            best_hour=any("NEW BEST HOUR" in str(item) for item in achievements)
+            if best_hour:
+                pending=dict(created=time.time(),attempts=0,next_attempt=0,text=" · ".join(achievements))
+                log("Best-hour alert event: "+pending['text'])
+        if pending and "NEW BEST HOUR" not in str(pending.get("text","")):
+            pending=None
         self._pending_record_sound=pending
         if not pending:return
         if self.celebration_mute.isChecked():
@@ -4108,10 +4168,10 @@ class Main(QMainWindow):
                 pending=None
             elif pending['attempts']>=3:
                 log("Automatic celebration sound failed after three attempts; check Admin > Performance")
-                self.celebration_indicator.setText("Celebration sound failed · check Admin → Performance")
+                self.celebration_indicator.setText("Best-hour alert failed · check Admin → Performance")
                 pending=None
             else:
-                self.celebration_indicator.setText("Celebration sound retry pending · check Windows audio")
+                self.celebration_indicator.setText("Best-hour alert retry pending · check Windows audio")
                 pending['next_attempt']=time.time()+5
                 log("Automatic celebration sound unavailable; retry scheduled")
         self._pending_record_sound=pending
@@ -4132,18 +4192,8 @@ class Main(QMainWindow):
         if not preview and self.celebration_mute.isChecked():
             self.celebration_sound_status.setText("Automatic celebrations are muted. Uncheck Mute celebrations to enable.")
             return False
-        key=self.celebration_sound_combo.currentData()
-        sounds=getattr(self,"celebration_sounds",CELEBRATION_SOUNDS)
-        try:shuffle_state=json.loads(get_state("celebration_shuffle","{}"))
-        except (ValueError,TypeError):shuffle_state={}
-        if not isinstance(shuffle_state,dict):shuffle_state={}
-        next_shuffle=None
-        if key == "random":
-            available=[k for k,(_,name) in sounds.items() if resource_path(name).is_file()]
-            if not available:
-                self.celebration_sound_status.setText("No celebration audio files available.");return False
-            key,next_shuffle=celebration_library.plan_shuffle(available,shuffle_state)
-        label,filename=sounds.get(key,next(iter(CELEBRATION_SOUNDS.values())))
+        key="best_hour_alert"
+        label,filename=CELEBRATION_SOUNDS[key]
         path=resource_path(filename)
         if not path.is_file():
             self.celebration_sound_status.setText("Missing audio file: "+filename);return False
@@ -4155,10 +4205,8 @@ class Main(QMainWindow):
                 backend=winsound
             backend.PlaySound(str(path),backend.SND_FILENAME|backend.SND_ASYNC|backend.SND_NODEFAULT)
             self._last_celebration_sound=key
-            if next_shuffle is None:
-                next_shuffle=dict(shuffle_state,last=key)
-            set_state("celebration_shuffle",json.dumps(next_shuffle))
-            log("Celebration sound started: "+key+" · "+label)
+            set_state("celebration_sound",key)
+            log("Best-hour alert started: "+key+" · "+label)
             self.celebration_sound_status.setText("Playing: "+label+" · check Windows volume and speakers.")
             return True
         except Exception as exc:
@@ -4492,6 +4540,89 @@ class Main(QMainWindow):
             active._max_image_paint_ms = 0
             self.record_progress._max_motion_gap_ms = 0
             self._gui_timings = {}; self._gui_timing_since = now
+
+    def scan_secondary_cameras(self):
+        if not DEPTHAI_OK:
+            self.camera2_status.setText("CAMERA 2 · DepthAI is not installed")
+            return
+        try:
+            current=self.camera2_devices.currentText().strip()
+            self.camera2_devices.clear()
+            primary_mxid=self.primary_oak_mxid()
+            found=[]
+            for info in dai.Device.getAllAvailableDevices():
+                mxid=info.getMxId()
+                if primary_mxid and mxid==primary_mxid:
+                    continue
+                found.append(mxid)
+                self.camera2_devices.addItem(mxid,mxid)
+            if current:
+                index=self.camera2_devices.findText(current)
+                if index>=0:self.camera2_devices.setCurrentIndex(index)
+                else:self.camera2_devices.setEditText(current)
+            self.camera2_status.setText("CAMERA 2 · Select the serial number for the second physical OAK-D" if found else "CAMERA 2 · No available OAK devices found")
+        except Exception as exc:
+            self.camera2_status.setText("CAMERA 2 · Scan failed · "+str(exc)[:100])
+
+    def primary_oak_mxid(self):
+        worker=getattr(self,"worker",None)
+        source=getattr(worker,"oak_source",None)
+        device=getattr(source,"device",None)
+        if device is None:return ""
+        try:return str(device.getDeviceInfo().getMxId())
+        except Exception:return ""
+
+    def restore_secondary_camera(self):
+        mxid=get_state("secondary_oak_mxid","").strip()
+        if not mxid or self.closing:return
+        self.camera2_devices.setEditText(mxid)
+        self.connect_secondary_camera()
+
+    def connect_secondary_camera(self):
+        mxid=self.camera2_devices.currentText().strip()
+        if not mxid:
+            self.camera2_status.setText("CAMERA 2 · Enter or select its OAK serial number")
+            return
+        primary_mxid=self.primary_oak_mxid()
+        if primary_mxid and mxid==primary_mxid:
+            self.camera2_status.setText("CAMERA 2 · Choose the other OAK-D serial number")
+            return
+        self.disconnect_secondary_camera()
+        active=getattr(self,"secondary_camera_worker",None)
+        if active is not None and active.isRunning():
+            self.camera2_status.setText("CAMERA 2 · Previous connection is still closing")
+            return
+        set_state("secondary_oak_mxid",mxid)
+        self.camera2_view.setText("CONNECTING TO\n"+mxid)
+        worker=SecondaryOakPreview(mxid)
+        worker.frame_ready.connect(self.display_secondary_camera_frame)
+        worker.status.connect(self.camera2_status.setText)
+        worker.finished.connect(self.secondary_camera_finished)
+        self.secondary_camera_worker=worker
+        worker.start()
+
+    def disconnect_secondary_camera(self):
+        worker=getattr(self,"secondary_camera_worker",None)
+        if worker is not None:
+            worker.requestInterruption()
+            if worker.isRunning():worker.wait(4000)
+            if worker.isRunning():
+                self.camera2_status.setText("CAMERA 2 · Waiting for device to close")
+                return
+            self.secondary_camera_worker=None
+        self.camera2_view.setPixmap(QPixmap())
+        self.camera2_view.setText("SECOND OAK CAMERA\nNOT CONNECTED")
+
+    def secondary_camera_finished(self):
+        worker=self.sender()
+        if worker is self.secondary_camera_worker and not worker.isRunning():
+            self.secondary_camera_worker=None
+
+    def display_secondary_camera_frame(self, frame):
+        if frame is None:return
+        pix=VideoLabel.prepare_frame(frame)
+        self.camera2_view.setText("")
+        self.camera2_view.setPixmap(pix.scaled(self.camera2_view.size(),Qt.KeepAspectRatio,Qt.FastTransformation))
 
     def display_oak_preview(self):
         now = time.monotonic()
@@ -5593,6 +5724,10 @@ class Main(QMainWindow):
         self.closing = True
         if hasattr(self,"_support"):self._support.wait(3)
         self.oak_preview_timer.stop()
+        secondary=getattr(self,"secondary_camera_worker",None)
+        if secondary is not None:
+            secondary.requestInterruption()
+            if secondary.isRunning():secondary.wait(5000)
 
         if (
             self.worker is not None

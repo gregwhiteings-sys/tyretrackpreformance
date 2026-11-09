@@ -1,0 +1,22 @@
+TYRETRACK SECOND CAMERA SETUP
+
+Dashboard
+- The dashboard displays Camera 1 and Camera 2 side by side.
+- Camera 1 is the designated counting camera.
+- Camera 2 is a verification view at 480x270 and 5 fps. It runs no tyre detector, tracker, recording pipeline, or database writer.
+
+Connect Camera 2
+1. Connect the second OAK-D to the PC and power/network.
+2. Open Admin Settings > Camera.
+3. Under SECOND OAK-D, click Find OAK cameras.
+4. Select the serial number belonging to the second physical camera, then click Connect Camera 2.
+5. The selected serial is saved and reconnects on the next app launch. Use Disconnect to stop its preview.
+
+Counting and duplicate protection
+Production totals are generated only by Camera 1's existing unique crossing logic. Camera 2 does not add counts. This avoids double counting when the same tyre appears in both views. A true cross-camera merged counter requires the installed camera positions, overlapping field of view, and measured transit delay to be calibrated first; this clip shows only the existing single-camera screen, so those values are not known yet.
+
+Performance
+The secondary pipeline streams a single 480x270 preview at 5 fps. It has no neural inference or recording workload. Camera 1's detection, tracking, recording, and count logic are unchanged.
+
+Best-hour sound
+The supplied Like Wooh Wooh recording is the only celebration alert. It plays for a new best hour; a daily total record alone remains visual and does not play it. Admin Settings > Performance has a test button and mute control. Operational alarms retain priority.
