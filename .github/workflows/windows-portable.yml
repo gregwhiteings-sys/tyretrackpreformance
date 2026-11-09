@@ -1,7 +1,10 @@
-name: TyreTrack Production - Management Reports
+name: TyreTrack Windows Portable Build
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - codex/industrial-clarity-dashboard-fix
 
 permissions:
   contents: read
