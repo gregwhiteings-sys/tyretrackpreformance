@@ -59,6 +59,17 @@ assert 'PROJECTED THIS MONTH' in w.forecast_label.text()
 assert '900 20px' in w.forecast_label.styleSheet()
 print('PASS: stationary accessible message, steady low-flow threshold, monthly projection and smooth unlabelled defaults')
 print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines')
+w.resize(1353,689)
+for _ in range(5):app.processEvents()
+assert w.width()==1353 and w.height()==689,(w.width(),w.height())
+assert w.video.height()>=320 and w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomRight()).y()<w.height()
+assert all(label.height()==88 and "font:900 16px" in label.styleSheet() for label in w.projection_labels.values())
+for control in w.findChildren(QPushButton):
+ if control.isVisible():
+  at=control.mapTo(w,control.rect().topLeft());assert at.y()+control.height()<=w.height(),(control.text(),at.y(),control.height(),w.height())
+w.resize(1280,720)
+for _ in range(5):app.processEvents()
+print('PASS: laptop-height 1353x689 layout keeps projection text and operator buttons in view')
 next(button for button in w.findChildren(QPushButton) if button.text()=="Admin Settings").click();app.processEvents()
 assert w.controls_tabs.isVisible() and not w.stats_scroll.isVisible()
 for index in range(w.controls_tabs.count()):

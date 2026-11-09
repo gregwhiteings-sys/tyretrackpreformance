@@ -2428,13 +2428,20 @@ class Main(QMainWindow):
         self.setWindowTitle(
             APP_NAME + " - Performance update 2026-10-29"
         )
-        self.resize(1450, 850)
+        screen=QApplication.primaryScreen()
+        available=screen.availableGeometry() if screen is not None else None
+        if available is not None:
+            start_width=max(960,min(1450,available.width()-16))
+            start_height=max(600,min(850,available.height()-16))
+            self.resize(start_width,start_height)
+        else:
+            self.resize(1450,850)
         self.dashboard_ready.connect(self.dashboard_data_ready)
         self.live_totals_ready.connect(self.live_totals_received)
         self._dashboard_cache = None
         self.build_ui()
         # Keep the main dashboard usable on 720 px tall operator displays.
-        self.setMinimumHeight(720)
+        self.setMinimumHeight(600)
         self.apply_dashboard_density()
 
         self.refresh_counts()
@@ -5547,11 +5554,14 @@ class Main(QMainWindow):
         for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
             card.setFixedHeight(116 if expanded else 108)
         self.averages_metric_card.setFixedHeight(124 if expanded else 88)
+        compact_laptop = self.height() < 700
+        projection_font = "24px" if expanded else "16px" if compact_laptop else "20px"
+        projection_padding = "6px" if not compact_laptop else "2px"
         for label in self.projection_labels.values():
             label.setFixedHeight(124 if expanded else 88)
             label.setStyleSheet(
                 "color:#f4f7f9;background:#17251f;border:1px solid #42c879;"
-                "border-radius:8px;font:900 " + ("24px" if expanded else "20px") + " 'Segoe UI';padding:6px;"
+                "border-radius:8px;font:900 " + projection_font + " 'Segoe UI';padding:" + projection_padding + ";"
             )
         self.hourly_strip.setFixedHeight(96 if expanded else 78)
         for block in self.dashboard_hour_blocks:
@@ -5559,7 +5569,10 @@ class Main(QMainWindow):
         self.weekday_strip.setFixedHeight(112 if expanded else 82)
         for block in self.dashboard_day_blocks:
             block.setFixedHeight(86 if expanded else 62)
-        self.video.setMaximumHeight(420 if expanded else 380)
+        compact_laptop = self.height() < 700
+        self.video.setMinimumHeight(320 if compact_laptop else 360)
+        self.video.setMaximumHeight(340 if compact_laptop else 420 if expanded else 380)
+        self.operator_controls_scroll.setMaximumHeight(80)
         self.counters_panel.layout().setSpacing(10 if expanded else 5)
         self.test_transport.setFixedHeight(23 if expanded else 20)
         self.fod_badge.setFixedHeight(42 if expanded else 34)
