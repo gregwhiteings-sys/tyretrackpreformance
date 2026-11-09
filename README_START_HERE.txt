@@ -22,16 +22,18 @@ the camera and verify live Gmail delivery.
 TYRETRACK · PRODUCTION / VIDEO TEST BUILD · 20 OCTOBER 2026
 
 DASHBOARD UPDATE
-- The main screen uses a camera-first left column and production-statistics right column.
-- Hourly and weekday totals sit with the statistics; hourly tiles compare with the average
-  of completed production hours. Red is below the rounded average, orange is on it,
-  and green is above it. The current hour compares with completed hours so far.
-- This reuses the existing dashboard refresh and cached totals; it adds no camera or
-  model work and no additional polling.
+- The main screen follows the selected industrial layout: live camera and class totals
+  at left; large Today, This Hour, Best Hour and Best Day cards; averages, projections,
+  hourly totals and weekday totals remain visible.
+- Passenger is green, SUV/4x4 blue, and truck amber. Hour tiles are red below the
+  rounded displayed average, orange on average, and green above it. Future hours are neutral.
+- Dashboard class totals reuse current count and weight values. Camera inference,
+  crossing logic, and polling frequency are unchanged.
 
 This ZIP is source plus models and a Windows build workflow, not a compiled EXE.
-Extract it first. Upload the contents, including .github/workflows/windows-portable.yml,
-to your TyreTrack GitHub repository. Run the Windows Portable workflow from Actions.
+Extract it first. Upload the contents, including the hidden .github/workflows/windows-portable.yml,
+to the root of your TyreTrack GitHub repository. In Actions, run
+TyreTrack Windows Portable Build.
 Download TyreTrack-Windows-x64-Portable when the workflow passes.
 Alternatively build on Windows x64 Python 3.12 using the included workflow steps.
 
@@ -120,11 +122,13 @@ Use matching hand counts and review the annotated footage: equal totals can conc
 one missed tyre and one duplicate. A diagonal cannot identify a completely hidden tyre.
 
 DASHBOARD
-The video occupies the main display; a compact right rail keeps Today, This Hour,
-Best Hour, Best Day, All Time, Flow, Passenger, SUV and hourly/minute averages visible.
+The industrial-clarity screen places the live camera and class strips at left. Today,
+class summaries, This Hour, Best Hour, Best Day, production averages, and daily/weekly/
+monthly projections appear at right. Hourly and weekday totals stay along the bottom.
 Detailed hourly history, best-flow statistics and no-flow time remain in Admin >
 Performance. Show fixed lines is in Admin > Counting; celebration mute is in Performance.
-The static dark/cyan/violet styling uses no animated effects or additional AI inference.
+The dark charcoal, gold, green, and blue styling uses no animated effects or additional
+AI inference. Class-strip values reuse the current dashboard totals.
 
 
 ADJUSTABLE CONNECTED ZIGZAG

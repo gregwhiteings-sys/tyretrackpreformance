@@ -2433,6 +2433,8 @@ class Main(QMainWindow):
         self.live_totals_ready.connect(self.live_totals_received)
         self._dashboard_cache = None
         self.build_ui()
+        # Keep the main dashboard usable on 720 px tall operator displays.
+        self.setMinimumHeight(720)
 
         self.refresh_counts()
 
@@ -2781,6 +2783,7 @@ class Main(QMainWindow):
         self.test_transport=QLabel("OAK CAMERA / LIVE VIEW")
         self.test_transport.setObjectName("transport")
         self.test_transport.setWordWrap(True)
+        self.test_transport.setFixedHeight(23)
         left.addWidget(self.test_transport)
         self.test_progress=QProgressBar();self.test_progress.setRange(0,1000)
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
@@ -2792,7 +2795,10 @@ class Main(QMainWindow):
         # cards and add no extra database or camera work.
         self.left_class_summary=QWidget()
         self.left_class_summary.setObjectName("leftClassSummary")
-        left_class_layout=QVBoxLayout(self.left_class_summary)
+        # Three compact class tiles preserve the reference dashboard's class
+        # breakdown while leaving enough vertical room for a 360 px live view
+        # and the hourly/day strips on a 720 px display.
+        left_class_layout=QHBoxLayout(self.left_class_summary)
         left_class_layout.setContentsMargins(0,0,0,0)
         left_class_layout.setSpacing(4)
         self.left_class_count_labels={}
@@ -2800,27 +2806,30 @@ class Main(QMainWindow):
         for key,name,colour in (("passenger","PASSENGER","#38D996"),("4x4","SUV / 4X4","#42B7FF"),("truck","TRUCK","#F1B82D")):
             strip=QFrame();strip.setObjectName("leftClassStrip")
             strip.setStyleSheet(f"QFrame#leftClassStrip {{background:#20282e;border:1px solid {colour};border-left:6px solid {colour};border-radius:6px;}}")
-            strip_layout=QHBoxLayout(strip);strip_layout.setContentsMargins(9,3,9,3);strip_layout.setSpacing(6)
-            class_name=QLabel(name);class_name.setStyleSheet(f"color:{colour};font-size:12px;font-weight:900;")
-            class_count=QLabel("0 tyres");class_count.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
-            class_count.setStyleSheet("color:#f7f8fa;font:900 19px 'Consolas';")
-            class_weight=QLabel("0 kg");class_weight.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
-            class_weight.setStyleSheet("color:#d5dce1;font:700 12px 'Consolas';")
-            strip_layout.addWidget(class_name,2);strip_layout.addWidget(class_count,2);strip_layout.addWidget(class_weight,1)
-            left_class_layout.addWidget(strip)
+            strip_layout=QVBoxLayout(strip);strip_layout.setContentsMargins(6,3,4,3);strip_layout.setSpacing(0)
+            class_name=QLabel(name);class_name.setAlignment(Qt.AlignCenter)
+            class_name.setStyleSheet(f"color:{colour};font-size:10px;font-weight:900;")
+            class_count=QLabel("0 tyres");class_count.setAlignment(Qt.AlignCenter)
+            class_count.setStyleSheet("color:#f7f8fa;font:900 16px 'Consolas';")
+            class_weight=QLabel("0 kg");class_weight.setAlignment(Qt.AlignCenter)
+            class_weight.setStyleSheet("color:#d5dce1;font:700 11px 'Consolas';")
+            strip_layout.addWidget(class_name);strip_layout.addWidget(class_count);strip_layout.addWidget(class_weight)
+            strip.setMinimumHeight(58)
+            left_class_layout.addWidget(strip,1)
             self.left_class_count_labels[key]=class_count
             self.left_class_weight_labels[key]=class_weight
         left.addWidget(self.left_class_summary)
         self.fod_badge=QLabel("●  FOD: OFF")
         self.fod_badge.setAlignment(Qt.AlignCenter)
-        self.fod_badge.setStyleSheet("background:#20282e;border:1px solid #596771;border-radius:6px;color:#c8d0d6;font-weight:800;padding:7px 10px;")
+        self.fod_badge.setStyleSheet("background:#20282e;border:1px solid #596771;border-radius:6px;color:#c8d0d6;font-weight:800;padding:3px 8px;")
         left.addWidget(self.fod_badge)
         # Windows font metrics can make status/control rows taller. Let this
         # secondary area scroll instead of taking height from the live video.
         self.operator_controls_scroll=ControlScrollArea()
         self.operator_controls_scroll.setFrameShape(QFrame.NoFrame)
-        self.operator_controls_scroll.setMinimumHeight(44)
-        self.operator_controls_scroll.setMaximumHeight(80)
+        self.operator_controls_scroll.setMinimumSize(0,44)
+        self.operator_controls_scroll.setFixedHeight(64)
+        self.operator_controls_scroll.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
         self.operator_controls=QWidget()
         self.operator_controls.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
         operator_layout=QVBoxLayout(self.operator_controls)
