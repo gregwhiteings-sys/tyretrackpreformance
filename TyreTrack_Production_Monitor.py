@@ -2781,9 +2781,8 @@ class Main(QMainWindow):
         counters_layout.addLayout(average_forecast_row)
         self.dashboard_record_progress=QLabel("Build the next best hour")
         self.dashboard_record_progress.setAlignment(Qt.AlignCenter)
-        self.dashboard_record_progress.setFixedHeight(24)
-        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:800 12px 'Segoe UI';padding:2px 8px;")
-        counters_layout.addWidget(self.dashboard_record_progress)
+        self.dashboard_record_progress.setFixedHeight(18)
+        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:800 10px 'Segoe UI';padding:1px 5px;")
         secondary_metric_cards=[]
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
@@ -2821,9 +2820,15 @@ class Main(QMainWindow):
         self.hourly_strip=QFrame()
         strip_layout=QVBoxLayout(self.hourly_strip)
         strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
-        hour_heading=QLabel("▏  HOURLY TOTALS · BRISBANE · 05:00–17:05   |   RED BELOW · ORANGE AVERAGE · GREEN ABOVE")
-        hour_heading.setStyleSheet("color:#f1b82d;font-size:10px;font-weight:900;letter-spacing:0.5px;")
-        strip_layout.addWidget(hour_heading)
+        hour_header=QHBoxLayout();hour_header.setSpacing(4)
+        hour_heading=QLabel("▏  HOURLY · BRISBANE · 05:00–17:05")
+        hour_heading.setStyleSheet("color:#f1b82d;font-size:9px;font-weight:900;letter-spacing:0.3px;")
+        hour_header.addWidget(hour_heading,3)
+        hour_legend=QLabel("RED < AVG · ORANGE = AVG · GREEN > AVG")
+        hour_legend.setStyleSheet("color:#d4dbe0;font-size:8px;font-weight:800;")
+        hour_header.addWidget(hour_legend,3)
+        hour_header.addWidget(self.dashboard_record_progress,4)
+        strip_layout.addLayout(hour_header)
         blocks=QGridLayout();blocks.setSpacing(4)
         self.dashboard_hour_blocks=[]
         for index in range(13):
