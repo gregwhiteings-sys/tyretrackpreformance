@@ -2857,7 +2857,7 @@ class Main(QMainWindow):
         left = QVBoxLayout(self.camera_panel)
         left.setContentsMargins(0,0,0,0)
         left.setSpacing(6)
-        body.addWidget(self.camera_panel, 3)
+        body.addWidget(self.camera_panel, 5)
 
         self.video = VideoLabel()
         self.video.fullscreen_requested.connect(
@@ -2884,6 +2884,7 @@ class Main(QMainWindow):
         camera_views=QWidget();camera_views.setObjectName("cameraViews")
         camera_views_layout=QHBoxLayout(camera_views);camera_views_layout.setContentsMargins(0,0,0,0);camera_views_layout.setSpacing(6)
         primary_view=QWidget();primary_layout=QVBoxLayout(primary_view);primary_layout.setContentsMargins(0,0,0,0);primary_layout.setSpacing(3)
+        self.primary_camera_view=primary_view
         primary_title=QLabel("CAMERA 1 · COUNTING");primary_title.setObjectName("transport");primary_layout.addWidget(primary_title)
         secondary_view=QWidget();secondary_layout=QVBoxLayout(secondary_view);secondary_layout.setContentsMargins(0,0,0,0);secondary_layout.setSpacing(3)
         self.camera2_status=QLabel("CAMERA 2 · NOT CONFIGURED");self.camera2_status.setObjectName("transport");self.camera2_status.setWordWrap(True);self.camera2_status.setMinimumHeight(20);secondary_layout.addWidget(self.camera2_status)
@@ -2946,7 +2947,7 @@ class Main(QMainWindow):
         self.stats_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.stats_scroll.setMinimumWidth(0)
         self.stats_scroll.setWidget(self.counters_panel)
-        body.addWidget(self.stats_scroll, 2)
+        body.addWidget(self.stats_scroll, 7)
 
         run_row = QHBoxLayout()
 
@@ -5731,6 +5732,11 @@ class Main(QMainWindow):
         """Use the sample's roomier cards on full displays and compact cards on short screens."""
         if not hasattr(self, "hourly_strip"):
             return
+        # Keep the five dated weekday cards readable at CI/site widths while
+        # releasing those width hints on smaller laptop displays.
+        wide_layout=self.width()>=1280
+        self.stats_scroll.setMinimumWidth(716 if wide_layout else 0)
+        self.primary_camera_view.setMinimumWidth(350 if wide_layout else 0)
         expanded = self.height() >= 800
         self.dashboard_top_spacer.setFixedHeight(26 if expanded else 0)
         self.today_metric_card.setFixedHeight(196 if expanded else 176)
