@@ -50,6 +50,18 @@ for width,height in ((1450,850),(1366,768),(1280,720)):
 assert not hasattr(w.record_progress, '_motion')
 w.record_progress.setText("Fixed message")
 assert w.record_progress.toolTip()=="Fixed message"
+assert w.dashboard_flow_card.isVisible() and w.dashboard_record_progress.isVisible()
+w.set_flow_rate(4.9)
+assert w.dashboard_flow_lbl.text()=='4.9' and '#FF5C68' in w.dashboard_flow_lbl.styleSheet()
+w.set_flow_rate(5)
+assert w.dashboard_flow_lbl.text()=='5.0'
+w.test_events=[5,20]
+w.refresh_production_hours(test_mode=True,test_seconds=600)
+first_average=w.production_average.text()
+w.test_events.append(700)
+w.refresh_production_hours(test_mode=True,test_seconds=1200)
+assert w.production_average.text()!=first_average
+assert w.dashboard_record_progress.text()==w.record_progress.text()
 w.set_flow_rate(4.9);assert '#FF5C68' in w.flow_lbl.styleSheet()
 w.set_flow_rate(5);assert not w.flow_lbl.styleSheet()
 assert not hasattr(w, 'flow_flash_timer')

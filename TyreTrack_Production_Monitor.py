@@ -2763,15 +2763,27 @@ class Main(QMainWindow):
         self.record_progress.setStyleSheet("color:#55f1d7;font:800 18px 'Segoe UI';")
         flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#40ead7")
         flow_card.setFixedHeight(57)
+        self.dashboard_flow_lbl=QLabel("0.0")
+        self.dashboard_flow_lbl.setObjectName("metricValue")
+        self.dashboard_flow_lbl.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+        dashboard_flow_card=metric_card("TYRES PER MINUTE",self.dashboard_flow_lbl,"#40ead7")
+        dashboard_flow_card.setFixedHeight(88)
+        self.dashboard_flow_card=dashboard_flow_card
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
         averages.setFixedHeight(88)
         self.averages_metric_card=averages
-        self.production_average.setStyleSheet("color:#f1b82d;font:700 20px 'Consolas';")
+        self.production_average.setStyleSheet("color:#f1b82d;font:700 14px 'Consolas';")
         average_forecast_row=QHBoxLayout();average_forecast_row.setSpacing(5)
-        average_forecast_row.addWidget(averages,1)
-        average_forecast_row.addLayout(projection_row,4)
+        average_forecast_row.addWidget(averages,13)
+        average_forecast_row.addWidget(dashboard_flow_card,10)
+        average_forecast_row.addLayout(projection_row,40)
         counters_layout.addLayout(average_forecast_row)
+        self.dashboard_record_progress=QLabel("Build the next best hour")
+        self.dashboard_record_progress.setAlignment(Qt.AlignCenter)
+        self.dashboard_record_progress.setFixedHeight(24)
+        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:800 12px 'Segoe UI';padding:2px 8px;")
+        counters_layout.addWidget(self.dashboard_record_progress)
         secondary_metric_cards=[]
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
@@ -2886,6 +2898,7 @@ class Main(QMainWindow):
         left.addWidget(self.test_progress)
         camera_views=QWidget();camera_views.setObjectName("cameraViews")
         camera_views_layout=QVBoxLayout(camera_views);camera_views_layout.setContentsMargins(0,0,0,0);camera_views_layout.setSpacing(6)
+        self.camera_views=camera_views
         primary_view=QWidget();primary_layout=QVBoxLayout(primary_view);primary_layout.setContentsMargins(0,0,0,0);primary_layout.setSpacing(3)
         self.primary_camera_view=primary_view
         primary_title=QLabel("CAMERA 1 · COUNTING");primary_title.setObjectName("transport");primary_title.setFixedHeight(20);primary_layout.addWidget(primary_title)
@@ -5089,12 +5102,28 @@ class Main(QMainWindow):
             return f"H{slot['number']}  ·  {slot['count']:,}" if slot else "0  ·  waiting"
 
         completed_slots = [slot for slot in slots if slot['completed']]
-        average = (sum(slot['count'] for slot in completed_slots) / len(completed_slots)) if completed_slots else 0.0
+        if test_mode:
+            elapsed_seconds=min(12*3600+300,max(0.0,float(test_seconds)))
+            elapsed_hours=max(elapsed_seconds/3600.0,1.0/60.0)
+            produced=sum(slot['count'] for slot in slots if slot['start']<elapsed_seconds)
+            current=next((slot for slot in slots if slot['start']<=test_seconds<slot['end']),None)
+        else:
+            now=brisbane_now()
+            shift_start=slots[0]['start']
+            shift_end=slots[-1]['end']
+            elapsed_seconds=max(0.0,min((now-shift_start).total_seconds(),(shift_end-shift_start).total_seconds()))
+            elapsed_hours=max(elapsed_seconds/3600.0,1.0/60.0)
+            cutoff=shift_start+timedelta(seconds=elapsed_seconds)
+            produced=sum(slot['count'] for slot in slots if slot['start']<cutoff)
+            current=next((slot for slot in slots if slot['start']<=now<slot['end']),None)
+        # Pace includes completed hours plus the current partial hour, so it
+        # changes during the shift instead of staying frozen until the next
+        # hour closes. Hourly tiles use the same live baseline.
+        average=produced/elapsed_hours if elapsed_seconds>0 else 0.0
         self.production_average.setText(f"{average:,.1f} / hour\n{average/60:,.2f} / minute")
         achievements=[]
         if not test_mode:
             now = brisbane_now()
-            current = next((slot for slot in slots if slot['start'] <= now < slot['end']), None)
             # Catch records crossed in the final frame of an hour, and establish
             # the first non-empty completed hour as today's first benchmark.
             for candidate in slots:
@@ -5119,9 +5148,20 @@ class Main(QMainWindow):
                 self.celebration_banner.setText("★ " + "  ·  ".join(achievements) + " ★")
                 QTimer.singleShot(12000, lambda: self.celebration_banner.setText(""))
             self.deliver_record_celebration(achievements)
-            benchmark=max((slot['count'] for slot in completed_slots),default=0)
-            remaining=max(0,benchmark-int(current['count'])+1) if current else 0
-            self.record_progress.setText((f"{remaining:,} tyres to beat today's best hour" if remaining else "New best hour pace — keep it going!") if current and completed_slots else "Next shift: build the next best hour")
+        benchmark=max((slot['count'] for slot in completed_slots),default=0)
+        if current:
+            remaining=max(0,benchmark-int(current['count'])+1) if completed_slots else max(0,1-int(current['count']))
+            if remaining:
+                unit="tyre" if remaining==1 else "tyres"
+                text=(f"TEST · {remaining:,} {unit} to beat the best test hour" if test_mode else
+                      f"{remaining:,} {unit} to beat today's best hour" if completed_slots else
+                      f"{remaining:,} {unit} to set today's first best hour")
+            else:
+                text="New best hour pace — keep it going!"
+        else:
+            text="Next shift: build the next best hour"
+        self.record_progress.setText(text)
+        self.dashboard_record_progress.setText(text)
         # Best sustained flow measured across completed hourly slots, including zero-count hours.
         flow = max((slot['count'] / self._slot_minutes(slot)
                     for slot in completed_slots), default=0.0)
@@ -5253,7 +5293,9 @@ class Main(QMainWindow):
         if not config or not config['enabled'] or not config.get('snapshot_enabled'):return
         from web_dashboard import operator_image
         # Capture only the visible production dashboard; admin tabs and controls stay excluded.
-        safe_widgets=[self.video,self.left_class_summary,self.fod_badge,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
+        # Share both camera previews in the operator still. The hidden legacy
+        # class-summary widget and admin/control area are intentionally omitted.
+        safe_widgets=[self.camera_views,self.fod_badge,self.stats_scroll.viewport(),self.hourly_strip,self.weekday_strip]
         rectangles=[]
         for widget in safe_widgets:
             if widget.isVisible():
@@ -5465,12 +5507,16 @@ class Main(QMainWindow):
 
     def set_flow_rate(self, rate):
         text = f"{rate:.1f}"
-        if self.flow_lbl.text() != text: self.flow_lbl.setText(text)
+        for label in (self.flow_lbl,getattr(self,"dashboard_flow_lbl",None)):
+            if label is not None and label.text()!=text:label.setText(text)
         low = rate < 5
         if low != getattr(self, "_low_flow", None):
             self._low_flow = low
-            self.flow_lbl.setStyleSheet("color:#FF5C68;font-size:22px;font-weight:900;" if low else "")
+            for label in (self.flow_lbl,getattr(self,"dashboard_flow_lbl",None)):
+                if label is not None:label.setStyleSheet("color:#FF5C68;font-size:22px;font-weight:900;" if low else "")
             self.flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Flow: tyres per minute")
+            if getattr(self,"dashboard_flow_lbl",None) is not None:
+                self.dashboard_flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Live production rate from the recent five-minute window")
 
     def reset_session(self):
         if (

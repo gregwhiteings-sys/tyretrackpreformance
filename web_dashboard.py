@@ -1,7 +1,7 @@
 """Outbound-only, opt-in summaries and safe dashboard stills; no remote controls."""
 import json,os,threading,time,urllib.request
 from pathlib import Path
-from datetime import timezone
+from datetime import timezone,timedelta
 import tyre_weight
 ORIGIN='https://tyretrack-production-live.astute-loom-2153.chatgpt.site'
 URL=ORIGIN+'/api/snapshot'
@@ -17,7 +17,15 @@ def build_snapshot(live,cache,now,camera_connected=False,target=0,test_mode=Fals
     if live['day']!=now.date().isoformat() or live['hour']!=now.hour:return None
     if cache['metrics']['day_start'].date()!=now.date():return None
     v=tyre_weight.totals(live['types']);metrics=cache['metrics'];slots,best,_=cache['hourly']
-    completed=[s for s in slots if s['completed']]
+    if slots:
+        shift_start=slots[0]['start'];shift_end=shift_start.replace(hour=17,minute=5,second=0,microsecond=0)
+        elapsed_seconds=max(0.0,min((now-shift_start).total_seconds(),(shift_end-shift_start).total_seconds()))
+        elapsed_hours=max(elapsed_seconds/3600.0,1.0/60.0)
+        cutoff=shift_start+timedelta(seconds=elapsed_seconds)
+        produced=sum(s['count'] for s in slots if s['start']<cutoff)
+        average_hour=produced/elapsed_hours if elapsed_seconds>0 else 0.0
+    else:
+        average_hour=0.0
     projections={}
     for period in ('day','week','month'):
         item=cache.get('production_projections',{}).get(period)
@@ -46,7 +54,7 @@ def build_snapshot(live,cache,now,camera_connected=False,target=0,test_mode=Fals
     return dict(schema=1,health=health,activity=activity,captured_at=now.astimezone(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),
         today=live['daily'],this_hour=live['current_hour'],best_hour=best['count'] if best else 0,best_day=cache['best'][1],all_time=live['all_time'],
         passenger=v['counts']['passenger'],suv=v['counts']['4x4'],truck=v['counts']['truck'],unclassified=v['unknown'],estimated_kg=v['total_kg'],epu=v['total_epu'],
-        flow=metrics['flow_per_minute'],average_hour=sum(s['count'] for s in completed)/len(completed) if completed else 0,
+        flow=metrics['flow_per_minute'],average_hour=average_hour,
         production_status=metrics['no_count_status'],camera_connected=bool(camera_connected),projections=projections,
         hours=[dict(label=s['start'].strftime('%H:%M'),count=s['count'],current=s['start']<=now<s['end']) for s in slots],
         days=[dict(label=s['date'].strftime('%a %d %b'),count=s['count'],current=s['current']) for s in cache['weekdays']])

@@ -12,9 +12,14 @@ cache=dict(metrics=dict(day_start=start,flow_per_minute=1.2,no_count_status='RUN
 payload=build_snapshot(live,cache,now,True,100)
 assert payload['estimated_kg']==77 and payload['epu']==9
 assert payload['passenger']==2 and payload['suv']==1 and payload['truck']==1
+assert abs(payload['average_hour']-.4)<1e-9,payload['average_hour']
 assert 'private_email' not in payload and 'comments' not in payload
 assert build_snapshot(live,cache,now,test_mode=True) is None
 assert build_snapshot(live,cache,now+timedelta(days=1)) is None
+cache['hourly']=([dict(start=start,end=start+timedelta(hours=1),completed=True,count=2),
+                  dict(start=now.replace(hour=10),end=now.replace(hour=11),completed=False,count=3)],dict(count=2),None)
+later=now.replace(minute=30)
+assert build_snapshot(live,cache,later)['average_hour']>payload['average_hour'],'Average pace should include and change with the current hour'
 with tempfile.TemporaryDirectory() as tmp:
  path=Path(tmp)/'connection.json';cfg=Path(tmp)/'import.json';cfg.write_text(json.dumps(dict(schema=1,url=URL,token='x'*48)))
  clock=[0];entered=threading.Event();release=threading.Event()

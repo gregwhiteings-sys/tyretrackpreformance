@@ -4,8 +4,8 @@ from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QImage,QColor,QPainter
-from PyQt5.QtCore import QRect,QTimer
-from unittest.mock import MagicMock
+from PyQt5.QtCore import QPoint,QRect,QTimer
+from unittest.mock import MagicMock,patch
 from web_dashboard import operator_image,Publisher,ImagePublisher,URL
 qt=QApplication.instance() or QApplication([])
 for ratio in (1,2):
@@ -47,7 +47,13 @@ with DatabaseTemporaryDirectory() as folder:
   assert not w.web_image_enabled.isChecked()
   w._web_publisher.config=dict(schema=1,url=URL,token='test-only-'+'x'*40,enabled=True,snapshot_enabled=True)
   w._web_publisher.request=MagicMock();w._web_image_publisher.request=MagicMock()
-  w.publish_dashboard_image(w.grab().toImage());assert w._web_image_publisher.request.call_count==1
+  import web_dashboard
+  capture=MagicMock(side_effect=web_dashboard.operator_image)
+  with patch.object(web_dashboard,'operator_image',capture):
+   w.publish_dashboard_image(w.grab().toImage())
+  assert w._web_image_publisher.request.call_count==1
+  camera2_origin=w.camera2_view.mapTo(w,QPoint(2,2))
+  assert any(rect.contains(camera2_origin) for rect in capture.call_args.args[1]),'Public still must include Camera 2 preview'
   w.offline_testing=True;w.publish_dashboard_image(w.grab().toImage());assert w._web_image_publisher.request.call_count==1
  finally:w.close();qt.processEvents()
 print('PASS: actual Qt dashboard capture wiring and offline test suppression; no production writes or network')

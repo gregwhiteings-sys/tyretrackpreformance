@@ -154,9 +154,10 @@ Record markers survive restart. Simultaneous hour/day records use one combined c
 Operational alarms take priority. Physical speaker playback requires a Windows check.
 
 DASHBOARD LAYOUT UPDATE
-The camera rail receives more width and keeps Camera 1 and Camera 2 side by side.
-Passenger, SUV/4x4 and truck totals sit directly under both views. Hourly cards
-are taller to use more of the space near the bottom of the dashboard.
+Camera 1 and Camera 2 now stack vertically with equal-sized preview areas.
+Passenger, SUV/4x4 and truck totals remain in the dashboard summary, not beneath
+the cameras. The main dashboard shows live tyres per minute, current average
+pace and the number needed to beat or set the best hour.
 
 HOURLY BLOCKS / AUTOMATIC CELEBRATIONS UPDATE (21 October)
 13 hourly blocks are always visible along the bottom, including the 17:00–17:05 final slot.
