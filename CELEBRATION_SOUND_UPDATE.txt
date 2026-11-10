@@ -1,7 +1,9 @@
-BEST-HOUR ALERT
+BEST-HOUR CELEBRATION SOUNDS
 
-This build contains one celebration alert: the audio supplied for this update. It plays only when a new best hour is reached. Daily-total records remain visible on the dashboard but do not play audio.
+The previous Like Wooh Wooh recording has been removed. This build bundles all 21 clips from Voicy_R4V3 B0Y .zip, converted to compact 22.05 kHz mono, 16-bit PCM WAV files.
 
-Open Admin Settings > Performance to mute/unmute the alert or press Test best-hour alert. Operational foreign-object alarms keep priority and block the celebration alert while active.
+Random shuffle is selected by default. Every supplied clip plays once per shuffle cycle, with no back-to-back repeat. Automatic playback is still limited to new best-hour records; daily-total records do not play audio.
 
-The WAV is bundled in the Windows build, so it does not depend on a separate audio file in the data folder.
+Open Admin Settings > Performance to mute/unmute celebrations, choose a clip, or press Test celebration sound. Operational foreign-object alarms keep priority and block celebration playback while active.
+
+All WAV files are bundled with the Windows build. The recordings use approximately 8 MB in the source tree and do not add camera, inference, database, or network work.

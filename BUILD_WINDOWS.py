@@ -40,7 +40,7 @@ def main():
     # Source probe gives a useful diagnostic before spending time freezing.
     env=os.environ.copy();env['QT_QPA_PLATFORM']='offscreen';env['OMP_NUM_THREADS']='2';env['TYRETRACK_SMOKE_LEVEL']='quick';env['PYTHONUNBUFFERED']='1'
     source_result=LOGS/'source-smoke.json'
-    run([sys.executable,'-m','compileall','-q','TyreTrack_Production_Monitor.py','count_line.py','hourly_dashboard.py','foreign_alarm.py','oak_rvc2.py','oak_hardware_test.py','oak_ai.py','oak_recording.py','background_export.py','build_support'])
+    run([sys.executable,'-m','compileall','-q','TyreTrack_Production_Monitor.py','count_line.py','hourly_dashboard.py','foreign_alarm.py','oak_rvc2.py','oak_hardware_test.py','oak_ai.py','oak_recording.py','background_export.py','celebration_library.py','build_support'])
     smoke([sys.executable,ROOT/'TyreTrack_Production_Monitor.py','--build-smoke-test',source_result],source_result,env,ROOT,180)
     command=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--windowed',
              '--name','TyreTrack','--paths',ROOT,'--noupx',

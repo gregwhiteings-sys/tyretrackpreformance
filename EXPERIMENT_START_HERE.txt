@@ -2,7 +2,7 @@ LATEST UPDATE — 26 OCTOBER 2026
 Today’s class counts now show estimated kg and a combined weight/EPU total.
 Passenger = 8 kg/1 EPU; SUV = 16 kg/2 EPU; Truck = 45 kg/5 EPU.
 Truck recognition still needs a truck-capable model; current model is two-class.
-The supplied Like Wooh Wooh recording is the only alert; it plays for a new best hour.
+All 21 clips from the supplied Voicy audio pack shuffle for new best hours; daily-total records remain silent.
 Smooth live preview is lighter; PNG saving runs in the background.
 For Windows sign-in launch, run INSTALL_AUTOSTART.bat beside the built EXE.
 Read FULL_CHECK_REPORT.txt for verification, setup and on-site checks.
@@ -127,8 +127,7 @@ Only crossings on the selected segments are accepted. Geometry changes clear mot
 references while retaining accepted counts. Set and lock the geometry before measuring.
 
 BEST-HOUR ALERT CHECK
-Admin Settings > Performance shows the single Like Wooh Wooh alert. Test best-hour
-alert previews it; mute controls automatic playback. It plays only for a new best
+Admin Settings > Performance lets you shuffle the supplied clips or choose one. The test button previews a sound; mute controls automatic playback. It plays only for a new best
 hour. A daily-total record alone stays visual. Stop celebration preview stops it
 when no operational alarm is active. Operational alarms have priority.
 
@@ -142,11 +141,11 @@ Database-upgrade tests preserve existing records and site state. Real camera,
 network, Windows packaging and speaker playback still require the site tests.
 
 WINDOWS CI CLEANUP FIX
-Temporary database fixtures now explicitly close SQLite handles before directory deletion, including exceptional exits. Audio validation and operational source behavior remain unchanged. Re-run the Windows Actions workflow after replacing source files.
+Temporary database fixtures now explicitly close SQLite handles before directory deletion, including exceptional exits. The new 21-clip shuffled celebration pack replaces the previous single tone; operational alarms and best-hour-only triggering remain unchanged. Re-run the Windows Actions workflow after replacing source files.
 
 CREW PERFORMANCE DASHBOARD
 Larger statistics and smaller video; fullscreen video remains available for setup.
-The supplied Like Wooh Wooh audio is the only alert and plays for a new best hour. Daily records do not play an alert.
+All 21 supplied clips shuffle on new best-hour records. Daily records do not play a sound.
 Admin > Performance: choose Random or a fixed clip, Test, Stop and Mute.
 New best hour: once per qualifying hour when it exceeds today's completed hours.
 New best daily total: once per date when it exceeds the best PRIOR production day.
@@ -154,9 +153,10 @@ Ties, the first day without a prior record, and video tests do not trigger daily
 Record markers survive restart. Simultaneous hour/day records use one combined celebration.
 Operational alarms take priority. Physical speaker playback requires a Windows check.
 
-LAYOUT SIZING CORRECTION
-Camera panel no longer inherits long label width hints. Statistics retain the wider panel.
-Status text wraps; camera controls use two compact rows. Verified at 1280,1366,1450 widths and 150%/200% Qt scaling locally.
+DASHBOARD LAYOUT UPDATE
+The camera rail receives more width and keeps Camera 1 and Camera 2 side by side.
+Passenger, SUV/4x4 and truck totals sit directly under both views. Hourly cards
+are taller to use more of the space near the bottom of the dashboard.
 
 HOURLY BLOCKS / AUTOMATIC CELEBRATIONS UPDATE (21 October)
 13 hourly blocks are always visible along the bottom, including the 17:00–17:05 final slot.

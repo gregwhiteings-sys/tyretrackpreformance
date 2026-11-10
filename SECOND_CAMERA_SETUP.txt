@@ -19,4 +19,4 @@ Performance
 The secondary pipeline streams a single 480x270 preview at 5 fps. It has no neural inference or recording workload. Camera 1's detection, tracking, recording, and count logic are unchanged.
 
 Best-hour sound
-The supplied Like Wooh Wooh recording is the only celebration alert. It plays for a new best hour; a daily total record alone remains visual and does not play it. Admin Settings > Performance has a test button and mute control. Operational alarms retain priority.
+All 21 clips from the supplied Voicy audio pack are available in a no-repeat shuffle for new best-hour records; daily total records remain silent. Admin Settings > Performance has a test button, sound selection, and mute control. Operational alarms retain priority.

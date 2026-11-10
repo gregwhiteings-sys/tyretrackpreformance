@@ -1,2 +1,2 @@
-Best-hour alert audio supplied by the TyreTrack app owner in this build request. Bundled as 22.05 kHz mono, 16-bit PCM WAV for Windows playback.
+Celebration clips supplied by the TyreTrack app owner in Voicy_R4V3 B0Y .zip. Bundled as 22.05 kHz mono, 16-bit PCM WAV for Windows playback; random shuffle is used for new best-hour records.
 Foreign-object alarm audio is separate and unchanged.

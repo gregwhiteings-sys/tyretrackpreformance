@@ -9,21 +9,20 @@ Existing Windows dependency pins preserved; ReportLab 4.4.9 added for PDFs and p
 INTENTIONAL CHANGES
 Independent grouped live totals; five-second historical refresh with no busy queue; fractional-position marquee on precise 33 ms timer
 Branded daily and Friday weekly PDF+CSV management briefings; manual background export; HTML email
-One owner-supplied WAV alert, fixed to best-hour records only
+Twenty-one owner-supplied celebration clips shuffled on best-hour records only
 Today class counts and owner-specified kg/EPU estimates
 Native 640x360 live view with original-preview fallback; background PNG encoding retained
 Optional sign-in shortcut installer and duplicate-instance lock
 Camera stays connected outside shift; count gate remains weekday 05:00–17:05 Brisbane
 Experimental shared three-line counter with adjustable top/bottom and horizontal span
 OAK-only production input and separate on-screen video tester
-Statistics-focused dashboard, dual-camera preview-only second view, primary-only counting, and one supplied best-hour alert
+Statistics-focused dashboard, wider side-by-side camera preview area with totals beneath both views, primary-only counting, and 21 shuffled best-hour celebration clips
 Additive database indexes and shift-only dashboard query
 One-class OAK foreign-object blob and YOLOv8 tensor decoder; one email per confirmed object track; alarm clears after three seconds without detection
 Malformed foreign-model output is isolated from the tyre capture stream and surfaces as a foreign-detector fault
 
 READINESS
-Software compatibility checks passed. Use a separate trial folder and preserve existing data/reports.
-Build the Windows EXE with the included workflow. Before production, close other OAK apps, run
+The requested source updates are prepared; the full GitHub Actions workflow has not been run for this bundle. Use a separate trial folder and preserve existing data/reports. Upload the extracted source files to GitHub and run the included workflow before using the Windows EXE. Before production, close other OAK apps, run
 RUN_OAK_HARDWARE_TEST.bat (tyre-only, 60 seconds, no production counts) and use the sound test
 on the actual PC. Then hand-check counts on representative conveyor footage. Keep the old
 working build for rollback. Camera connectivity, live accuracy and physical sound are not
