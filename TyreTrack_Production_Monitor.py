@@ -20,6 +20,7 @@ import threading
 import queue
 import json
 import random
+import celebration_library
 import tyre_weight
 from PyQt5.QtCore import QLockFile
 import time
@@ -129,7 +130,29 @@ except Exception:
 
 APP_NAME = "TYRECYCLE | TYRETRACK"
 MODEL_NAME = "tyre_detector.pt"
-CELEBRATION_SOUNDS={'best_hour_alert': ('Like Wooh Wooh · Best hour alert', 'celebration_sounds/best_hour_alert.wav')}
+CELEBRATION_SOUNDS={
+    'voicy_01': ('R4V3 B0Y', 'celebration_sounds/voicy_01.wav'),
+    'voicy_02': ('The Claim Is On You, The Sights Are On Me', 'celebration_sounds/voicy_02.wav'),
+    'voicy_03': ('Notice Me', 'celebration_sounds/voicy_03.wav'),
+    'voicy_04': ('Shaking At The Knees', 'celebration_sounds/voicy_04.wav'),
+    'voicy_05': ("Come On, Come On, Lovin' For The Money", 'celebration_sounds/voicy_05.wav'),
+    'voicy_06': ('You Shook Me All Night Long', 'celebration_sounds/voicy_06.wav'),
+    'voicy_07': ('Aussie POL Siren', 'celebration_sounds/voicy_07.wav'),
+    'voicy_08': ("I'm Not Joking", 'celebration_sounds/voicy_08.wav'),
+    'voicy_09': ('I See You Buddy', 'celebration_sounds/voicy_09.wav'),
+    'voicy_10': ('Who Made Who, Who Made You', 'celebration_sounds/voicy_10.wav'),
+    'voicy_11': ('Pretty amazing feeling', 'celebration_sounds/voicy_11.wav'),
+    'voicy_12': ('Berserk', 'celebration_sounds/voicy_12.wav'),
+    'voicy_13': ('goin for me floppa', 'celebration_sounds/voicy_13.wav'),
+    'voicy_14': ("It's difficult after that result", 'celebration_sounds/voicy_14.wav'),
+    'voicy_15': ('BANG TOOM TANG TOUTOLOUGEN', 'celebration_sounds/voicy_15.wav'),
+    'voicy_16': ('Australian anthem pt 3', 'celebration_sounds/voicy_16.wav'),
+    'voicy_17': ('Australian Anthem pt 4', 'celebration_sounds/voicy_17.wav'),
+    'voicy_18': ('Hells Bells', 'celebration_sounds/voicy_18.wav'),
+    'voicy_19': ('Aboriginal Sounds', 'celebration_sounds/voicy_19.wav'),
+    'voicy_20': ('Stunning', 'celebration_sounds/voicy_20.wav'),
+    'voicy_21': ('Gerrard You Beauty', 'celebration_sounds/voicy_21.wav'),
+}
 
 OAK_NAME = "OAK-D S2 PoE / CAT5"
 OAK_TEST_NAME = "OAK-D S2 / MANUAL TEST"
@@ -2796,12 +2819,12 @@ class Main(QMainWindow):
             label=QLabel(f"{index+5:02d}:00–{end}\n—")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
-            label.setMinimumWidth(0);label.setFixedHeight(56)
+            label.setMinimumWidth(0);label.setFixedHeight(72)
             label.setStyleSheet("background:#252d33;border:1px solid #56636d;border-radius:6px;color:#b8c1c8;font-size:12px;")
             blocks.addWidget(label,0,index);blocks.setColumnStretch(index,1)
             self.dashboard_hour_blocks.append(label)
         strip_layout.addLayout(blocks)
-        self.hourly_strip.setFixedHeight(78)
+        self.hourly_strip.setFixedHeight(96)
         # Added to the right-hand dashboard rail below the main production KPIs.
 
         self.weekday_strip=QFrame()
@@ -2816,11 +2839,11 @@ class Main(QMainWindow):
             label=QLabel(name+" · —")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
-            label.setMinimumWidth(0);label.setFixedHeight(62)
+            label.setMinimumWidth(0);label.setFixedHeight(72)
             label.setStyleSheet("background:#252d33;border:1px solid #56636d;border-radius:6px;color:#b8c1c8;")
             daily_blocks.addWidget(label,1);self.dashboard_day_blocks.append(label)
         daily_layout.addLayout(daily_blocks)
-        self.weekday_strip.setFixedHeight(82)
+        self.weekday_strip.setFixedHeight(92)
         # Added to the right-hand dashboard rail below hourly totals.
 
         # Keep both totals strips in the right-hand production rail, matching
@@ -2834,7 +2857,7 @@ class Main(QMainWindow):
         left = QVBoxLayout(self.camera_panel)
         left.setContentsMargins(0,0,0,0)
         left.setSpacing(6)
-        body.addWidget(self.camera_panel, 1)
+        body.addWidget(self.camera_panel, 3)
 
         self.video = VideoLabel()
         self.video.fullscreen_requested.connect(
@@ -3038,23 +3061,28 @@ class Main(QMainWindow):
         self.celebration_mute.show()
         hours_tab.addWidget(QLabel("Celebration sound"))
         self.celebration_sound_combo=QComboBox()
-        self.celebration_sound_combo.addItem("Like Wooh Wooh · Best hour only", "best_hour_alert")
-        self.celebration_sound_combo.setEnabled(False)
-        self.celebration_sound_combo.setToolTip("This build uses the supplied alert as its only celebration sound.")
+        self.celebration_sound_combo.addItem("Shuffle all supplied sounds", "random")
         self.celebration_sounds=CELEBRATION_SOUNDS
-        set_state("celebration_sound","best_hour_alert")
-        set_state("celebration_policy","best_hour_only_v2")
-        set_state("celebration_pack","best_hour_alert_v2")
-        set_state("celebration_shuffle","{}")
+        # Migrate the previous single-track setting once. Random then remains
+        # selected and the supplied clips shuffle automatically by default.
+        if get_state("celebration_pack","")!="voicy_r4v3_b0y_v1":
+            set_state("celebration_sound","random")
+            set_state("celebration_shuffle","{}")
+            set_state("celebration_pack","voicy_r4v3_b0y_v1")
+        for key,(label,_filename) in self.celebration_sounds.items():
+            self.celebration_sound_combo.addItem(label,key)
+        selected=self.celebration_sound_combo.findData(get_state("celebration_sound","random"))
+        self.celebration_sound_combo.setCurrentIndex(max(0,selected))
+        self.celebration_sound_combo.setToolTip("Random plays each supplied sound once per shuffle cycle, without repeats back-to-back.")
         self.celebration_sound_combo.currentIndexChanged.connect(self.celebration_selection_changed)
         hours_tab.addWidget(self.celebration_sound_combo)
         self.update_celebration_indicator()
-        self.test_sound_btn=QPushButton("Test best-hour alert")
+        self.test_sound_btn=QPushButton("Test celebration sound")
         self.test_sound_btn.clicked.connect(lambda:self.play_celebration_sound(preview=True))
         hours_tab.addWidget(self.test_sound_btn)
         stop_sound=QPushButton("Stop celebration preview")
         stop_sound.clicked.connect(lambda:self.stop_celebration_preview());hours_tab.addWidget(stop_sound)
-        self.celebration_sound_status=QLabel("This alert plays automatically for a new best hour only. Daily-total records do not play it. Test works even when automatic alerts are muted.")
+        self.celebration_sound_status=QLabel("A shuffled sound plays for a new best hour only. Daily-total records remain silent. Test works when celebrations are muted.")
         self.celebration_sound_status.setWordWrap(True);hours_tab.addWidget(self.celebration_sound_status)
         test_tab = tab_page("COUNT LOGIC TEST")
         test_note = QLabel("Live shadow test · OAK only. Production counting continues on its schedule. Test counters and exports never change production totals or reports. Show fixed lines for a visual comparison.")
@@ -4130,11 +4158,16 @@ class Main(QMainWindow):
 
     def update_celebration_indicator(self, *_args):
         muted=self.celebration_mute.isChecked()
-        self.celebration_indicator.setText("Best-hour alert: MUTED · enable in Admin → Performance" if muted else "Best-hour alert: ON · Like Wooh Wooh")
+        selected=(self.celebration_sound_combo.currentData()
+                  if hasattr(self,"celebration_sound_combo") else get_state("celebration_sound","random"))
+        label=("Shuffle all supplied sounds" if selected=="random" else
+               self.celebration_sounds.get(selected, ("Selected sound unavailable",None))[0])
+        self.celebration_indicator.setText("Celebrations: MUTED · enable in Admin → Performance" if muted else "Celebrations: ON · "+label)
         self.celebration_indicator.setStyleSheet("color:#eeb85a;font-size:11px;" if muted else "color:#7295b3;font-size:11px;")
 
     def celebration_selection_changed(self, *_args):
-        set_state("celebration_sound","best_hour_alert")
+        selected=self.celebration_sound_combo.currentData()
+        set_state("celebration_sound",selected if selected else "random")
         self.update_celebration_indicator()
 
     def deliver_record_celebration(self, achievements=None):
@@ -4169,10 +4202,10 @@ class Main(QMainWindow):
                 pending=None
             elif pending['attempts']>=3:
                 log("Automatic celebration sound failed after three attempts; check Admin > Performance")
-                self.celebration_indicator.setText("Best-hour alert failed · check Admin → Performance")
+                self.celebration_indicator.setText("Celebration sound failed · check Admin → Performance")
                 pending=None
             else:
-                self.celebration_indicator.setText("Best-hour alert retry pending · check Windows audio")
+                self.celebration_indicator.setText("Celebration sound retry pending · check Windows audio")
                 pending['next_attempt']=time.time()+5
                 log("Automatic celebration sound unavailable; retry scheduled")
         self._pending_record_sound=pending
@@ -4193,8 +4226,25 @@ class Main(QMainWindow):
         if not preview and self.celebration_mute.isChecked():
             self.celebration_sound_status.setText("Automatic celebrations are muted. Uncheck Mute celebrations to enable.")
             return False
-        key="best_hour_alert"
-        label,filename=CELEBRATION_SOUNDS[key]
+        selected=(self.celebration_sound_combo.currentData()
+                  if hasattr(self,"celebration_sound_combo") else get_state("celebration_sound","random"))
+        try:
+            shuffle_state=json.loads(get_state("celebration_shuffle","{}"))
+        except (ValueError,TypeError):
+            shuffle_state={}
+        if not isinstance(shuffle_state,dict):shuffle_state={}
+        next_shuffle=None
+        sounds=getattr(self,"celebration_sounds",CELEBRATION_SOUNDS)
+        if selected=="random":
+            available=[key for key,(_label,filename) in sounds.items() if resource_path(filename).is_file()]
+            if not available:
+                self.celebration_sound_status.setText("No celebration sounds are available.");return False
+            key,next_shuffle=celebration_library.plan_shuffle(available,shuffle_state)
+        else:
+            key=selected
+        if key not in sounds:
+            self.celebration_sound_status.setText("Selected celebration sound is unavailable.");return False
+        label,filename=sounds[key]
         path=resource_path(filename)
         if not path.is_file():
             self.celebration_sound_status.setText("Missing audio file: "+filename);return False
@@ -4206,8 +4256,9 @@ class Main(QMainWindow):
                 backend=winsound
             backend.PlaySound(str(path),backend.SND_FILENAME|backend.SND_ASYNC|backend.SND_NODEFAULT)
             self._last_celebration_sound=key
-            set_state("celebration_sound",key)
-            log("Best-hour alert started: "+key+" · "+label)
+            if next_shuffle is not None:
+                set_state("celebration_shuffle",json.dumps(next_shuffle))
+            log("Celebration sound started: "+key+" · "+label)
             self.celebration_sound_status.setText("Playing: "+label+" · check Windows volume and speakers.")
             return True
         except Exception as exc:
@@ -5136,11 +5187,11 @@ class Main(QMainWindow):
                 amount=f"{slot['count']:,}" if completed or current else "—"
                 block.setText(f'<span style="font-size:9px">{period}</span><br><span style="font-size:18px;font-weight:900">{amount}</span>')
                 if completed or current:
-                    baseline=round(average)
-                    pace_colour=("#ff5c68" if slot['count']<baseline else
-                                 "#ffb84d" if slot['count']==baseline else "#38d996")
-                    pace_label=("below" if slot['count']<baseline else
-                                "on" if slot['count']==baseline else "above")
+                    below=slot['count']<average
+                    on_average=math.isclose(slot['count'],average,rel_tol=0.0,abs_tol=1e-9)
+                    pace_colour=("#ff5c68" if below else
+                                 "#ffb84d" if on_average else "#38d996")
+                    pace_label=("below" if below else "on" if on_average else "above")
                 else:
                     pace_colour="#84929e"
                     pace_label="upcoming"
@@ -5695,12 +5746,12 @@ class Main(QMainWindow):
                 "color:#f4f7f9;background:#17251f;border:1px solid #42c879;"
                 "border-radius:8px;font:900 " + projection_font + " 'Segoe UI';padding:" + projection_padding + ";"
             )
-        self.hourly_strip.setFixedHeight(96 if expanded else 78)
+        self.hourly_strip.setFixedHeight(108 if expanded else 96)
         for block in self.dashboard_hour_blocks:
-            block.setFixedHeight(68 if expanded else 56)
-        self.weekday_strip.setFixedHeight(112 if expanded else 82)
+            block.setFixedHeight(80 if expanded else 72)
+        self.weekday_strip.setFixedHeight(122 if expanded else 92)
         for block in self.dashboard_day_blocks:
-            block.setFixedHeight(86 if expanded else 62)
+            block.setFixedHeight(92 if expanded else 72)
         compact_laptop = self.height() < 700
         self.video.setMinimumHeight(320 if compact_laptop else 360)
         self.video.setMaximumHeight(340 if compact_laptop else 420 if expanded else 380)

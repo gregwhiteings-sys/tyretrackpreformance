@@ -2,7 +2,7 @@ LATEST UPDATE — 26 OCTOBER 2026
 Today’s class counts now show estimated kg and a combined weight/EPU total.
 Passenger = 8 kg/1 EPU; SUV = 16 kg/2 EPU; Truck = 45 kg/5 EPU.
 Truck recognition still needs a truck-capable model; current model is two-class.
-The supplied Like Wooh Wooh recording is the only alert; it plays for a new best hour.
+All 21 clips from the supplied Voicy audio pack shuffle for new best hours; daily-total records remain silent.
 Smooth live preview is lighter; PNG saving runs in the background.
 For Windows sign-in launch, run INSTALL_AUTOSTART.bat beside the built EXE.
 Read FULL_CHECK_REPORT.txt for verification, setup and on-site checks.
@@ -152,9 +152,7 @@ Only crossings on the selected segments are accepted. Geometry changes clear mot
 references while retaining accepted counts. Set and lock the geometry before measuring.
 
 BEST-HOUR ALERT CHECK
-Admin Settings > Performance shows the single Like Wooh Wooh alert. Test best-hour
-alert previews it; mute controls automatic playback. It plays only for a new best
-hour. A daily-total record alone stays visual. Stop celebration preview stops it
+Admin Settings > Performance lets you shuffle the supplied clips or choose one. The test button previews a sound; mute controls automatic playback. Sounds play only for a new best hour. A daily-total record alone stays visual. Stop celebration preview stops it
 when no operational alarm is active. Operational alarms have priority.
 
 BUILD COMPARISON

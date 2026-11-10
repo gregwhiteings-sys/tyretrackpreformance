@@ -29,16 +29,13 @@ WHAT CHANGED
 - Video/manual tests display separate TEST estimates; production is unchanged.
 
 SOUNDS
-Only the ten supplied recordings are bundled. The previous seven celebration
-WAVs are removed from the build. Sound levels were adjusted and recordings
-converted to 16-bit stereo PCM WAV without trimming their full length.
-Rage is 34 seconds and The Hill crowd is 52 seconds.
-Random uses every available sound once per shuffled cycle and remembers its
-place across restarts. Failed playback does not consume a selection.
-The new pack defaults to Random once on upgrade. Old custom sound folders
-are not used. New additions go to data/celebration_sounds_v2.
-Admin > Performance offers sound selection, mute, Test, Stop preview and Add.
-Operational alarms retain priority over celebrations.
+The previous Like Wooh Wooh recording is removed. All 21 clips supplied in
+Voicy_R4V3 B0Y .zip are bundled as compact 22.05 kHz mono, 16-bit PCM WAV.
+Random is selected by default and uses every clip once per shuffle cycle,
+without repeating back-to-back. The shuffle position persists across restarts;
+failed playback does not consume a selection. Automatic playback remains limited
+to a new best hour. The Admin > Performance tab offers sound selection, mute,
+Test and Stop preview. Operational alarms retain priority over celebrations.
 
 NATIVE HIGHER-QUALITY PREVIEW — 27 OCTOBER 2026
 The previous extra live-preview ImageManip resizing node is removed.
