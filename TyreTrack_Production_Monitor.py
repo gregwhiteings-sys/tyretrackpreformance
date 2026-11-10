@@ -2870,7 +2870,10 @@ class Main(QMainWindow):
         self.video.span_dragged.connect(self.drag_span_changed)
         self.video.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
         self.video.setObjectName("cameraViewport")
-        self.video.setMinimumHeight(360)
+        # Both camera previews share the available camera area vertically, so
+        # keep matching minimum/maximum heights rather than letting Camera 1
+        # crowd out Camera 2 on shorter operator displays.
+        self.video.setMinimumHeight(120)
         self.video.setMinimumWidth(350)
         self.video.setMaximumHeight(420)
         self.test_transport=QLabel("OAK CAMERA / LIVE VIEW")
@@ -2882,48 +2885,33 @@ class Main(QMainWindow):
         self.test_progress.setTextVisible(False);self.test_progress.setFixedHeight(4);self.test_progress.hide()
         left.addWidget(self.test_progress)
         camera_views=QWidget();camera_views.setObjectName("cameraViews")
-        camera_views_layout=QHBoxLayout(camera_views);camera_views_layout.setContentsMargins(0,0,0,0);camera_views_layout.setSpacing(6)
+        camera_views_layout=QVBoxLayout(camera_views);camera_views_layout.setContentsMargins(0,0,0,0);camera_views_layout.setSpacing(6)
         primary_view=QWidget();primary_layout=QVBoxLayout(primary_view);primary_layout.setContentsMargins(0,0,0,0);primary_layout.setSpacing(3)
         self.primary_camera_view=primary_view
-        primary_title=QLabel("CAMERA 1 · COUNTING");primary_title.setObjectName("transport");primary_layout.addWidget(primary_title)
+        primary_title=QLabel("CAMERA 1 · COUNTING");primary_title.setObjectName("transport");primary_title.setFixedHeight(20);primary_layout.addWidget(primary_title)
         secondary_view=QWidget();secondary_layout=QVBoxLayout(secondary_view);secondary_layout.setContentsMargins(0,0,0,0);secondary_layout.setSpacing(3)
-        self.camera2_status=QLabel("CAMERA 2 · NOT CONFIGURED");self.camera2_status.setObjectName("transport");self.camera2_status.setWordWrap(True);self.camera2_status.setMinimumHeight(20);secondary_layout.addWidget(self.camera2_status)
+        self.camera2_status=QLabel("CAMERA 2 · NOT CONFIGURED");self.camera2_status.setObjectName("transport");self.camera2_status.setWordWrap(False);self.camera2_status.setFixedHeight(20);secondary_layout.addWidget(self.camera2_status)
         self.camera2_view=QLabel("SECOND OAK CAMERA\nNOT CONNECTED")
-        self.camera2_view.setAlignment(Qt.AlignCenter);self.camera2_view.setMinimumSize(150,120);self.camera2_view.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding)
+        self.camera2_view.setAlignment(Qt.AlignCenter);self.camera2_view.setMinimumSize(150,120);self.camera2_view.setMaximumHeight(420);self.camera2_view.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding)
         self.camera2_view.setStyleSheet("background:#05080d;color:#718096;border:1px solid #263241;border-radius:8px;font-size:12px;")
         secondary_layout.addWidget(self.camera2_view,1)
         primary_layout.addWidget(self.video,1)
-        camera_views_layout.addWidget(primary_view,2);camera_views_layout.addWidget(secondary_view,1)
+        # Match the two display areas exactly: equal title heights and equal
+        # stretch for the live preview widgets, with Camera 2 directly below.
+        camera_views_layout.addWidget(primary_view,1);camera_views_layout.addWidget(secondary_view,1)
         left.addWidget(camera_views,1)
-        # The reference dashboard repeats the class totals below the live view
-        # so operators can read production classes without looking away from
-        # the conveyor. These labels mirror the same cached totals as the KPI
-        # cards and add no extra database or camera work.
+        # Retain hidden compatibility labels used by existing dashboard
+        # capture/update code. Class totals remain in the right-hand summary;
+        # the camera column is reserved for the two equally sized previews.
         self.left_class_summary=QWidget()
         self.left_class_summary.setObjectName("leftClassSummary")
-        # The reference dashboard uses one readable horizontal class bar per type.
-        left_class_layout=QVBoxLayout(self.left_class_summary)
-        left_class_layout.setContentsMargins(0,0,0,0)
-        left_class_layout.setSpacing(4)
         self.left_class_count_labels={}
         self.left_class_weight_labels={}
         self.left_class_strips=[]
-        for key,name,colour in (("passenger","PASSENGER","#38D996"),("4x4","SUV / 4X4","#42B7FF"),("truck","TRUCK","#F1B82D")):
-            strip=QFrame();strip.setObjectName("leftClassStrip")
-            strip.setStyleSheet(f"QFrame#leftClassStrip {{background:#20282e;border:1px solid {colour};border-left:6px solid {colour};border-radius:6px;}}")
-            strip_layout=QHBoxLayout(strip);strip_layout.setContentsMargins(9,3,9,3);strip_layout.setSpacing(6)
-            class_name=QLabel(name);class_name.setStyleSheet(f"color:{colour};font-size:12px;font-weight:900;")
-            class_count=QLabel("0 tyres");class_count.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
-            class_count.setStyleSheet("color:#f7f8fa;font:900 19px 'Consolas';")
-            class_weight=QLabel("0 kg");class_weight.setAlignment(Qt.AlignRight|Qt.AlignVCenter)
-            class_weight.setStyleSheet("color:#d5dce1;font:700 12px 'Consolas';")
-            strip_layout.addWidget(class_name,2);strip_layout.addWidget(class_count,2);strip_layout.addWidget(class_weight,1)
-            strip.setFixedHeight(38)
-            left_class_layout.addWidget(strip)
-            self.left_class_strips.append(strip)
-            self.left_class_count_labels[key]=class_count
-            self.left_class_weight_labels[key]=class_weight
-        left.addWidget(self.left_class_summary)
+        for key in ("passenger","4x4","truck"):
+            self.left_class_count_labels[key]=QLabel("0 tyres",self.left_class_summary)
+            self.left_class_weight_labels[key]=QLabel("0 kg",self.left_class_summary)
+        self.left_class_summary.hide()
         self.fod_badge=QLabel("●  FOD: OFF")
         self.fod_badge.setAlignment(Qt.AlignCenter)
         self.fod_badge.setFixedHeight(34)
@@ -5760,14 +5748,16 @@ class Main(QMainWindow):
         for block in self.dashboard_day_blocks:
             block.setFixedHeight(92 if expanded else 72)
         compact_laptop = self.height() < 700
-        self.video.setMinimumHeight(320 if compact_laptop else 360)
-        self.video.setMaximumHeight(340 if compact_laptop else 420 if expanded else 380)
+        camera_min_height = 120 if compact_laptop else 150
+        camera_max_height = 340 if compact_laptop else 420 if expanded else 380
+        self.video.setMinimumHeight(camera_min_height)
+        self.video.setMaximumHeight(camera_max_height)
+        self.camera2_view.setMinimumHeight(camera_min_height)
+        self.camera2_view.setMaximumHeight(camera_max_height)
         self.operator_controls_scroll.setMaximumHeight(80)
         self.counters_panel.layout().setSpacing(10 if expanded else 5)
         self.test_transport.setFixedHeight(23 if expanded else 20)
         self.fod_badge.setFixedHeight(42 if expanded else 34)
-        for strip in self.left_class_strips:
-            strip.setFixedHeight(38 if expanded else 34)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
