@@ -4161,8 +4161,9 @@ class Main(QMainWindow):
         muted=self.celebration_mute.isChecked()
         selected=(self.celebration_sound_combo.currentData()
                   if hasattr(self,"celebration_sound_combo") else get_state("celebration_sound","random"))
+        sounds=getattr(self,"celebration_sounds",CELEBRATION_SOUNDS)
         label=("Shuffle all supplied sounds" if selected=="random" else
-               self.celebration_sounds.get(selected, ("Selected sound unavailable",None))[0])
+               sounds.get(selected, ("Selected sound unavailable",None))[0])
         self.celebration_indicator.setText("Celebrations: MUTED · enable in Admin → Performance" if muted else "Celebrations: ON · "+label)
         self.celebration_indicator.setStyleSheet("color:#eeb85a;font-size:11px;" if muted else "color:#7295b3;font-size:11px;")
 
