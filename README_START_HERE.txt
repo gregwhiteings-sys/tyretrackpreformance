@@ -1,4 +1,9 @@
-LATEST UPDATE — 26 OCTOBER 2026
+LATEST UPDATE — 11 NOVEMBER 2026
+Camera 1 and Camera 2 now stack vertically at equal display size. Passenger,
+SUV/4x4 and Truck bars are removed from below the previews; class totals remain
+in the dashboard summary. The main screen now shows live tyres per minute and
+the number needed to beat/set the best hour. Average pace includes the current
+partial hour and refreshes during the shift; hourly colours use that live average.
 Today’s class counts now show estimated kg and a combined weight/EPU total.
 Passenger = 8 kg/1 EPU; SUV = 16 kg/2 EPU; Truck = 45 kg/5 EPU.
 Truck recognition still needs a truck-capable model; current model is two-class.
@@ -22,11 +27,11 @@ the camera and verify live Gmail delivery.
 TYRETRACK · PRODUCTION / VIDEO TEST BUILD · 20 OCTOBER 2026
 
 DASHBOARD UPDATE
-- The main screen follows the selected industrial layout: live camera and class totals
-  at left; large Today, This Hour, Best Hour and Best Day cards; averages, projections,
-  hourly totals and weekday totals remain visible.
-- Passenger is green, SUV/4x4 blue, and truck amber. Hour tiles are red below the
-  rounded displayed average, orange on average, and green above it. Future hours are neutral.
+- The main screen follows the selected industrial layout: equal-sized Camera 1 and
+  Camera 2 previews are stacked at left; class totals remain in the dashboard summary.
+  Live rate, average pace, projections, hourly totals and weekday totals stay visible.
+- Passenger is green, SUV/4x4 blue, and Truck amber. Hour tiles are red below the
+  live shift average, orange at the average, and green above it. Future hours are neutral.
 - Dashboard class totals reuse current count and weight values. Camera inference,
   crossing logic, and polling frequency are unchanged.
 
