@@ -55,7 +55,9 @@ with DatabaseTemporaryDirectory() as folder:
    for width,height in [(1280,720),(1366,768),(1450,850)]:
     w.resize(width,height)
     for _ in range(6):qt.processEvents()
-    assert w.height()==height and w.video.height()>=360,(style,width,w.height(),w.video.height())
+    assert w.height()==height and w.video.height()>=120,(style,width,w.height(),w.video.height())
+    assert abs(w.video.height()-w.camera2_view.height())<=1,(style,width,w.video.height(),w.camera2_view.height())
+    assert w.camera2_view.parentWidget().y()>w.primary_camera_view.y(),(style,width,'Camera 2 must be below Camera 1')
     assert w.hourly_strip.isVisible() and w.weekday_strip.isVisible()
     for block in w.dashboard_day_blocks:
      pos=block.mapTo(w,block.rect().topLeft())

@@ -40,7 +40,9 @@ for width,height in ((1450,850),(1366,768),(1280,720)):
  assert w.hourly_strip.mapTo(w,w.hourly_strip.rect().bottomRight()).y()<w.height()
  assert "18px" in w.current_hour_card.findChild(m.QLabel,"metricName").styleSheet()
  assert w.counters_panel.width()>w.video.width(),(w.counters_panel.width(),w.video.width())
- assert w.video.width()>=320 and w.video.height()>=360
+ assert w.video.width()>=350 and w.video.height()>=120
+ assert abs(w.video.height()-w.camera2_view.height())<=1
+ assert w.camera2_view.parentWidget().y()>w.primary_camera_view.y()
  for control in w.findChildren(QPushButton):
   if control.isVisible():
    at=control.mapTo(w,control.rect().topLeft());assert at.x()>=0 and at.x()+control.width()<=w.width()
@@ -62,7 +64,7 @@ print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign o
 w.resize(1353,689)
 for _ in range(5):app.processEvents()
 assert w.width()==1353 and w.height()==689,(w.width(),w.height())
-assert w.video.height()>=320 and w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomRight()).y()<w.height()
+assert w.video.height()>=120 and abs(w.video.height()-w.camera2_view.height())<=1 and w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomRight()).y()<w.height()
 assert all(label.height()==88 and "font:900 16px" in label.styleSheet() for label in w.projection_labels.values())
 for control in w.findChildren(QPushButton):
  if control.isVisible():

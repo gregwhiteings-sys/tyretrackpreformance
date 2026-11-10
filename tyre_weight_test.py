@@ -32,7 +32,8 @@ with DatabaseTemporaryDirectory() as tmp:
     pos=label.mapTo(w.stats_scroll.viewport(),label.rect().topLeft())
     assert pos.y()>=0 and pos.y()+label.height()<=w.stats_scroll.viewport().height(),(width,label.text(),pos.y(),label.height(),w.stats_scroll.viewport().height())
    assert w.height()==height,(width,height,w.height())
-   assert w.video.height()>=360,(width,height,w.video.height())
+   assert w.video.height()>=120,(width,height,w.video.height())
+   assert abs(w.video.height()-w.camera2_view.height())<=1,(width,height,w.video.height(),w.camera2_view.height())
  w.refresh_weight_totals({'truck':1},test_mode=True)
  assert w.total_weight_lbl.text().startswith('TEST') and '45 kg' in w.total_weight_lbl.text()
  assert m.get_state('celebration_sound')==before
