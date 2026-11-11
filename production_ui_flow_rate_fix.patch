@@ -1,0 +1,20 @@
+--- a/TyreTrack_Production_Monitor.py
++++ b/TyreTrack_Production_Monitor.py
+@@ -5522,8 +5522,15 @@
+         low = rate < 5
+         if low != getattr(self, "_low_flow", None):
+             self._low_flow = low
+-            for label in (self.flow_lbl,getattr(self,"dashboard_flow_lbl",None)):
+-                if label is not None:label.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "color:#40ead7;font:900 30px 'Consolas';")
++            # Keep the compact operator flow value on the application's
++            # normal palette when production is at/above threshold. Only
++            # apply an override for low flow so the card's inherited style
++            # remains intact when the warning clears.
++            if self.flow_lbl is not None:
++                self.flow_lbl.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "")
++            dashboard_flow_lbl=getattr(self,"dashboard_flow_lbl",None)
++            if dashboard_flow_lbl is not None:
++                dashboard_flow_lbl.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "color:#40ead7;font:900 30px 'Consolas';")
+             self.flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Flow: tyres per minute")
+             if getattr(self,"dashboard_flow_lbl",None) is not None:
+                 self.dashboard_flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Live production rate from the recent five-minute window")
