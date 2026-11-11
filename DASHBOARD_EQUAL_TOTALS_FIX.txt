@@ -1,5 +1,5 @@
-Dashboard total sizing correction
+Dashboard total sizing correction — responsive fix
 
-This complete GitHub source pack keeps the previous flow-rate style fix and updates the dashboard: Today and Passenger/SUV/Truck totals now use matching 54px numeral styling. Each class row is the same 70px height and the class panel matches the Today card height. The 13 hourly tabs remain equal-size, and the next-best-hour prompt remains in the bottom dashboard space.
+Today and Passenger/SUV/Truck numeral sizes match at every supported window height: 54px with 70px class rows on expanded displays, and 44px with 56px class rows on compact displays. The Today card and class summary panel use the same responsive height. Hourly total tabs remain equal-sized, and the next-best-hour prompt remains at the bottom.
 
-The production UI test now checks these exact size contracts. Extract the whole ZIP into the repository root, commit/push the updated files, run the Windows workflow, and install the newly uploaded TyreTrack-Windows-x64-Portable artifact.
+The production UI test checks both 850px and laptop-height layouts. The prior pack failed because its responsive sizing changed the Today card height without resizing the class panel; this pack fixes that mismatch.

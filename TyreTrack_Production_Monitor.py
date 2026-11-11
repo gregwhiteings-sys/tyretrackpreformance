@@ -5792,8 +5792,19 @@ class Main(QMainWindow):
         self.stats_scroll.setMinimumWidth(716 if wide_layout else 0)
         self.primary_camera_view.setMinimumWidth(350 if wide_layout else 0)
         expanded = self.height() >= 800
+        top_card_height=218 if expanded else 176
+        class_row_height=70 if expanded else 56
+        total_font_size=54 if expanded else 44
         self.dashboard_top_spacer.setFixedHeight(26 if expanded else 0)
-        self.today_metric_card.setFixedHeight(196 if expanded else 176)
+        self.today_metric_card.setFixedHeight(top_card_height)
+        self.class_summary.setFixedHeight(top_card_height)
+        self.day_lbl.setStyleSheet(f"color:#f7f8fa;font:900 {total_font_size}px 'Consolas';")
+        for key,label,colour in (("passenger",self.passenger_lbl,"#38D996"),
+                                 ("4x4",self.suv_lbl,"#42B7FF"),
+                                 ("truck",self.truck_lbl,"#edbc72")):
+            card=self.weight_labels[key].parentWidget()
+            card.setFixedHeight(class_row_height)
+            label.setStyleSheet(f"color:{colour};font:900 {total_font_size}px 'Consolas';")
         self.dashboard_flow_card.setFixedHeight(124 if expanded else 88)
         for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
             card.setFixedHeight(116 if expanded else 108)
