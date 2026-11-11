@@ -26,7 +26,7 @@ for label,value in ((w.day_lbl,6026),(w.hour_lbl,227),(w.session_lbl,671)):
  assert 'tyres' in label.text()
 w.passenger_lbl.setText('5181');w.suv_lbl.setText('845')
 w.record_progress.setText("445 tyres to beat today's best hour")
-assert '36px' in w.passenger_lbl.styleSheet() and '36px' in w.suv_lbl.styleSheet()
+assert '44px' in w.passenger_lbl.styleSheet() and '44px' in w.suv_lbl.styleSheet()
 assert w.line_angle.value()==0 and w.line_length.value()==100
 for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
@@ -51,6 +51,10 @@ assert not hasattr(w.record_progress, '_motion')
 w.record_progress.setText("Fixed message")
 assert w.record_progress.toolTip()=="Fixed message"
 assert w.dashboard_flow_card.isVisible() and w.dashboard_record_progress.isVisible()
+assert w.dashboard_flow_card.height()==w.averages_metric_card.height()==list(w.projection_labels.values())[0].height()
+assert w.dashboard_record_progress.mapTo(w,w.dashboard_record_progress.rect().topLeft()).y() >= w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomLeft()).y()
+assert all(w.class_summary.layout().itemAt(i).widget().height()==56 for i in range(3))
+assert all('44px' in label.styleSheet() for label in (w.passenger_lbl,w.suv_lbl,w.truck_lbl))
 w.set_flow_rate(4.9)
 assert w.dashboard_flow_lbl.text()=='4.9' and '#FF5C68' in w.dashboard_flow_lbl.styleSheet()
 w.set_flow_rate(5)

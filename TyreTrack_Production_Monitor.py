@@ -2730,15 +2730,15 @@ class Main(QMainWindow):
             card=metric_card(name,label,colour);card.setFixedHeight(56)
             card.layout().setDirection(QBoxLayout.LeftToRight)
             card.layout().setContentsMargins(8,2,8,2)
-            label.setStyleSheet("color:"+colour+";font:900 36px 'Consolas';")
-            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:10px;font-weight:800;min-width:75px;")
-            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 12px 'Consolas';")
+            label.setStyleSheet("color:"+colour+";font:900 44px 'Consolas';")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:11px;font-weight:800;min-width:82px;")
+            weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
             card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
             classes.addWidget(card)
         today_row=QHBoxLayout();today_row.setSpacing(5)
-        today_row.addWidget(daily,2)
-        today_row.addWidget(self.class_summary,1)
+        today_row.addWidget(daily,3)
+        today_row.addWidget(self.class_summary,2)
         counters_layout.addLayout(today_row)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
@@ -2766,6 +2766,7 @@ class Main(QMainWindow):
         self.dashboard_flow_lbl=QLabel("0.0")
         self.dashboard_flow_lbl.setObjectName("metricValue")
         self.dashboard_flow_lbl.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
+        self.dashboard_flow_lbl.setStyleSheet("color:#40ead7;font:900 30px 'Consolas';")
         dashboard_flow_card=metric_card("TYRES PER MINUTE",self.dashboard_flow_lbl,"#40ead7")
         dashboard_flow_card.setFixedHeight(88)
         self.dashboard_flow_card=dashboard_flow_card
@@ -2773,16 +2774,17 @@ class Main(QMainWindow):
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
         averages.setFixedHeight(88)
         self.averages_metric_card=averages
-        self.production_average.setStyleSheet("color:#f1b82d;font:700 14px 'Consolas';")
+        self.production_average.setStyleSheet("color:#f1b82d;font:700 13px 'Consolas';")
         average_forecast_row=QHBoxLayout();average_forecast_row.setSpacing(5)
-        average_forecast_row.addWidget(averages,13)
-        average_forecast_row.addWidget(dashboard_flow_card,10)
-        average_forecast_row.addLayout(projection_row,40)
+        # The average, rate and three forecast cards share one even-width grid.
+        average_forecast_row.addWidget(averages,1)
+        average_forecast_row.addWidget(dashboard_flow_card,1)
+        average_forecast_row.addLayout(projection_row,3)
         counters_layout.addLayout(average_forecast_row)
         self.dashboard_record_progress=QLabel("Build the next best hour")
         self.dashboard_record_progress.setAlignment(Qt.AlignCenter)
-        self.dashboard_record_progress.setFixedHeight(18)
-        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:800 10px 'Segoe UI';padding:1px 5px;")
+        self.dashboard_record_progress.setFixedHeight(28)
+        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:800 12px 'Segoe UI';padding:2px 8px;")
         secondary_metric_cards=[]
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
@@ -2827,7 +2829,6 @@ class Main(QMainWindow):
         hour_legend=QLabel("RED < AVG · ORANGE = AVG · GREEN > AVG")
         hour_legend.setStyleSheet("color:#d4dbe0;font-size:8px;font-weight:800;")
         hour_header.addWidget(hour_legend,3)
-        hour_header.addWidget(self.dashboard_record_progress,4)
         strip_layout.addLayout(hour_header)
         blocks=QGridLayout();blocks.setSpacing(4)
         self.dashboard_hour_blocks=[]
@@ -2867,6 +2868,10 @@ class Main(QMainWindow):
         # the selected dashboard sample and removing the detached footer band.
         counters_layout.addWidget(self.hourly_strip)
         counters_layout.addWidget(self.weekday_strip)
+        # Use the open footer area for the record-pace prompt, keeping the
+        # hourly and daily totals visually uncluttered.
+        counters_layout.addStretch(1)
+        counters_layout.addWidget(self.dashboard_record_progress)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -5518,7 +5523,7 @@ class Main(QMainWindow):
         if low != getattr(self, "_low_flow", None):
             self._low_flow = low
             for label in (self.flow_lbl,getattr(self,"dashboard_flow_lbl",None)):
-                if label is not None:label.setStyleSheet("color:#FF5C68;font-size:22px;font-weight:900;" if low else "")
+                if label is not None:label.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "color:#40ead7;font:900 30px 'Consolas';")
             self.flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Flow: tyres per minute")
             if getattr(self,"dashboard_flow_lbl",None) is not None:
                 self.dashboard_flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Live production rate from the recent five-minute window")
@@ -5780,6 +5785,7 @@ class Main(QMainWindow):
         expanded = self.height() >= 800
         self.dashboard_top_spacer.setFixedHeight(26 if expanded else 0)
         self.today_metric_card.setFixedHeight(196 if expanded else 176)
+        self.dashboard_flow_card.setFixedHeight(124 if expanded else 88)
         for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
             card.setFixedHeight(116 if expanded else 108)
         self.averages_metric_card.setFixedHeight(124 if expanded else 88)
