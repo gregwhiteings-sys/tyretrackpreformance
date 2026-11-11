@@ -2698,12 +2698,14 @@ class Main(QMainWindow):
         # Match the reference composition: the main Today card shares the top
         # row with the three class totals.
         daily=metric_card("TODAY",self.day_lbl,"#f1b82d")
-        daily.setFixedHeight(176)
+        daily.setFixedHeight(218)
         self.today_metric_card=daily
         self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
         self.total_weight_lbl.setStyleSheet("color:#e2e7ec;font:700 16px 'Segoe UI';letter-spacing:1px;")
         daily.layout().addWidget(self.total_weight_lbl)
-        self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 82px 'Consolas';")
+        # Match the main total's numeral size to the Passenger/SUV/Truck
+        # totals beside it, so the class figures read as first-class KPIs.
+        self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 54px 'Consolas';")
         self.projection_labels={}
         projection_row=QHBoxLayout()
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
@@ -2723,14 +2725,14 @@ class Main(QMainWindow):
         classes=QVBoxLayout();classes.setSpacing(4);classes.setContentsMargins(0,0,0,0)
         self.class_summary=QFrame();self.class_summary.setObjectName("classSummary")
         self.class_summary.setLayout(classes)
-        self.class_summary.setFixedHeight(176)
+        self.class_summary.setFixedHeight(218)
         self.truck_lbl=QLabel("0")
         self.weight_labels={}
         for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#edbc72",45,5)):
-            card=metric_card(name,label,colour);card.setFixedHeight(56)
+            card=metric_card(name,label,colour);card.setFixedHeight(70)
             card.layout().setDirection(QBoxLayout.LeftToRight)
             card.layout().setContentsMargins(8,2,8,2)
-            label.setStyleSheet("color:"+colour+";font:900 44px 'Consolas';")
+            label.setStyleSheet("color:"+colour+";font:900 54px 'Consolas';")
             card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:11px;font-weight:800;min-width:82px;")
             weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
