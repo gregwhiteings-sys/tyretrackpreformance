@@ -1,0 +1,5 @@
+TyreTrack production UI flow-rate style fix
+
+This is the stacked-camera GitHub build pack with a focused fix in TyreTrack_Production_Monitor.py. The compact operator flow label now clears its temporary red stylesheet at 5 tyres/minute or above; low flow remains red. The dashboard flow metric returns to teal.
+
+Run `python -u run_ci_tests.py` in the repository after extracting.
