@@ -17,6 +17,7 @@ import no_count_replies
 import sqlite3
 import sys
 import threading
+from conveyor_stop import load_config as load_stop_config, stop_request
 import queue
 import json
 import random
@@ -1718,7 +1719,7 @@ class CounterWorker(QThread):
                 event_frame=frame.copy()
                 self.foreign_event.emit(dict(event,frame=event_frame,
                     source_kind="oak_test" if self.manual_test else self.source_kind,
-                    source=str(self.source),timestamp=brisbane_now().isoformat()))
+                    source=str(self.source),timestamp=brisbane_now().isoformat(),observed_monotonic=now))
         except Exception as exc:
             self.foreign_failed=True
             log("Foreign detector failed:\n"+traceback.format_exc())
@@ -2461,6 +2462,7 @@ class ControlScrollArea(QScrollArea):
 
 
 class Main(QMainWindow):
+    conveyor_stop_result = pyqtSignal(str)
     management_report_ready = pyqtSignal(object)
     live_totals_ready = pyqtSignal(object)
     dashboard_ready = pyqtSignal(object)
@@ -2480,6 +2482,7 @@ class Main(QMainWindow):
             )
 
         self.auto_retry_at = 0.0
+        self.foreign_recovery_hold = False
         self.auto_attempt = False
         self.closing = False
         self.alarm_state_path = PRIVATE_CONFIG_DIR / "foreign_alarm_state.json"
@@ -3247,11 +3250,24 @@ class Main(QMainWindow):
         foreign_layout.addWidget(self.foreign_switch)
         apply_camera = QPushButton("Apply camera settings / reconnect OAK")
         def reconnect_camera():
+            self.foreign_recovery_hold = False
             if self.worker is not None:
                 self.worker.stop()
             self.auto_retry_at = time.monotonic() + 2
         apply_camera.clicked.connect(reconnect_camera)
         foreign_layout.addWidget(apply_camera)
+        self.conveyor_stop_status = QLabel("Conveyor stop: not armed")
+        self.conveyor_stop_status.setWordWrap(True)
+        self.conveyor_stop_result.connect(self.conveyor_stop_status.setText)
+        foreign_layout.addWidget(self.conveyor_stop_status)
+        self.conveyor_stop_arm = QCheckBox("Arm commissioned conveyor stop output")
+        self.conveyor_stop_arm.setChecked(False)
+        self.conveyor_stop_arm.toggled.connect(self.set_conveyor_stop_armed)
+        foreign_layout.addWidget(self.conveyor_stop_arm)
+        bench_demo=QPushButton("Simulate stop request (no relay output)")
+        bench_demo.clicked.connect(lambda: self.conveyor_stop_status.setText(stop_request({"mode":"simulation"})))
+        foreign_layout.addWidget(bench_demo)
+        self.conveyor_stop_lock=threading.Lock()
         foreign_layout.addWidget(QLabel("Optional starter model. Enabling adds OAK workload; reconnect to apply. Validate accuracy before operational use."))
         self.foreign_status_lbl=QLabel("Ready for next start" if self.foreign_switch.isChecked() else "Disabled")
         foreign_layout.addWidget(self.foreign_status_lbl)
@@ -4167,7 +4183,47 @@ class Main(QMainWindow):
             self.stop_alarm_sound()
         self.update_alarm_banner()
 
+    def set_conveyor_stop_armed(self, armed):
+        if not armed:
+            self.conveyor_stop_config = None
+            self.conveyor_stop_status.setText("Conveyor stop: not armed")
+            return
+        try:
+            cfg=load_stop_config(PRIVATE_CONFIG_DIR/"conveyor_stop.json")
+            if cfg["mode"] not in ("simulation","live"):
+                raise ValueError("Configure conveyor_stop.json first")
+            self.conveyor_stop_config = cfg
+            self.conveyor_stop_status.setText("Conveyor stop armed: "+cfg["mode"].upper())
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            self.conveyor_stop_arm.setChecked(False)
+            self.conveyor_stop_status.setText("Conveyor stop not armed: "+str(exc))
+
+    def request_conveyor_stop(self, event):
+        if not self.conveyor_stop_arm.isChecked() or event.get("source_kind")!="oak":
+            return
+        worker=self.worker
+        if (getattr(self,"offline_testing",False) or worker is None or self.sender() is not worker
+                or not worker.isRunning() or worker.manual_test
+                or time.monotonic()-event.get("observed_monotonic",float("-inf"))>2):
+            return
+        cfg=self.conveyor_stop_config
+        if cfg is None:return
+        if not self.conveyor_stop_lock.acquire(blocking=False):
+            return
+        label=event.get("class_name","foreign object")
+        def send():
+            try:
+                outcome=stop_request(cfg)
+            except Exception as exc:
+                outcome="STOP UNCONFIRMED: "+str(exc)
+            finally:
+                self.conveyor_stop_lock.release()
+            log("Conveyor stop | "+label+" | "+outcome)
+            self.conveyor_stop_result.emit(outcome)
+        threading.Thread(target=send,name="conveyor-stop",daemon=True).start()
+
     def on_foreign_alarm(self, event):
+        self.request_conveyor_stop(event)
         record={k:v for k,v in event.items() if k!='frame'}
         record['object']=event.get('class_name') or 'foreign_object'
         record['snapshot']="Not saved"
@@ -4959,7 +5015,7 @@ class Main(QMainWindow):
             worker.three_line.set_mode(self.line_mode.currentData())
             worker.three_line.set_bounds(self.top_line_slider.value()/100,self.bottom_line_slider.value()/100)
             worker.three_line.set_span(self.left_span_slider.value()/100,self.right_span_slider.value()/100)
-            worker.manual_test=False
+            worker.manual_test=manual_test
             worker.show_fixed_lines=self.show_fixed_lines.isChecked()
             worker.session_started_monotonic=time.monotonic()
             if manual_test:
@@ -4970,7 +5026,9 @@ class Main(QMainWindow):
             worker.show_tyre_labels = (
                 self.show_tyre_labels.isChecked()
             )
-            worker.foreign_enabled=self.foreign_switch.isChecked()
+            worker.foreign_enabled=self.foreign_switch.isChecked() and not self.foreign_recovery_hold
+            if self.foreign_recovery_hold and self.foreign_switch.isChecked():
+                self.on_foreign_status("FAULT: foreign detection paused for camera recovery; counting only. Use Apply camera settings to retry.")
             worker.foreign_confidence=self.foreign_conf.value()/100
             worker.foreign_every=self.foreign_every.value()
             worker.foreign_region=self.foreign_region_values()
@@ -5060,6 +5118,12 @@ class Main(QMainWindow):
         )
 
         if status.startswith("ERROR:"):
+            worker=getattr(self,"worker",None)
+            if worker is not None and worker.foreign_enabled:
+                self.foreign_recovery_hold = True
+                self.auto_retry_at = time.monotonic() + 2
+                log("OAK recovery: reconnecting without foreign detection after "+status)
+                self.on_foreign_status("FAULT: camera error with foreign detection active. Reconnecting for counting only.")
             self.health.setText(
                 "● CHECK SYSTEM"
             )

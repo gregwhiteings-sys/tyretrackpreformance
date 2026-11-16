@@ -1,0 +1,25 @@
+TYRETRACK / OPTIONAL MODBUS CONVEYOR STOP
+
+Default OFF at every launch. In Admin > Foreign Object, use Simulate stop request
+(no relay output) to test the status display without contacting any relay.
+For simulated detector-triggered tests, place conveyor_stop.json in the existing
+private_config folder beside email_config.ini, with {"mode":"simulation"},
+then arm the output in Admin. Only confirmed live OAK events are eligible;
+manual OAK tests and video replay cannot issue a hardware command.
+
+For the controls contractor only: after commissioning the PLC and bench-testing
+the assigned stop relay, set mode to live and provide host (private IPv4),
+unit_id and coil (zero-based protocol address verified on the assigned module).
+No relay address, coil assignment or unit ID ships preconfigured. Changes to
+the file require disarming and rearming. Use an isolated controls network.
+
+TyreTrack writes ON only, to the commissioned stop coil. It never writes OFF,
+starts the conveyor, clears the PLC latch, or automatically retries an ambiguous
+write. The contractor must provide a local method to release/reset the relay
+output and verify the PLC still holds the stop until supervisor acknowledgement
+and a separate local Start. Do not use relay release as a run command.
+A Modbus reply acknowledges the relay write, not physical belt stoppage.
+Keep existing safety circuits independent. Test lost connectivity and manual
+restart in the commissioned controls before arming on production equipment.
+
+This is a source bundle; run the Windows build workflow to create the executable.
