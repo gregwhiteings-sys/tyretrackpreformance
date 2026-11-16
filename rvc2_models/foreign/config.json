@@ -2,7 +2,7 @@
   "config_version": "1.0",
   "model": {
     "metadata": {
-      "name": "TyreTrack_ForeignObject_OAKD_S2_416_20261106_015555_9b2a11",
+      "name": "TyreTrack_FOD_4class_416",
       "path": "foreign_object.blob",
       "precision": "float16"
     },
@@ -31,7 +31,7 @@
           ],
           "reverse_channels": false,
           "interleaved_to_planar": false,
-          "dai_type": "BGR888p",
+          "dai_type": "RGB888p",
           "resize_mode": "thumbnail"
         }
       }
@@ -42,7 +42,7 @@
         "dtype": "float32",
         "shape": [
           1,
-          5,
+          8,
           3549
         ],
         "layout": "NCD"

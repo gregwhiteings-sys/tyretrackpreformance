@@ -1,41 +1,18 @@
 {
-  "source_model": "TyreTrack one-class YOLOv8 ONNX",
-  "source_input_shape": [
+  "target": "RVC2",
+  "model": "TyreTrack FOD four-class",
+  "input": [
     1,
     3,
     416,
     416
   ],
-  "source_output_shape": [
+  "output": [
     1,
-    5,
+    8,
     3549
   ],
-  "target": "RVC2",
-  "is_superblob": false,
-  "number_of_shaves": 6,
-  "compress_to_fp16": true,
-  "hubai_model_name": "TyreTrack_ForeignObject_OAKD_S2_416_20261106_015555_9b2a11",
-  "input_preprocessing": {
-    "runtime_input": "Raw uint8 BGR888p; no host scaling or reversal",
-    "embedded_in_blob": [
-      "--reverse_input_channels",
-      "--mean_values=[0.0,0.0,0.0]",
-      "--scale_values=[255.0,255.0,255.0]"
-    ],
-    "runtime_identity": {
-      "mean": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ],
-      "reverse_channels": false
-    }
-  },
-  "app_contract": "OAK-D S2 DepthAI v2; 416x416 thumbnail; output0 [1,5,3549]; one class foreign_object"
+  "runtime_input": "RGB888p",
+  "expected_pixel_divisor": 255,
+  "embedded_normalization_verified": false
 }
