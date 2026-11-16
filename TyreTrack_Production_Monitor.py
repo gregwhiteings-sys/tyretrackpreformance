@@ -1734,7 +1734,7 @@ class CounterWorker(QThread):
         for d in self.foreign_boxes:
             x1,y1,x2,y2=map(int,d['box'])
             cv2.rectangle(frame,(x1,y1),(x2,y2),(0,0,255),2)
-            cv2.putText(frame,d.get("class_name",CLASSES[d['class_id']]),(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,(0,0,255),1)
+            cv2.putText(frame,d.get("class_name") or "foreign_object",(x1,max(15,y1-5)),cv2.FONT_HERSHEY_SIMPLEX,.45,(0,0,255),1)
 
     def run(self):
         source = None
@@ -3273,10 +3273,10 @@ class Main(QMainWindow):
             slider.valueChanged.connect(self.save_foreign_settings)
         self.foreign_conf.valueChanged.connect(self.save_foreign_settings)
         self.foreign_every.valueChanged.connect(self.save_foreign_settings)
+        self.foreign_roi_hint=QLabel()
+        self.foreign_roi_hint.setWordWrap(True)
+        foreign_layout.addWidget(self.foreign_roi_hint)
         self.save_foreign_settings()
-        note=QLabel("Stop before changing settings. The orange trapezoid marks the conveyor region. Three matching detections confirm an object. The OAK-D model labels detected hazards as foreign_object; the PC starter uses wheel_rim/person. The audible alarm auto-stops about 3 seconds after the detector no longer sees an object. One email with a snapshot is sent for each newly confirmed object to the recipient in the existing Gmail settings.")
-        note.setWordWrap(True)
-        foreign_layout.addWidget(note)
         email_note=QLabel("Foreign alerts use the existing Gmail sender and recipient settings. Set foreign_alert_recipient in the app's email_config.ini; leave it blank to use recipient_email.")
         email_note.setWordWrap(True)
         foreign_layout.addWidget(email_note)
@@ -4102,9 +4102,18 @@ class Main(QMainWindow):
         self.foreign_every_lbl.setText(f"Check every {self.foreign_every.value()} processed frames")
         set_state("foreign_confidence",self.foreign_conf.value())
         set_state("foreign_every",self.foreign_every.value())
+        t,b,l,r=self.foreign_region_values()
+        if t<b and l<r:
+            worker=getattr(self,"worker",None)
+            if worker is not None:
+                worker.foreign_region=(t,b,l,r)
+            self.foreign_roi_hint.setText("ROI applies live. Enable Foreign Object and select Show Boxes to see the orange outline.")
+        else:
+            self.foreign_roi_hint.setText("Area not applied: top must be above bottom, and left must be left of right.")
         for key,title,label,slider in self.region_sliders:
             label.setText(f"{title}: {slider.value()}%")
-            set_state("foreign_region_"+key,slider.value())
+            if t<b and l<r:
+                set_state("foreign_region_"+key,slider.value())
 
     def update_alarm_banner(self):
         if self.alarm_state.get("active"):
@@ -4876,7 +4885,6 @@ class Main(QMainWindow):
         self.foreign_switch.setEnabled(True)
         self.foreign_conf.setEnabled(not running)
         self.foreign_every.setEnabled(not running)
-        for _,_,_,slider in self.region_sliders:slider.setEnabled(not running)
         self.video.editable = False
         self.video.update()
 
