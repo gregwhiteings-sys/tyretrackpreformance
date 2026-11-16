@@ -34,3 +34,14 @@ with DatabaseTemporaryDirectory() as folder:
  assert read_json(state,{})['active']
  write_json(state,{'active':False});assert not read_json(state,{})['active']
 print('PASS: confirmation, per-object alerting, auto-clear timeout, spatial filtering and password hashing')
+
+from foreign_alarm import ClearEvidence
+evidence=ClearEvidence()
+assert evidence.update([{}],[{'track_id':1}],0)
+assert evidence.update([],[],1)
+assert evidence.update([],[],10) # Missing packets cannot clear an alarm.
+assert evidence.update([{}],[],11) # Any continued detection interrupts clearance.
+for t in (12,13,14):
+    assert evidence.update([],[],t)
+assert evidence.update([],[],15)==[]
+print('PASS: alarm persists across missing results and clears on sustained fresh empty results')

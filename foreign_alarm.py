@@ -4,6 +4,7 @@ from array import array
 from pathlib import Path
 
 CLASSES=('wheel_rim','person')
+OAK_CLASSES=('tyre_with_rim','service_worker','metal_object','wood_debris')
 
 def overlap(a,b):
     x0,y0=max(a[0],b[0]),max(a[1],b[1]);x1,y1=min(a[2],b[2]),min(a[3],b[3])
@@ -96,3 +97,28 @@ def make_tone(path):
     samples=array('h',(int(10000*math.sin(2*math.pi*(880 if i<11025 else 660)*i/22050)) for i in range(22050)))
     with wave.open(str(p),'wb') as f:f.setnchannels(1);f.setsampwidth(2);f.setframerate(22050);f.writeframes(samples.tobytes())
     return p
+
+
+class ClearEvidence:
+    """Keep a confirmed alert until fresh empty observations span the clear window."""
+    def __init__(self, seconds=3.0, max_gap=2.0):
+        self.seconds=seconds
+        self.max_gap=max_gap
+        self.reset()
+
+    def reset(self):
+        self.objects=[]
+        self.empty_since=self.last_empty=None
+
+    def update(self, detections, confirmed, now):
+        if confirmed and detections:
+            self.objects=confirmed
+        if detections:
+            self.empty_since=self.last_empty=None
+        elif self.objects:
+            if self.last_empty is None or now-self.last_empty>self.max_gap:
+                self.empty_since=now
+            self.last_empty=now
+            if now-self.empty_since>=self.seconds:
+                self.reset()
+        return self.objects

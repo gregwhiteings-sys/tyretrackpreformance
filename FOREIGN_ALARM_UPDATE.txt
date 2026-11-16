@@ -1,0 +1,5 @@
+Apply this ZIP over the TyreTrack Second Camera Dashboard Equal Totals Fix v2 source, then rebuild in GitHub Actions. Keep the previous build for rollback.
+
+The four-class OAK-D S2 model uses RGB input at 416 x 416 and expects pixel values divided by 255 once. This update assumes the uploaded best.blob was compiled with --data_type=FP16 --scale_values=[255,255,255] and -ip U8, without input channel reversal. If conversion used reverse_input_channels, recompile without it before using this update. The normalization embedded in the supplied blob has not been independently verified. Do not use .255 or a 127.5 mean.
+
+The red overlay and alarm stay active until fresh empty detections span at least three seconds. Missing or stale detector packets do not count as clearance. The existing legacy PC replay model is unchanged. Run the Windows CI and verify hardware inference, colour/normalization and actual alerts on an isolated trial before enabling this model.

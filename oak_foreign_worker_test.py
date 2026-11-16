@@ -13,8 +13,8 @@ m.log_count=lambda *args:None;m.oak_in_operating_hours=lambda:True
 m.YOLO=lambda *args,**kwargs:(_ for _ in ()).throw(AssertionError('OAK path must not instantiate CPU YOLO'))
 def raw(kind):
  if kind=='tyre':return np.zeros(18144,np.float32)
- out=np.zeros((1,5,3549),np.float32)
- out[0,:,0]=[240,208,80,80,.99]
+ out=np.zeros((1,8,3549),np.float32)
+ out[0,:,0]=[240,208,80,80,.99,0,0,0]
  return {'output0':out}
 for class_id in (0,):
  class Source:
@@ -29,11 +29,11 @@ for class_id in (0,):
  worker=m.CounterWorker('oak','','Bottom to Top',.35,.5);worker.foreign_enabled=True;worker.foreign_every=20
  events=[];statuses=[];worker.foreign_event.connect(events.append);worker.status.connect(statuses.append);worker.foreign_status.connect(statuses.append)
  worker.run()
- assert len(events)==1 and events[0]['class_id']==class_id and events[0]['class_name']=='foreign_object',(events,statuses,worker.foreign_boxes,worker.foreign_failed)
+ assert len(events)==1 and events[0]['class_id']==class_id and events[0]['class_name']=='tyre_with_rim',(events,statuses,worker.foreign_boxes,worker.foreign_failed)
  assert worker.foreign_active and not worker.foreign_failed
  assert not any(s.startswith('FAULT') for s in statuses),statuses
  assert not any(s.startswith('ERROR') for s in statuses),statuses
-print('PASS: real OAK counter worker decodes one-class YOLOv8 RVC2 outputs without CPU YOLO; each tracked object alerts once; OAK ignores PC-only frame interval')
+print('PASS: real OAK counter worker decodes four-class YOLOv8 RVC2 outputs without CPU YOLO; each tracked object alerts once; OAK ignores PC-only frame interval')
 # Presence-based alarm clears as soon as its worker reports no object after the grace window.
 m.Main.tick=lambda self:None
 with DatabaseTemporaryDirectory():
@@ -41,8 +41,8 @@ with DatabaseTemporaryDirectory():
  window.alarm_tick=lambda:None;window.stop_alarm_sound=lambda:None
  window.update_alarm_banner=lambda:None
  window.on_foreign_presence([{'class_name':'foreign_object'}])
- assert window.alarm_state['active']
+ assert window.alarm_state['active'] and window.foreign_flash_timer.isActive()
  window.on_foreign_presence([])
- assert not window.alarm_state['active']
+ assert not window.alarm_state['active'] and not window.foreign_flash_timer.isActive() and window.foreign_flash_overlay.isHidden()
  window.close()
 print('PASS: dashboard alarm automatically clears after foreign-object presence ends')

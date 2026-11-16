@@ -1,5 +1,5 @@
 """Detection-only dual OAK RVC2 adapter. No mask tensors or reconstruction.
-Tyres: supplied verified 384 RGB detection blob. Foreign: 416 BGR YOLOv8 detector.
+Tyres: supplied verified 384 RGB detection blob. Foreign: 416 RGB YOLOv8 detector.
 Host performs detection decoding and ByteTrack; device performs inference/encoding.
 """
 from pathlib import Path
@@ -59,7 +59,7 @@ def build_pipeline(dai,root,recording=False,foreign_enabled=True):
         tyre=kind=='tyre';size=384 if tyre else 416
         manip=p.create(dai.node.ImageManip)
         manip.initialConfig.setResizeThumbnail(size,size)
-        manip.initialConfig.setFrameType(dai.ImgFrame.Type.RGB888p if tyre else dai.ImgFrame.Type.BGR888p)
+        manip.initialConfig.setFrameType(dai.ImgFrame.Type.RGB888p)
         manip.setMaxOutputFrameSize(size*size*3)
         manip.inputImage.setBlocking(False);manip.inputImage.setQueueSize(1)
         camera.preview.link(manip.inputImage)
@@ -77,34 +77,34 @@ def read_layers(packet,kind):
         if out.size!=18144:raise ValueError('Malformed tyre detection tensor')
         return out
     out=np.asarray(packet.getLayerFp16('output0'),dtype=np.float32)
-    if out.size!=5*3549:raise ValueError('Malformed foreign YOLOv8 output0 tensor')
-    return {'output0':out.reshape(1,5,3549)}
+    if out.size!=8*3549:raise ValueError('Malformed foreign YOLOv8 output0 tensor')
+    return {'output0':out.reshape(1,8,3549)}
 
 def unletterbox(image,kind='tyre'):
     if kind=='tyre':
         if image.shape[:2]!=(384,384):raise ValueError('Unexpected tyre thumbnail')
         return cv2.cvtColor(cv2.resize(image[84:300],FRAME_SIZE),cv2.COLOR_RGB2BGR)
     if image.shape[:2]!=(416,416):raise ValueError('Unexpected foreign thumbnail')
-    return cv2.resize(image[91:325],FRAME_SIZE)
+    return cv2.cvtColor(cv2.resize(image[91:325],FRAME_SIZE),cv2.COLOR_RGB2BGR)
 
 def decode(raw,confidence=.1,iou=.5,agnostic=False):
-    """Decode the one-class YOLOv8 [1,5,3549] RVC2 output."""
+    """Decode the four-class YOLOv8 [1,8,3549] RVC2 output."""
     if not isinstance(raw,dict):return decode_tyres(raw,confidence,iou,agnostic),None
     a=np.asarray(raw.get('output0'),dtype=np.float32)
-    if a.shape not in ((1,5,3549),(5,3549)):
+    if a.shape not in ((1,8,3549),(8,3549)):
         raise ValueError(f'Unexpected foreign YOLOv8 output shape {a.shape}')
-    a=a.reshape(5,3549);scores=a[4]
+    a=a.reshape(8,3549);class_ids=a[4:].argmax(axis=0);scores=a[4:].max(axis=0)
     valid=np.isfinite(a).all(0)&(scores>=confidence)&(scores<=1.001)&(a[2]>0)&(a[3]>0)
-    boxes=[];kept_scores=[]
-    for cx,cy,w,h,score in zip(a[0,valid],a[1,valid],a[2,valid],a[3,valid],scores[valid]):
+    boxes=[];kept_scores=[];classes=[]
+    for cx,cy,w,h,score,cls in zip(a[0,valid],a[1,valid],a[2,valid],a[3,valid],scores[valid],class_ids[valid]):
         x1=max(0.,float(cx-w/2));x2=min(416.,float(cx+w/2))
         y1=max(91.,float(cy-h/2));y2=min(325.,float(cy+h/2))
         if x2<=x1 or y2<=y1:continue
-        boxes.append([x1,y1,x2-x1,y2-y1]);kept_scores.append(float(score))
+        boxes.append([x1,y1,x2-x1,y2-y1]);kept_scores.append(float(score));classes.append(int(cls))
     if not boxes:return np.empty((0,6),np.float32),None
     indices=np.asarray(cv2.dnn.NMSBoxes(boxes,kept_scores,confidence,iou),dtype=int).reshape(-1)
     if not len(indices):return np.empty((0,6),np.float32),None
-    chosen=np.asarray([[*boxes[i],kept_scores[i],0] for i in indices[:300]],dtype=np.float32)
+    chosen=np.asarray([[*boxes[i],kept_scores[i],classes[i]] for i in indices[:300]],dtype=np.float32)
     chosen[:,[0,2]]*=480/416
     chosen[:,1]=(chosen[:,1]-91)*270/234
     chosen[:,3]*=270/234

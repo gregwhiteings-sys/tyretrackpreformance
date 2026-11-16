@@ -87,7 +87,7 @@ from ultralytics import YOLO
 from count_line import segment_bounds, crosses_segment, count_point
 from three_line import ThreeLineCounter, simulation_checks, line_segments
 from hourly_dashboard import hourly_snapshot, brisbane_now
-from foreign_alarm import CLASSES, ForeignPresence, in_region, read_json, write_json, set_password, verify_password, make_tone
+from foreign_alarm import CLASSES, OAK_CLASSES, ClearEvidence, ForeignPresence, in_region, read_json, write_json, set_password, verify_password, make_tone
 
 from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, QPoint, QPointF, pyqtSignal
 from PyQt5.QtGui import QColor, QImage, QPainter, QPen, QPixmap
@@ -1643,6 +1643,8 @@ class CounterWorker(QThread):
         self.foreign_every = 5
         self.foreign_region = (.03,.98,.18,.82)
         self.foreign_presence_tracker = ForeignPresence(hits=3, clear_after=3.0)
+        self.foreign_clear_evidence = ClearEvidence()
+        self.foreign_last_seq = None
         self.foreign_model = None
         self.foreign_boxes = []
         self.foreign_failed = False
@@ -1667,6 +1669,7 @@ class CounterWorker(QThread):
         self.foreign_boxes = []
         if self.foreign_reset_pending:
             self.foreign_presence_tracker.clear()
+            self.foreign_clear_evidence.reset()
             self.foreign_reset_pending = False
         if not self.foreign_enabled or self.foreign_failed:
             return
@@ -1678,11 +1681,14 @@ class CounterWorker(QThread):
             if self.source_kind == "oak":
                 from oak_rvc2 import decode as decode_foreign
                 item=self.oak_source.read_foreign()
-                if item is not None:
-                    seq, inference_frame, raw, received=item
-                    if now-received<=2:
-                        rows,_=decode_foreign(raw,self.foreign_confidence,.5)
-                        candidates=[(row[:4].tolist(),int(row[5]),float(row[4])) for row in rows]
+                if item is None:
+                    return
+                seq, inference_frame, raw, received=item
+                if now-received>2 or seq==self.foreign_last_seq:
+                    return
+                self.foreign_last_seq=seq
+                rows,_=decode_foreign(raw,self.foreign_confidence,.5)
+                candidates=[(row[:4].tolist(),int(row[5]),float(row[4])) for row in rows]
             else:
                 result=self.foreign_model.predict(frame,conf=self.foreign_confidence,
                                                    imgsz=416,device="cpu",verbose=False)[0]
@@ -1691,13 +1697,15 @@ class CounterWorker(QThread):
             height,width=frame.shape[:2]
             detections=[]
             for box,c,confidence in candidates:
-                if c not in (range(1) if self.source_kind == "oak" else range(len(CLASSES))):
+                labels=OAK_CLASSES if self.source_kind=="oak" else CLASSES
+                if not 0<=c<len(labels):
                     continue
                 if not in_region(box,width,height,*self.foreign_region):continue
-                detections.append(dict(class_id=c,class_name="foreign_object" if self.source_kind == "oak" else CLASSES[c],
+                detections.append(dict(class_id=c,class_name=labels[c],
                                        box=box,confidence=float(confidence)))
             self.foreign_boxes=detections
             new_events,active=self.foreign_presence_tracker.update(detections,now)
+            active=self.foreign_clear_evidence.update(detections,active,now)
             active_payload=[dict(track_id=t["track_id"],class_id=t["class_id"],
                                  class_name=t.get("class_name","foreign_object"),box=t["box"],
                                  confidence=t["confidence"]) for t in active]
@@ -2571,6 +2579,14 @@ class Main(QMainWindow):
     def build_ui(self):
         root = QWidget()
         self.setCentralWidget(root)
+        self.foreign_flash_overlay=QWidget(root)
+        self.foreign_flash_overlay.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.foreign_flash_overlay.setAttribute(Qt.WA_StyledBackground)
+        self.foreign_flash_overlay.setStyleSheet("background-color:rgba(255,0,0,90);")
+        self.foreign_flash_overlay.hide()
+        self.foreign_flash_timer=QTimer(self)
+        self.foreign_flash_timer.setInterval(650)
+        self.foreign_flash_timer.timeout.connect(self.flash_foreign_dashboard)
 
         outer = QVBoxLayout(root)
         outer.setContentsMargins(10, 8, 10, 8)
@@ -2785,8 +2801,8 @@ class Main(QMainWindow):
         counters_layout.addLayout(average_forecast_row)
         self.dashboard_record_progress=QLabel("Build the next best hour")
         self.dashboard_record_progress.setAlignment(Qt.AlignCenter)
-        self.dashboard_record_progress.setFixedHeight(28)
-        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:800 12px 'Segoe UI';padding:2px 8px;")
+        self.dashboard_record_progress.setFixedHeight(42)
+        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:900 24px 'Segoe UI';padding:2px 8px;")
         secondary_metric_cards=[]
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
@@ -4116,6 +4132,12 @@ class Main(QMainWindow):
             self.fod_badge.setStyleSheet("background:#27301c;border:1px solid #657c39;border-radius:6px;color:#b8e879;font-weight:800;padding:7px 10px;" if enabled else "background:#172432;border:1px solid #405364;border-radius:6px;color:#bdc9d5;font-weight:800;padding:7px 10px;")
         self.update_alarm_banner()
 
+    def flash_foreign_dashboard(self):
+        overlay=self.foreign_flash_overlay
+        overlay.setGeometry(self.centralWidget().rect())
+        overlay.raise_()
+        overlay.setVisible(not overlay.isVisible())
+
     def on_foreign_presence(self, objects):
         objects=list(objects or [])
         active=bool(objects)
@@ -4126,14 +4148,19 @@ class Main(QMainWindow):
             self.alarm_state={"active":True,"object":", ".join(labels),
                               "timestamp":self.alarm_state.get("timestamp") if current else brisbane_now().isoformat()}
             self.alarm_tick()
+            if not self.foreign_flash_timer.isActive():
+                self.flash_foreign_dashboard()
+                self.foreign_flash_timer.start()
         else:
             self.alarm_state={"active":False}
+            self.foreign_flash_timer.stop()
+            self.foreign_flash_overlay.hide()
             self.stop_alarm_sound()
         self.update_alarm_banner()
 
     def on_foreign_alarm(self, event):
         record={k:v for k,v in event.items() if k!='frame'}
-        record['object']=event.get('class_name',CLASSES[event['class_id']])
+        record['object']=event.get('class_name') or 'foreign_object'
         record['snapshot']="Not saved"
         record['active']=True
         incident=f"incident_{int(time.time()*1000)}"
@@ -4162,7 +4189,7 @@ class Main(QMainWindow):
               f"Detected: {event.get('timestamp','')} Brisbane time\\n"
               f"Source: {event.get('source_kind','')} {event.get('source','')}\\n"
               f"Track: {event.get('track_id','')}\\n\\n"
-              "The audible alarm stays on while a confirmed foreign object remains visible and auto-stops after about 3 seconds without a detection.")
+              "The audible alarm stays on while a confirmed foreign object remains visible and auto-stops after about 3 seconds of fresh clear detector observations.")
         snapshot=record.get('snapshot','')
         if snapshot=="Snapshot write failed" or not Path(snapshot).is_file():snapshot=None
         def send_alert():
