@@ -4,7 +4,7 @@ from array import array
 from pathlib import Path
 
 CLASSES=('wheel_rim','person')
-OAK_CLASSES=('tyre_with_rim','service_worker','metal_object','wood_debris')
+OAK_CLASSES= ('tyre_with_rim', 'service_worker', 'metal_object')
 
 def overlap(a,b):
     x0,y0=max(a[0],b[0]),max(a[1],b[1]);x1,y1=min(a[2],b[2]),min(a[3],b[3])
