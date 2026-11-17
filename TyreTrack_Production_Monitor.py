@@ -2667,7 +2667,7 @@ class Main(QMainWindow):
         self.hour_lbl = QLabel(tyre_total_text(0))
         self.day_lbl = QLabel(tyre_total_text(0))
         self.month_lbl = QLabel("0")
-        self.total_lbl = QLabel("0")
+        self.total_lbl = QLabel("—")
 
         def metric_card(name, label, accent=None):
             frame = QFrame()
@@ -2722,6 +2722,9 @@ class Main(QMainWindow):
         self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
         self.total_weight_lbl.setStyleSheet("color:#e2e7ec;font:700 16px 'Segoe UI';letter-spacing:1px;")
         daily.layout().addWidget(self.total_weight_lbl)
+        self.alltime_metric_card=metric_card("ALL-TIME TOTAL",self.total_lbl,"#e4edff")
+        self.alltime_metric_card.setToolTip("Total production tyres recorded in this installation's history")
+        daily.layout().addWidget(self.alltime_metric_card)
         # Match the main total's numeral size to the Passenger/SUV/Truck
         # totals beside it, so the class figures read as first-class KPIs.
         self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 54px 'Consolas';")
@@ -2770,12 +2773,9 @@ class Main(QMainWindow):
         self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#f1b82d")
         self.best_daily_lbl.setStyleSheet("color:#f7f8fa;font:900 48px 'Consolas';")
         self.best_daily_lbl.setWordWrap(True)
-        alltime=metric_card("ALL TIME",self.total_lbl,"#e4edff")
         for c,card in enumerate((hour,self.best_hour_card,self.best_daily_card)):
             card.setFixedHeight(108);grid.addWidget(card,0,c);grid.setColumnStretch(c,1)
             if card is not self.best_daily_card: card.findChild(QLabel,"metricValue").setStyleSheet("font:900 44px 'Consolas';color:#f7f8fa;")
-        alltime.hide()  # Retain the value for exports, but keep the main screen focused.
-        self.alltime_metric_card=alltime
         for card,label in ((hour,self.hour_lbl),(self.best_hour_card,self.session_lbl)):
             card.findChild(QLabel,"metricName").setStyleSheet("color:#f3f7ff;font-size:18px;font-weight:900;letter-spacing:1px;")
             label.setStyleSheet("font:900 54px 'Consolas';color:#f7f8fa;")
@@ -5460,7 +5460,7 @@ class Main(QMainWindow):
         if self.day_lbl.text() != value: self.day_lbl.setText(value)
         value = tyre_total_text(data['current_hour'])
         if self.hour_lbl.text() != value: self.hour_lbl.setText(value)
-        value = str(data['all_time'])
+        value = tyre_total_text(data['all_time'])
         if self.total_lbl.text() != value: self.total_lbl.setText(value)
         self.refresh_weight_totals(data['types'])
 
@@ -5526,6 +5526,7 @@ class Main(QMainWindow):
             self.request_dashboard_data()
         worker = self.worker
         test_mode = bool(worker is not None and (worker.source_kind == "video" or worker.manual_test))
+        self.alltime_metric_card.setVisible(not test_mode)
         if test_mode:
             elapsed = (worker.processing_frame / max(1.0,worker.video_fps) if worker.source_kind=="video"
                        else time.monotonic()-worker.session_started_monotonic)
@@ -5541,7 +5542,6 @@ class Main(QMainWindow):
             # Worker commits before emitting the counted signal, so session totals agree.
             self.hour_lbl.setText(tyre_total_text(this_hour))
             self.day_lbl.setText(tyre_total_text(len(events)))
-            self.total_lbl.setText(str(len(events)))
             completed = [sum(i*3600 <= t < min((i+1)*3600,43500) for t in events)
                          for i in range(13) if elapsed >= min((i+1)*3600,43500)]
             # Best-hour count is refreshed from completed slots below.
@@ -5564,7 +5564,7 @@ class Main(QMainWindow):
             metrics = self._dashboard_cache['metrics']
             self.hour_lbl.setText(tyre_total_text(metrics["current_hour"]))
             self.day_lbl.setText(tyre_total_text(metrics["daily"]))
-            self.total_lbl.setText(str(metrics["all_time"]))
+            self.total_lbl.setText(tyre_total_text(metrics["all_time"]))
             # Best-hour count is refreshed from completed slots below.
             stamps = metrics["alert_times"]
             latest = stamps[-1].strftime("%d %b %H:%M:%S") if stamps else "None today"
