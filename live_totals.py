@@ -12,7 +12,16 @@ def snapshot(db,source,now):
     types={};hour_count=0
     with closing(sqlite3.connect(db,timeout=3)) as con:
         con.execute('BEGIN')
-        all_time=con.execute('SELECT COUNT(*) FROM counts WHERE source=?',(source,)).fetchone()[0]
+        all_time, first_epoch, last_epoch, first_legacy, last_legacy = con.execute(
+            """SELECT COUNT(*), MIN(metric_utc), MAX(metric_utc),
+                      MIN(CASE WHEN metric_utc IS NULL THEN date(substr(ts, 1, 10)) END),
+                      MAX(CASE WHEN metric_utc IS NULL THEN date(substr(ts, 1, 10)) END)
+               FROM counts WHERE source=?""", (source,)
+        ).fetchone()
+        dates = [day for day in (first_legacy, last_legacy) if day]
+        for epoch in (first_epoch, last_epoch):
+            if epoch is not None:
+                dates.append(datetime.fromtimestamp(epoch, now.tzinfo).date().isoformat())
         # Return one row per class, not every tyre in today's production history.
         rows=con.execute('SELECT tyre_type,COUNT(*),SUM(CASE WHEN metric_utc>=? THEN 1 ELSE 0 END) FROM counts WHERE source=? AND metric_utc>=? AND metric_utc<? GROUP BY tyre_type',
             (hour.timestamp(),source,start.timestamp(),stop.timestamp()))
@@ -31,4 +40,4 @@ def snapshot(db,source,now):
             types[kind]=types.get(kind,0)+1
             if hour<=stamp and now<end:hour_count+=1
     ready=time.monotonic()
-    return dict(day=now.date().isoformat(),hour=now.hour,daily=sum(types.values()),current_hour=hour_count,all_time=all_time,types=types,read_ms=(ready-begun)*1000,ready_mono=ready)
+    return dict(day=now.date().isoformat(),hour=now.hour,daily=sum(types.values()),current_hour=hour_count,all_time=all_time,all_time_dates=(min(dates),max(dates)) if dates else None,types=types,read_ms=(ready-begun)*1000,ready_mono=ready)

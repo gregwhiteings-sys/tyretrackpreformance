@@ -2724,6 +2724,9 @@ class Main(QMainWindow):
         daily.layout().addWidget(self.total_weight_lbl)
         self.alltime_metric_card=metric_card("ALL-TIME TOTAL",self.total_lbl,"#e4edff")
         self.alltime_metric_card.setToolTip("Total production tyres recorded in this installation's history")
+        self.alltime_dates_lbl = QLabel("No production dates recorded")
+        self.alltime_dates_lbl.setStyleSheet("color:#a3b9cf;font:600 12px 'Segoe UI';")
+        self.alltime_metric_card.layout().addWidget(self.alltime_dates_lbl)
         daily.layout().addWidget(self.alltime_metric_card)
         # Match the main total's numeral size to the Passenger/SUV/Truck
         # totals beside it, so the class figures read as first-class KPIs.
@@ -4114,13 +4117,16 @@ class Main(QMainWindow):
         return tuple(slider.value()/100 for _,_,_,slider in self.region_sliders)
 
     def save_foreign_settings(self):
-        self.foreign_conf_lbl.setText(f"Foreign confidence: {self.foreign_conf.value()}%")
+        confidence = self.foreign_conf.value()
+        self.foreign_conf_lbl.setText(f"Foreign confidence: {confidence}%")
+        worker = getattr(self, "worker", None)
+        if worker is not None:
+            worker.foreign_confidence = confidence / 100
         self.foreign_every_lbl.setText(f"Check every {self.foreign_every.value()} processed frames")
-        set_state("foreign_confidence",self.foreign_conf.value())
+        set_state("foreign_confidence",confidence)
         set_state("foreign_every",self.foreign_every.value())
         t,b,l,r=self.foreign_region_values()
         if t<b and l<r:
-            worker=getattr(self,"worker",None)
             if worker is not None:
                 worker.foreign_region=(t,b,l,r)
             self.foreign_roi_hint.setText("ROI applies live. Enable Foreign Object and select Show Boxes to see the orange outline.")
@@ -4939,7 +4945,6 @@ class Main(QMainWindow):
     def set_running_controls(self, running):
         self.manual_oak_test.setEnabled(not running)
         self.foreign_switch.setEnabled(True)
-        self.foreign_conf.setEnabled(not running)
         self.foreign_every.setEnabled(not running)
         self.video.editable = False
         self.video.update()
@@ -5460,6 +5465,13 @@ class Main(QMainWindow):
         if self.day_lbl.text() != value: self.day_lbl.setText(value)
         value = tyre_total_text(data['current_hour'])
         if self.hour_lbl.text() != value: self.hour_lbl.setText(value)
+        dates = data.get('all_time_dates')
+        date_text = "No production dates recorded"
+        if dates:
+            first, last = (datetime.fromisoformat(day).strftime("%d %b %Y") for day in dates)
+            date_text = f"{first} – {last} (Brisbane)"
+        if self.alltime_dates_lbl.text() != date_text:
+            self.alltime_dates_lbl.setText(date_text)
         value = tyre_total_text(data['all_time'])
         if self.total_lbl.text() != value: self.total_lbl.setText(value)
         self.refresh_weight_totals(data['types'])
