@@ -77,8 +77,8 @@ def read_layers(packet,kind):
         if out.size!=18144:raise ValueError('Malformed tyre detection tensor')
         return out
     out=np.asarray(packet.getLayerFp16('output0'),dtype=np.float32)
-    if out.size!=8*3549:raise ValueError('Malformed foreign YOLOv8 output0 tensor')
-    return {'output0':out.reshape(1,8,3549)}
+    if out.size!=7*3549:raise ValueError('Malformed foreign YOLOv8 output0 tensor')
+    return {'output0':out.reshape(1,7,3549)}
 
 def unletterbox(image,kind='tyre'):
     if kind=='tyre':
@@ -88,12 +88,12 @@ def unletterbox(image,kind='tyre'):
     return cv2.cvtColor(cv2.resize(image[91:325],FRAME_SIZE),cv2.COLOR_RGB2BGR)
 
 def decode(raw,confidence=.1,iou=.5,agnostic=False):
-    """Decode the four-class YOLOv8 [1,8,3549] RVC2 output."""
+    """Decode the three-class YOLOv8 [1,7,3549] RVC2 output."""
     if not isinstance(raw,dict):return decode_tyres(raw,confidence,iou,agnostic),None
     a=np.asarray(raw.get('output0'),dtype=np.float32)
-    if a.shape not in ((1,8,3549),(8,3549)):
+    if a.shape not in ((1,7,3549),(7,3549)):
         raise ValueError(f'Unexpected foreign YOLOv8 output shape {a.shape}')
-    a=a.reshape(8,3549);class_ids=a[4:].argmax(axis=0);scores=a[4:].max(axis=0)
+    a=a.reshape(7,3549);class_ids=a[4:].argmax(axis=0);scores=a[4:].max(axis=0)
     valid=np.isfinite(a).all(0)&(scores>=confidence)&(scores<=1.001)&(a[2]>0)&(a[3]>0)
     boxes=[];kept_scores=[];classes=[]
     for cx,cy,w,h,score,cls in zip(a[0,valid],a[1,valid],a[2,valid],a[3,valid],scores[valid],class_ids[valid]):
