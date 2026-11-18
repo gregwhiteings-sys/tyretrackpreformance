@@ -1,6 +1,6 @@
 {
   "target": "RVC2",
-  "model": "TyreTrack FOD Worker On Belt",
+  "model": "TyreTrack FOD Hard Negative",
   "input": [
     1,
     3,
@@ -16,5 +16,5 @@
   "expected_pixel_divisor": 255,
   "embedded_normalization_verified": false,
   "source_onnx": "best.onnx",
-  "compiled_file": "TyreTrack_Worker_On_Belt_RVC2(1).blob"
+  "compiled_file": "TyreTrack_Hard_Negative_RVC2.blob"
 }
