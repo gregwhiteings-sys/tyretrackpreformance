@@ -13,11 +13,11 @@ m.log_count=lambda *args:None;m.oak_in_operating_hours=lambda:True
 m.YOLO=lambda *args,**kwargs:(_ for _ in ()).throw(AssertionError('OAK path must not instantiate CPU YOLO'))
 def raw(kind):
  if kind=='tyre':return np.zeros(18144,np.float32)
- out=np.zeros((1,7,3549),np.float32)
- out[0,:,0]=[240,208,80,80,0,0,0]
+ out=np.zeros((1,8,3549),np.float32)
+ out[0,:,0]=[240,208,80,80,0,0,0,0]
  out[0,4+class_id,0]=.99
  return {'output0':out}
-for class_id in (0,1,2):
+for class_id in (0,1,2,3):
  class Source:
   def __init__(self,ip,foreign_enabled=False):self.index=0;self.last_read_frame_at=time.monotonic();assert foreign_enabled
   def read(self):
@@ -30,11 +30,14 @@ for class_id in (0,1,2):
  worker=m.CounterWorker('oak','','Bottom to Top',.35,.5);worker.foreign_enabled=True;worker.foreign_every=20
  events=[];statuses=[];worker.foreign_event.connect(events.append);worker.status.connect(statuses.append);worker.foreign_status.connect(statuses.append)
  worker.run()
- assert len(events)==1 and events[0]['class_id']==class_id and events[0]['class_name']==m.OAK_CLASSES[class_id],(events,statuses,worker.foreign_boxes,worker.foreign_failed)
- assert worker.foreign_active and not worker.foreign_failed
+ if class_id == 3:
+  assert not events and not worker.foreign_active
+ else:
+  assert len(events)==1 and events[0]['class_id']==class_id and events[0]['class_name']==m.OAK_CLASSES[class_id],(events,statuses,worker.foreign_boxes,worker.foreign_failed)
+  assert worker.foreign_active and not worker.foreign_failed
  assert not any(s.startswith('FAULT') for s in statuses),statuses
  assert not any(s.startswith('ERROR') for s in statuses),statuses
-print('PASS: real OAK counter worker decodes three-class YOLOv8 RVC2 outputs without CPU YOLO; each tracked object alerts once; OAK ignores PC-only frame interval')
+print('PASS: real OAK counter worker decodes four-class YOLOv8 RVC2 outputs without CPU YOLO; each tracked object alerts once; OAK ignores PC-only frame interval')
 # Presence-based alarm clears as soon as its worker reports no object after the grace window.
 m.Main.tick=lambda self:None
 with DatabaseTemporaryDirectory():

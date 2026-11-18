@@ -14,7 +14,7 @@ class Packet:
   shape=(360,640,3) if self.seq==23 else ((416,416,3) if self.seq in (17,18,28) else (384,384,3))
   return np.full(shape,self.seq,dtype=np.uint8)
  def getLayerFp16(self,name):
-  if name=='output0':return np.full(7*3549 if self.foreign else 18144,.123,dtype=np.float32)
+  if name=='output0':return np.full(8*3549 if self.foreign else 18144,.123,dtype=np.float32)
   size={1:52,2:26,3:13}[int(name[6])]
   return np.full(7*size*size,.123,dtype=np.float32)
 class Q:
