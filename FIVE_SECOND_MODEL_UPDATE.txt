@@ -1,0 +1,24 @@
+TyreTrack Five Second Four Class - OAK model replacement - 19 November 2026
+
+Based on TyreTrack_Morning_Four_Class_Updated_Build.zip.
+Replaced rvc2_models/foreign/foreign_object.blob with the newly trained model.
+Updated model metadata, configuration name and SHA-256 integrity manifest.
+
+Foreign model classes:
+0 tyre_with_rim (bare rims and tyres with visible rims)
+1 service_worker
+2 metal_object
+3 normal_tyre (excluded from OAK alarms by the existing decoder)
+Input: RGB 416x416. YOLOv8 output: [1,8,3549].
+Compiled for RVC2, OpenVINO 2022.1, 6 SHAVEs, input pixel divisor 255.
+
+Checks passed: compiled tensor contracts; four OAK pipeline combinations;
+preview/recording graph tests; normal-tyre exclusion; integrity checks including
+Windows CRLF handling. OAK worker/alarm tests were also run.
+No physical camera inference or Windows executable build was performed here.
+Synthetic evaluation includes missed rims and metal objects. Independent real
+positive-object testing remains necessary; false-alarm elimination is not proven.
+
+This replacement updates the OAK foreign model. The existing PC foreign model
+and its class mapping remain as in the baseline build. The tyre counting model,
+passenger/SUV classification, application code and dashboard are preserved.
