@@ -1,0 +1,104 @@
+{
+  "source_results_drive_file_id": "1gyhb9NRU8DxoMhaw9F9tYLl45euLwd9r",
+  "source_onnx_sha256": "c91ccd92aea4973070fd0876ef469620804a943130e58e16f977e2f036801bf1",
+  "compiled_blob_sha256": "dc791875002a3a4ce44fddc14a636fbd7edb7ca05989decd692e02610566fe68",
+  "blob_size_bytes": 6370421,
+  "inputs_depthai_dims": {
+    "images": [
+      416,
+      416,
+      3,
+      1
+    ]
+  },
+  "outputs_depthai_dims": {
+    "output0": [
+      3549,
+      8,
+      1
+    ]
+  },
+  "input_type": "DataType.U8F",
+  "openvino_version": "2022.1",
+  "shaves": 6,
+  "pixel_divisor": 255,
+  "classes": [
+    "tyre_with_rim",
+    "service_worker",
+    "metal_object",
+    "normal_tyre"
+  ],
+  "ignored_alarm_class_id": 3,
+  "policy": {
+    "normal_class_id": 3,
+    "accepted": [
+      "small tyres",
+      "nested tyres",
+      "overlapping tyres",
+      "tilted tyres",
+      "torn rubber rings",
+      "rubber pieces"
+    ],
+    "supplement_images": 54,
+    "supplement_regions": 18,
+    "base_ambiguous_images_skipped": []
+  },
+  "supplied_metrics": {
+    "before": {
+      "0": {
+        "precision": 1.0,
+        "recall": 0.8088672963685012
+      },
+      "1": {
+        "precision": 0.9413799058153505,
+        "recall": 0.9448383046763094
+      },
+      "2": {
+        "precision": 0.5224296649414402,
+        "recall": 0.4444444444444444
+      },
+      "3": {
+        "precision": 0.9756649348980261,
+        "recall": 0.8968531468531469
+      }
+    },
+    "after": {
+      "0": {
+        "precision": 0.9450003100525589,
+        "recall": 0.8333333333333334
+      },
+      "1": {
+        "precision": 0.9759380893687482,
+        "recall": 1.0
+      },
+      "2": {
+        "precision": 0.4646047847934438,
+        "recall": 0.4444444444444444
+      },
+      "3": {
+        "precision": 0.9906282993495741,
+        "recall": 0.8811188811188811
+      }
+    },
+    "test": {
+      "0": {
+        "precision": 0.9706850379824976,
+        "recall": 0.9454545454545454
+      },
+      "1": {
+        "precision": 0.9572344817966428,
+        "recall": 0.75
+      },
+      "2": {
+        "precision": 0.8612307605924668,
+        "recall": 0.7600292484385963
+      },
+      "3": {
+        "precision": 0.9955351485978189,
+        "recall": 0.888333384068547
+      }
+    }
+  },
+  "hardware_inference_tested": false,
+  "status": "trial_model_compiled_and_metadata_checked"
+}

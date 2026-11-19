@@ -7,6 +7,7 @@
 # Requires on-site validation; does not change detector weights.
 
 import configparser
+import hashlib
 import csv
 import math
 import numpy as np
@@ -1647,6 +1648,7 @@ class CounterWorker(QThread):
         self.foreign_clear_evidence = ClearEvidence()
         self.foreign_last_seq = None
         self.foreign_model = None
+        self.foreign_model_sha256 = None
         self.foreign_boxes = []
         self.foreign_failed = False
         self.overlay_mode = "None"
@@ -1667,6 +1669,9 @@ class CounterWorker(QThread):
             return self.oak_overlay
 
     def foreign_check(self, frame):
+        evidence_frame = frame
+        inference_sequence = None
+        inference_received = None
         self.foreign_boxes = []
         if self.foreign_reset_pending:
             self.foreign_presence_tracker.clear()
@@ -1688,6 +1693,9 @@ class CounterWorker(QThread):
                 if now-received>2 or seq==self.foreign_last_seq:
                     return
                 self.foreign_last_seq=seq
+                evidence_frame=inference_frame
+                inference_sequence=int(seq)
+                inference_received=float(received)
                 rows,_=decode_foreign(raw,self.foreign_confidence,.5)
                 candidates=[(row[:4].tolist(),int(row[5]),float(row[4])) for row in rows]
             else:
@@ -1695,7 +1703,7 @@ class CounterWorker(QThread):
                                                    imgsz=416,device="cpu",verbose=False)[0]
                 candidates=[] if result.boxes is None else list(zip(result.boxes.xyxy.cpu().tolist(),
                     result.boxes.cls.int().cpu().tolist(),result.boxes.conf.cpu().tolist()))
-            height,width=frame.shape[:2]
+            height,width=evidence_frame.shape[:2]
             detections=[]
             for box,c,confidence in candidates:
                 labels=OAK_CLASSES if self.source_kind=="oak" else CLASSES
@@ -1716,8 +1724,12 @@ class CounterWorker(QThread):
                 self.last_foreign_presence=signature
                 self.foreign_presence.emit(active_payload)
             for event in new_events:
-                event_frame=frame.copy()
+                event_frame=evidence_frame.copy()
                 self.foreign_event.emit(dict(event,frame=event_frame,
+                    frame_sequence=inference_sequence,
+                    evidence_frame_kind="foreign_inference" if self.source_kind=="oak" else "pc_inference",
+                    inference_age_seconds=None if inference_received is None else max(0.,now-inference_received),
+                    model_sha256=getattr(self,"foreign_model_sha256",None),
                     source_kind="oak_test" if self.manual_test else self.source_kind,
                     source=str(self.source),timestamp=brisbane_now().isoformat(),observed_monotonic=now))
         except Exception as exc:
@@ -1774,6 +1786,13 @@ class CounterWorker(QThread):
                 source = OakSource(str(self.source or ""), foreign_enabled=self.foreign_enabled)
                 if self.foreign_enabled:self.foreign_status.emit("OAK foreign-object model · 3 matching detections required")
                 self.oak_source = source
+                if self.foreign_enabled:
+                    digest=hashlib.sha256()
+                    with open(resource_path("rvc2_models/foreign/foreign_object.blob"),"rb") as model_file:
+                        for block in iter(lambda:model_file.read(1024*1024),b""):
+                            digest.update(block)
+                    self.foreign_model_sha256=digest.hexdigest()
+                    log("OAK foreign model SHA256: "+self.foreign_model_sha256)
                 source_name = OAK_TEST_NAME if self.manual_test else OAK_NAME
             else:
                 source = cv2.VideoCapture(self.source)

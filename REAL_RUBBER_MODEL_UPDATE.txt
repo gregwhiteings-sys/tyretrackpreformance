@@ -1,0 +1,25 @@
+TyreTrack real-rubber model replacement - 19 November 2026 - TRIAL BUILD
+
+Replaced the OAK foreign-object model in the latest matched-evidence/colour-fix build.
+Preserved the paired-frame evidence fix, correct BGR colours, per-incident frame/model
+provenance, dashboard, tyre counter and other application code.
+
+Four classes retain the exact deployed order:
+0 tyre_with_rim; 1 service_worker; 2 metal_object; 3 normal_tyre.
+Class 3 is excluded from OAK alarms. The training policy includes small, overlapping,
+nested and tilted tyres, torn rubber rings and rubber pieces as normal material.
+Input 416x416 RGB. Output [1,8,3549]. RVC2/OpenVINO 2022.1, six SHAVEs, pixel divisor 255.
+
+The supplied validation report remains weak on metal: precision 46.5%, recall 44.4%.
+Supplied test metal precision 86.1%, recall 76.0%; worker test recall is 75%.
+These metrics include synthetic examples and are not verified real-camera safety or
+false-alarm performance. No claim of eliminated false alarms is made.
+
+Compile/metadata, decoder/normal-tyre exclusion, pipeline, matched evidence, preview,
+OAK worker/alarm and model integrity checks were run. No physical OAK inference test
+or Windows executable build was performed here. Use this source ZIP for GitHub CI
+and a controlled replay/live trial. The existing PC foreign model is unchanged;
+this replacement applies to the OAK foreign model.
+
+The older root update notes describe preceding model releases. This file and the
+rvc2_models/foreign/buildinfo.json identify the currently bundled model.

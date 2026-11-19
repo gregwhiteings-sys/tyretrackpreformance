@@ -1,0 +1,28 @@
+TyreTrack matched foreign evidence and colour update - 19 November 2026
+
+Foreign alert snapshots now use the exact frame paired with OAK inference.
+ROI geometry uses that frame's dimensions. Incident JSON records frame sequence,
+evidence source, received-result age and the actual running foreign model SHA-256.
+The model hash is calculated once when the OAK worker starts.
+
+Corrected an RGB/BGR double-swap in the host unletterbox function. DepthAI
+ImgFrame.getCvFrame() already returns OpenCV BGR, including RGB888p messages.
+Tests now construct real DepthAI RGB888p packets in red, green, blue and yellow.
+This corrects host display/evidence colours; the on-device inference feed is unchanged.
+Official API reference: https://docs.luxonis.com/software-v3/depthai/depthai-components/messages/img_frame
+
+Added foreign_evidence_test.py to the CI runner. It checks the shipped worker method
+with deliberately different preview/evidence pixels and dimensions, copied evidence,
+provenance, stale/duplicate packet rejection, normal-tyre exclusion and PC behavior.
+Targeted OAK model/pipeline, preview, worker/alarm and integrity tests passed.
+
+Accepted normal material includes small/nested/overlapping/tipped tyres, torn rubber
+rings and rubber pieces. The separate 54-image supplement must be mixed with the
+existing rim/person/metal positives and retrained in Colab. The compiled model in
+this source build is the preceding five-second model, unchanged. These software fixes
+do not establish improved classifier accuracy; retraining and replay tests come next.
+
+Live preview overlays still display asynchronously; persisted incident evidence uses
+the matched frame. No physical OAK inference or Windows executable build was performed.
+Use GitHub CI to build the Windows release. PC foreign inference retains its older
+model as in the preceding build; evaluate the new four-class weights in Colab/OAK.

@@ -42,11 +42,17 @@ for t in (0,.2,.4):
 assert len(events)==1 and events[0]['class_name']=='foreign_object' and len(active)==1
 new,active=presence.update([],4.0)
 assert not active
-# Distinct channel colors check RGB tyre and RGB foreign preprocessing.
-a=np.zeros((384,384,3),np.uint8);a[84:300,:,0]=255
-frame=unletterbox(a);assert frame.shape==(270,480,3) and np.all(frame[:,:,2]==255) and not frame[:,:,0].any()
-b=np.zeros((416,416,3),np.uint8);b[91:325,:,0]=255
-f=unletterbox(b,'foreign');assert np.all(f[:,:,2]==255) and not f[:,:,0].any()
+# Test the actual DepthAI RGB888p -> OpenCV BGR contract, not a fake RGB array.
+for size,kind in [(384,'tyre'),(416,'foreign')]:
+ for rgb in [(255,0,0),(0,255,0),(0,0,255),(255,255,0)]:
+  packet=dai.ImgFrame();packet.setWidth(size);packet.setHeight(size)
+  packet.setType(dai.ImgFrame.Type.RGB888p)
+  planar=np.zeros((3,size,size),np.uint8)
+  for channel,value in enumerate(rgb):planar[channel]=value
+  packet.setData(planar.ravel())
+  bgr=packet.getCvFrame();frame=unletterbox(bgr,kind)
+  assert frame.shape==(270,480,3)
+  assert np.all(frame==np.array(rgb[::-1],np.uint8)),(size,rgb,frame[100,100])
 tracker=OakTracker();ids=[]
 for y in range(250,110,-10):
  r=np.zeros((6,3024),np.float32);r[:,0]=[192,y,80,60,.95,.01]

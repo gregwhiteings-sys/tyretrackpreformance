@@ -81,11 +81,12 @@ def read_layers(packet,kind):
     return {'output0':out.reshape(1,8,3549)}
 
 def unletterbox(image,kind='tyre'):
+    # ImgFrame.getCvFrame() already returns OpenCV BGR, including RGB888p input.
     if kind=='tyre':
         if image.shape[:2]!=(384,384):raise ValueError('Unexpected tyre thumbnail')
-        return cv2.cvtColor(cv2.resize(image[84:300],FRAME_SIZE),cv2.COLOR_RGB2BGR)
+        return cv2.resize(image[84:300],FRAME_SIZE)
     if image.shape[:2]!=(416,416):raise ValueError('Unexpected foreign thumbnail')
-    return cv2.cvtColor(cv2.resize(image[91:325],FRAME_SIZE),cv2.COLOR_RGB2BGR)
+    return cv2.resize(image[91:325],FRAME_SIZE)
 
 def decode(raw,confidence=.1,iou=.5,agnostic=False):
     """Decode the four-class YOLOv8 [1,8,3549] RVC2 output."""
