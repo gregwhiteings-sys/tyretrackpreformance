@@ -1,0 +1,134 @@
+{
+  "source_drive_file_id": "1-q_RAahG_2fgR-juRurRv36DXtdIzEO5",
+  "source_onnx_sha256": "0e08b55e4579c78dcb8ea0e4e6bf9f1864c9de3d4365583c2fb9d5ad3d6b95a1",
+  "source_pt_sha256": "3ab3b1940ddae6bebd50e8e296dd61ecd2b89746b03b77bbcf406b04416ac69f",
+  "classes": [
+    "tyre_with_rim",
+    "service_worker",
+    "metal_object",
+    "normal_tyre"
+  ],
+  "onnx_checker_passed": true,
+  "dataset_manifest_matches_training_results": true,
+  "cpu_forward_checks": [
+    {
+      "image": "images/test/OAK_RGB_20261119_131314_292944_0070.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/OAK_RGB_20261119_131314_292944_0090.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/oi_a0c3db2ebd0c7e15.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/oi_73a0278a58c4e15a.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/incident_09_clean_context.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/incident_33_clean_context.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    }
+  ],
+  "test_report": {
+    "threshold_report": {
+      "threshold": 0.55,
+      "real_photo_classes": {
+        "tyre_with_rim": {
+          "TP": 19,
+          "FP": 0,
+          "FN": 1,
+          "precision": 1.0,
+          "recall": 0.95
+        },
+        "service_worker": {
+          "TP": 9,
+          "FP": 2,
+          "FN": 4,
+          "precision": 0.8181818181818182,
+          "recall": 0.6923076923076923
+        },
+        "metal_object": {
+          "TP": 13,
+          "FP": 1,
+          "FN": 1,
+          "precision": 0.9285714285714286,
+          "recall": 0.9285714285714286
+        }
+      },
+      "real_belt_frames": 42,
+      "foreign_candidate_boxes": 0,
+      "candidate_boxes_per_100_frames": 0.0
+    },
+    "metrics": {
+      "metrics/precision(B)": 0.9780891002128531,
+      "metrics/recall(B)": 0.9243601110419335,
+      "metrics/mAP50(B)": 0.9499258449214822,
+      "metrics/mAP50-95(B)": 0.9096162149630549,
+      "fitness": 0.9096162149630549
+    }
+  },
+  "conversion_status": "compiled_blob_installed",
+  "hardware_inference_tested": false,
+  "blob_sha256": "c2a5570c1552e3649c93946f75a69b8c6574c643e6ef9b5f74b07c7eae8b583d",
+  "input_depthai_dims": [
+    416,
+    416,
+    3,
+    1
+  ],
+  "output_depthai_dims": [
+    3549,
+    8,
+    1
+  ],
+  "normalization_check": {
+    "embedded_pixel_divisor": 255,
+    "verification": "First IR convolution weights match FP16(ONNX weights / 255)",
+    "max_abs_difference": 0.0,
+    "rgb_channel_order_preserved": true
+  },
+  "regression_tests": {
+    "passed": 47,
+    "failed": 0,
+    "platform": "Linux offscreen source tests"
+  },
+  "windows_exe_built": false,
+  "physical_oak_camera_tested": false
+}

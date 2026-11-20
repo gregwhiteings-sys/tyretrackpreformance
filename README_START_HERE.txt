@@ -1,3 +1,6 @@
+CURRENT UPDATE: Read STRONGER_MODEL_UPDATE.txt for the new OAK foreign model.
+The older REAL_RUBBER_* notes describe the previous model.
+
 LATEST UPDATE — 11 NOVEMBER 2026
 Camera 1 and Camera 2 now stack vertically at equal display size. Passenger,
 SUV/4x4 and Truck bars are removed from below the previews; class totals remain
