@@ -1,6 +1,6 @@
 {
   "target": "RVC2",
-  "model": "TyreTrack Real Rubber Correction Four Class",
+  "model": "TyreTrack Stronger Four Class",
   "input": [
     1,
     3,
@@ -14,11 +14,11 @@
   ],
   "runtime_input": "RGB888p",
   "expected_pixel_divisor": 255,
-  "embedded_normalization_verified": false,
+  "embedded_normalization_verified": true,
   "source_onnx": "best.onnx",
-  "compiled_file": "TyreTrack_Real_Rubber_Four_Class_RVC2.blob",
-  "source_onnx_sha256": "c91ccd92aea4973070fd0876ef469620804a943130e58e16f977e2f036801bf1",
-  "blob_sha256": "dc791875002a3a4ce44fddc14a636fbd7edb7ca05989decd692e02610566fe68",
+  "compiled_file": "best.blob",
+  "source_onnx_sha256": "0e08b55e4579c78dcb8ea0e4e6bf9f1864c9de3d4365583c2fb9d5ad3d6b95a1",
+  "blob_sha256": "c2a5570c1552e3649c93946f75a69b8c6574c643e6ef9b5f74b07c7eae8b583d",
   "openvino_version": "2022.1",
   "shaves": 6,
   "classes": [
@@ -35,5 +35,11 @@
   "ignored_alarm_class_ids": [
     3
   ],
-  "hardware_inference_tested": false
+  "hardware_inference_tested": false,
+  "normalization_verification": {
+    "embedded_pixel_divisor": 255,
+    "verification": "First IR convolution weights match FP16(ONNX weights / 255)",
+    "max_abs_difference": 0.0,
+    "rgb_channel_order_preserved": true
+  }
 }

@@ -1,0 +1,43 @@
+TYRETRACK STRONGER FOUR-CLASS OAK MODEL — 20 NOVEMBER 2026
+
+This is the current source build for GitHub's Windows portable workflow.
+The new foreign-object blob replaces rvc2_models/foreign/foreign_object.blob.
+The accompanying config, build metadata and integrity checksums were updated.
+
+Classes: 0 rim/tyre with visible rim; 1 person; 2 metal; 3 normal rubber tyre.
+Normal class 3 is considered during classification and then ignored for alerts.
+Overlapping/nested tyres and ordinary rubber are normal examples in training.
+The original passenger/SUV/truck tyre-counting system is retained.
+
+Model input: RGB888p uint8, 416 x 416. Pixel division by 255 is embedded and
+verified against the supplied ONNX weights. Output: [1, 8, 3549]. RVC2,
+OpenVINO 2022.1, six SHAVEs. Blob SHA-256:
+c2a5570c1552e3649c93946f75a69b8c6574c643e6ef9b5f74b07c7eae8b583d
+
+Offline checks: ONNX integrity, six CPU forward passes, all blob tensor metadata,
+normalization and 47 source regression tests passed. USB/camera inference and
+Windows EXE packaging were not performed in this environment.
+
+Supplied test results at confidence 55%: zero foreign candidate boxes on
+42 held-out belt frames. Real-photo recall: rim 95%, metal 92.9%, person 69.2%.
+These photos do not establish real conveyor hazard recall. Worker recall remains
+a limitation. This model remains a trial until tested on separate real belt
+foreign-object footage. A zero-negative-frame score alone is insufficient.
+
+START: Build with the included Windows GitHub workflow, or run the normal source
+entry point. Preserve your existing production data and settings. Existing
+confidence settings are retained; use 55% as the initial comparison setting for
+this model, then compare false alerts and missed real objects.
+
+The production OAK foreign detector uses the NEW BLOB. The existing PC-only
+legacy two-class foreign fallback is retained because it uses a different
+class/decoder contract; it is not a validation of this new four-class model.
+foreign_model_source/stronger_four_class.pt is the supplied new training source,
+for Colab/evaluation, and is not substituted into that legacy runtime path.
+The new model does not add passenger/truck classification to the foreign head.
+
+Retained: matched-frame incident evidence, model hash in incident records,
+corrected RGB/BGR handling, live confidence adjustment, all-time totals/date
+range, counting schedule, reporting and celebration functionality from the
+previous build. Audio functionality passing tests does not verify physical
+speaker playback on the production PC.
