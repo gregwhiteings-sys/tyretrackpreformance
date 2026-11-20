@@ -1,0 +1,54 @@
+TYRETRACK — RUBBER-RING MODEL + FOD DEFAULT ON — 20 NOVEMBER 2026
+
+CURRENT UPDATE. This is the source ZIP for the included GitHub Windows portable
+build workflow. Older STRONGER_* and REAL_RUBBER_* model notes are historical.
+
+The new four-class OAK foreign blob replaces foreign_object.blob. Input RGB888p
+uint8, 416-square with black letterbox padding; embedded /255 normalization
+verified against ONNX weights. Output [1,8,3549]. OpenVINO 2022.1, six SHAVEs.
+Blob SHA-256: 28eef7596aa23d6fc1f24db7f6c7ebbc4172ee6601111b08ae5f4fa6815dc0dd
+Class 0 rim; 1 person; 2 foreign metal; 3 ordinary tyre/rubber (ignored for alarms).
+The existing passenger/SUV/truck counting model remains unchanged.
+
+FOD NOW DEFAULTS ON
+On the first launch of this update, new and existing installations enable FOD.
+The SQLite migration is atomic and runs once. If the operator subsequently
+turns FOD OFF, that choice is saved and respected at later launches. The badge
+and checkbox reflect the startup state. The normal Apply/reconnect behaviour
+for enable/disable changes while connected is retained. The optional conveyor
+stop output remains unarmed. Existing confidence settings are preserved;
+fresh installations start at 55%. Live confidence adjustment remains available.
+
+CHECKS
+48 source regression tests passed, plus final real Qt startup/badge/persistence
+and layout checks after the last UI adjustment. ONNX integrity, eight CPU forward
+passes, exported tensor dimensions, RGB channel-weight correspondence, /255
+normalization and model/config integrity hashes were checked. No physical OAK
+inference test or Windows EXE compilation was performed here.
+
+SUPPLIED TRAINING RESULTS AT 55%
+No foreign candidate boxes on 45 held-out belt frames or 54 rubber challenge
+crop views. Real-photo recall: rims 90%, metal 92.9%, people 69.2%. The results
+are encouraging for rubber rejection but do not establish real conveyor hazard
+recall. False alerts and missed foreign objects still need a live trial.
+
+EXTRA VERIFIER IS NOT ACTIVE
+The optional metal/rubber classifier returned no calibrated threshold: its
+validation metal recall was 33/35 = 94.3%, below the requested 95% target. The
+perfect supplied test score does not override that failed validation criterion.
+It has therefore NOT been connected as an alert veto or loaded on the camera.
+Its original files remain available in the supplied training-results ZIP.
+
+RETAINED
+Matched-frame incident evidence and model hashes, corrected RGB/BGR handling,
+all-time/date-range totals, reporting, counting schedules and celebration audio
+logic remain in the build. The PC-only legacy foreign fallback retains its old
+two-class decoder/model; it does not evaluate this new four-class OAK model.
+The latest detector training weights are in foreign_model_source/stronger_four_class.pt.
+
+INSTALL
+Build via the included Windows GitHub workflow. Preserve existing production
+data and settings. Replace the application source/resources as a complete set;
+do not mix old config/checksum files with the new blob. Review the FOD ON badge
+and live detector status after the camera connects. No promise of zero false
+alerts or guaranteed hazard detection is made by this offline source update.

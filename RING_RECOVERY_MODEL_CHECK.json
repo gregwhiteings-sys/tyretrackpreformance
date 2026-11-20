@@ -1,0 +1,163 @@
+{
+  "source_drive_file_id": "1BzY4xFLhBiI38IBITxbwMuq94Y2leXUu",
+  "source_onnx_sha256": "4dad2466427411f320dba33b0599df6614e0c50852ceb1cae6f1a22c48961f94",
+  "source_pt_sha256": "aef444c30e3fcf65b3a38972538f30acb726958bfabf0c7d622706e3ef17e39d",
+  "classes": [
+    "tyre_with_rim",
+    "service_worker",
+    "metal_object",
+    "normal_tyre"
+  ],
+  "onnx_checker_passed": true,
+  "dataset_manifest_matches_training_results": true,
+  "cpu_forward_checks": [
+    {
+      "image": "images/test/OAK_RGB_20261119_122811_700180_0010.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/OAK_RGB_20261119_122811_700180_0030.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/oi_a0c3db2ebd0c7e15.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/oi_73a0278a58c4e15a.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/incident_09_clean_context.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/incident_33_clean_context.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/nov20_rubber_12.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    },
+    {
+      "image": "images/test/nov20_rubber_13.jpg",
+      "shape": [
+        1,
+        8,
+        3549
+      ],
+      "finite": true
+    }
+  ],
+  "test_report": {
+    "threshold_report": {
+      "threshold": 0.55,
+      "real_photo_classes": {
+        "tyre_with_rim": {
+          "TP": 18,
+          "FP": 0,
+          "FN": 2,
+          "precision": 1.0,
+          "recall": 0.9
+        },
+        "service_worker": {
+          "TP": 9,
+          "FP": 1,
+          "FN": 4,
+          "precision": 0.9,
+          "recall": 0.6923076923076923
+        },
+        "metal_object": {
+          "TP": 13,
+          "FP": 2,
+          "FN": 1,
+          "precision": 0.8666666666666667,
+          "recall": 0.9285714285714286
+        }
+      },
+      "real_belt_frames": 45,
+      "foreign_candidate_boxes": 0,
+      "candidate_boxes_per_100_frames": 0.0,
+      "rubber_challenge_crops": 54,
+      "foreign_boxes_on_rubber_crops": 0
+    },
+    "metrics": {
+      "metrics/precision(B)": 0.9605475380689399,
+      "metrics/recall(B)": 0.8163061772382524,
+      "metrics/mAP50(B)": 0.8554957340317625,
+      "metrics/mAP50-95(B)": 0.7546269013563325,
+      "fitness": 0.7546269013563325
+    }
+  },
+  "conversion_status": "compiled_blob_installed",
+  "hardware_inference_tested": false,
+  "blob_sha256": "28eef7596aa23d6fc1f24db7f6c7ebbc4172ee6601111b08ae5f4fa6815dc0dd",
+  "input_depthai_dims": [
+    416,
+    416,
+    3,
+    1
+  ],
+  "output_depthai_dims": [
+    3549,
+    8,
+    1
+  ],
+  "normalization_check": {
+    "embedded_pixel_divisor": 255,
+    "verification": "First IR convolution weights match FP16(ONNX weights / 255)",
+    "max_abs_difference": 0.0,
+    "rgb_channel_order_preserved": true
+  },
+  "detector_preprocessing": {
+    "RGB": true,
+    "input_pixels": "0..255 divided by 255",
+    "letterbox_padding": 0,
+    "input_square": 416,
+    "rect_inference": false
+  },
+  "preprocessing_checks_use_black_padding": true,
+  "regression_tests_passed": 48,
+  "final_startup_badge_and_layout_checks_passed": true,
+  "fod_default": "on with one-time upgrade and saved operator overrides",
+  "new_install_confidence": 0.55,
+  "existing_confidence_preserved": true,
+  "verifier_enabled": false,
+  "verifier_decision": "Not activated: 33/35 validation metal crops recalled, below the 95% calibration target; threshold was null.",
+  "windows_exe_built": false
+}

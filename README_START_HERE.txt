@@ -1,3 +1,6 @@
+CURRENT BUILD: Read RING_RECOVERY_FOD_ON_UPDATE.txt.
+New rubber-ring foreign model installed. FOD enables on first launch of this update.
+
 CURRENT UPDATE: Read STRONGER_MODEL_UPDATE.txt for the new OAK foreign model.
 The older REAL_RUBBER_* notes describe the previous model.
 
