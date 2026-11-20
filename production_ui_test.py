@@ -13,7 +13,7 @@ m.Main.tick=lambda self:None
 m.Main._confirm_admin_pin=lambda self,action:True
 app=QApplication([]);w=m.Main();w.show()
 assert not w.controls_tabs.isVisible()
-assert not w.foreign_switch.isChecked()
+assert w.foreign_switch.isChecked()
 assert w.source_combo.count()==1 and w.selected_source()==('oak','')
 assert not w.browse_btn.isVisible() and not w.manual_oak_test.isVisible()
 assert not w.show_fixed_lines.isChecked()

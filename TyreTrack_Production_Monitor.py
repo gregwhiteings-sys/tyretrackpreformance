@@ -89,6 +89,7 @@ from ultralytics import YOLO
 from count_line import segment_bounds, crosses_segment, count_point
 from three_line import ThreeLineCounter, simulation_checks, line_segments
 from hourly_dashboard import hourly_snapshot, brisbane_now
+from foreign_startup import foreign_enabled_at_startup
 from foreign_alarm import CLASSES, OAK_CLASSES, ClearEvidence, ForeignPresence, in_region, read_json, write_json, set_password, verify_password, make_tone
 
 from PyQt5.QtCore import Qt, QThread, QTimer, QEvent, QPoint, QPointF, pyqtSignal
@@ -1641,7 +1642,7 @@ class CounterWorker(QThread):
         self.foreign_active = False
         self.last_foreign_presence = ()
         self.foreign_reset_pending = False
-        self.foreign_confidence = .45
+        self.foreign_confidence = .55
         self.foreign_every = 5
         self.foreign_region = (.03,.98,.18,.82)
         self.foreign_presence_tracker = ForeignPresence(hits=3, clear_after=3.0)
@@ -2580,6 +2581,7 @@ class Main(QMainWindow):
         self.stop_btn.setText("Pause")
         self.setWindowTitle("TyreTrack · TyreCycle / Ozcom")
         self.apply_2070_theme()
+        self.on_foreign_status("Ready for next start" if self.foreign_switch.isChecked() else "Disabled")
         self.tick()
         if get_state("secondary_oak_mxid",""):
             QTimer.singleShot(2500, self.restore_secondary_camera)
@@ -3265,9 +3267,9 @@ class Main(QMainWindow):
         source_tab.addWidget(camera2_card)
         source_tab.addStretch()
 
-        foreign_card, foreign_layout = self.card("FOREIGN OBJECT DETECTOR · SYNTHETIC STARTER")
+        foreign_card, foreign_layout = self.card("FOREIGN OBJECT DETECTOR · FOUR-CLASS OAK MODEL")
         self.foreign_switch=QCheckBox("Enable foreign detector")
-        self.foreign_switch.setChecked(False)
+        self.foreign_switch.setChecked(foreign_enabled_at_startup(DB))
         self.foreign_switch.toggled.connect(self.foreign_enabled_changed)
         foreign_layout.addWidget(self.foreign_switch)
         apply_camera = QPushButton("Apply camera settings / reconnect OAK")
@@ -3290,11 +3292,11 @@ class Main(QMainWindow):
         bench_demo.clicked.connect(lambda: self.conveyor_stop_status.setText(stop_request({"mode":"simulation"})))
         foreign_layout.addWidget(bench_demo)
         self.conveyor_stop_lock=threading.Lock()
-        foreign_layout.addWidget(QLabel("Optional starter model. Enabling adds OAK workload; reconnect to apply. Validate accuracy before operational use."))
+        foreign_layout.addWidget(QLabel("Four-class OAK detector. Changes to enable/disable apply when the camera reconnects."))
         self.foreign_status_lbl=QLabel("Ready for next start" if self.foreign_switch.isChecked() else "Disabled")
         foreign_layout.addWidget(self.foreign_status_lbl)
         self.foreign_conf=QSlider(Qt.Horizontal);self.foreign_conf.setRange(30,95)
-        self.foreign_conf.setValue(int(get_state("foreign_confidence","45")))
+        self.foreign_conf.setValue(int(get_state("foreign_confidence","55")))
         self.foreign_conf_lbl=QLabel()
         self.foreign_every=QSlider(Qt.Horizontal);self.foreign_every.setRange(1,20)
         self.foreign_every.setValue(int(get_state("foreign_every","5")))
@@ -4169,7 +4171,7 @@ class Main(QMainWindow):
             running = self.worker is not None and self.worker.isRunning()
             active = self.worker.foreign_enabled if running else requested
             pending = " · settings pending; reconnect to apply" if running and active != requested else ""
-            self.alarm_banner.setText(("Foreign starter: ON · " + self.foreign_monitor_status if active else "Foreign-object detection: OFF") + pending)
+            self.alarm_banner.setText(("Foreign-object detection: ON · " + self.foreign_monitor_status if active else "Foreign-object detection: OFF") + pending)
             self.alarm_banner.setStyleSheet("background:#0b1725;color:#7295b3;font-size:10px;padding:3px;border-left:2px solid #27445c;")
 
     def on_foreign_status(self, text):
