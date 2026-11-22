@@ -31,7 +31,7 @@ def open_review(parent,store,today,scope_default="production"):
     export_csv=QPushButton('Export comparison CSV');export_zip=QPushButton('Export reviewed evidence ZIP');recording=QPushButton('Open recording folder')
     for b in [export_csv,export_zip,recording]:actions.addWidget(b)
     notice=QLabel('Human reviews do not reset alarms, change weights or rewrite production totals. Unreviewed/unsure cases are never treated as negatives. Size is estimated, not an exact sidewall code.');notice.setWordWrap(True);layout.addWidget(notice)
-    bridge=Bridge(dialog);state={'rows':[],'busy':False,'closed':False}
+    bridge=Bridge(dialog);state={'rows':[],'busy':False,'closed':False,'threads':[]}
     def busy(value):
         state['busy']=value
         for b in [refresh,save,export_csv,export_zip]:b.setEnabled(not value)
@@ -42,7 +42,9 @@ def open_review(parent,store,today,scope_default="production"):
             try:value=fn()
             except Exception as e:value=('error',str(e))
             if not state['closed']:bridge.result.emit(value)
-        threading.Thread(target=run,name='review-screen-io',daemon=True).start()
+        state['threads']=[t for t in state['threads'] if t.is_alive()]
+        thread=threading.Thread(target=run,name='review-screen-io',daemon=True)
+        state['threads'].append(thread);thread.start()
     def selected():
         i=table.currentRow();return state['rows'][i] if 0<=i<len(state['rows']) else None
     def load():
@@ -94,6 +96,9 @@ def open_review(parent,store,today,scope_default="production"):
     save.clicked.connect(write_review);refresh.clicked.connect(load);export_csv.clicked.connect(lambda:export('csv'));export_zip.clicked.connect(lambda:export('zip'));recording.clicked.connect(open_recording)
     def closed():state['closed']=True
     dialog.finished.connect(closed);load();dialog.exec_()
+    for thread in state['threads']:
+        thread.join(6)
+        if thread.is_alive():raise RuntimeError('Review screen I/O worker did not finish on close')
 
 def json_text(p):
     modes={'compare':'Compare only','assist':'Size assistance','off':'Original only'}

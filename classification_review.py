@@ -27,7 +27,10 @@ class ReviewStore:
     @contextmanager
     def connect(self):
         self.root.mkdir(parents=True,exist_ok=True)
-        c=sqlite3.connect(self.db,timeout=5);c.execute('PRAGMA journal_mode=WAL')
+        c=sqlite3.connect(self.db,timeout=5)
+        pragma=c.execute('PRAGMA journal_mode=WAL')
+        try:pragma.fetchall()
+        finally:pragma.close()
         c.execute('CREATE TABLE IF NOT EXISTS records (id TEXT PRIMARY KEY,kind TEXT NOT NULL,stamp TEXT NOT NULL,day TEXT NOT NULL,scope TEXT NOT NULL,payload TEXT NOT NULL,image TEXT,status TEXT NOT NULL DEFAULT "unreviewed",reason TEXT NOT NULL DEFAULT "",notes TEXT NOT NULL DEFAULT "",reviewed_at TEXT)')
         c.execute('CREATE INDEX IF NOT EXISTS records_day ON records(day,kind,scope)')
         c.execute('CREATE TABLE IF NOT EXISTS review_history (record_id TEXT,at TEXT,status TEXT,reason TEXT,notes TEXT)')

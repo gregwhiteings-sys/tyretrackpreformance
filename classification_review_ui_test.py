@@ -1,5 +1,6 @@
 """Real Qt dashboard/review interactions; CPU model stub, isolated state, no camera/network."""
-import os,sys,types,tempfile
+import os,sys,types,time
+from test_resources import DatabaseTemporaryDirectory
 from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
 stub=types.ModuleType('ultralytics');stub.YOLO=object;sys.modules['ultralytics']=stub
@@ -9,7 +10,7 @@ import TyreTrack_Production_Monitor as m
 from classification_review import ReviewStore
 from classification_review_ui import open_review
 app=QApplication.instance() or QApplication([]);m.Main.tick=lambda self:None;m.Main._confirm_admin_pin=lambda *a:True
-with tempfile.TemporaryDirectory() as tmp:
+with DatabaseTemporaryDirectory() as tmp:
  p=Path(tmp);m.DATA=p/'data';m.DATA.mkdir();m.DB=m.DATA/'counts.db';m.REPORTS=p/'reports';m.REPORTS.mkdir();m.init_db()
  w=m.Main();w.clock.stop();assert w.belt_mode.currentData()=='compare'
  w.belt_mode.setCurrentIndex(w.belt_mode.findData('assist'));assert not w.belt_observe.isChecked()
@@ -21,14 +22,28 @@ with tempfile.TemporaryDirectory() as tmp:
  assert all(control.parent() is w for _,control in w.belt_edges)
  w.show_comparison_dashboard({'original_counts':{'passenger':7,'4x4':3},'assisted_counts':{'passenger':6,'4x4':4},'final_counts':{'passenger':7,'4x4':3},'measured':8,'tyres':10,'disagreements':1})
  assert 'Passenger 7' in w.classification_comparison_label.text() and 'Passenger 6' in w.classification_comparison_label.text()
- store=w.get_review_store();store.submit('foreign',{'timestamp':'2026-11-23T08:00:00+10:00','predicted_class':'metal_object'},key='one');store.flush()
+ store=w.get_review_store();store.submit('foreign',{'timestamp':'2026-11-23T08:00:00+10:00','predicted_class':'metal_object'},key='one');assert store.flush(), 'Review writer failed to drain'
+ assert store.rows(), store.last_error
  errors=[]
+ deadline=time.monotonic()+10
  def check():
   try:
    d=next(d for d in app.topLevelWidgets() if isinstance(d,QDialog) and d.windowTitle().startswith('Tyre comparison'))
-   combos=d.findChildren(QComboBox);status=next(c for c in combos if c.findData('false_alert')>=0);status.setCurrentIndex(status.findData('false_alert'))
+   combos=d.findChildren(QComboBox)
+   available=[c for c in combos if c.findData('false_alert')>=0]
+   if not available:
+    if time.monotonic()<deadline:QTimer.singleShot(30,check);return
+    from PyQt5.QtWidgets import QLabel
+    raise AssertionError('Review record did not load: '+ ' | '.join(l.text() for l in d.findChildren(QLabel)))
+   status=available[0];status.setCurrentIndex(status.findData('false_alert'))
    reason=next(c for c in combos if c.findData('normal_tyre')>=0);reason.setCurrentIndex(reason.findData('normal_tyre'))
-   next(b for b in d.findChildren(QPushButton) if b.text()=='Save human review').click();QTimer.singleShot(250,d.accept)
+   save=next(b for b in d.findChildren(QPushButton) if b.text()=='Save human review')
+   save.click()
+   def saved():
+    if store.rows()[0]['status']=='false_alert':d.accept()
+    elif time.monotonic()<deadline:QTimer.singleShot(30,saved)
+    else:errors.append(AssertionError('Review was not saved before timeout'));d.reject()
+   QTimer.singleShot(30,saved)
   except Exception as exc:
    errors.append(exc)
    for d in app.topLevelWidgets():
@@ -49,4 +64,7 @@ with tempfile.TemporaryDirectory() as tmp:
  assert saved['status']=='unreviewed' and saved['payload']['model_sha256']=='fixture-model'
  assert m.production_snapshot()['all_time']==0
  w.close();app.processEvents()
+ assert store.close(), "Review writer did not stop before fixture cleanup"
+assert not p.exists(), 'Temporary database directory was not removed'
+print('PASS fixture explicitly closes UI SQLite handles and rejects leaked worker handles before Windows cleanup')
 print('PASS real dashboard comparison, simple mode selection, review dialog false-alert save and zero production counts; model stub/no camera')
