@@ -24,6 +24,7 @@ import json
 import random
 import celebration_library
 import tyre_weight
+from belt_width_assist import BeltSettings, BeltWidthAssist
 from PyQt5.QtCore import QLockFile
 import time
 import traceback
@@ -115,6 +116,7 @@ from PyQt5.QtWidgets import (
     QScrollArea,
     QSizePolicy,
     QSlider,
+    QSpinBox,
     QTabWidget,
     QTableWidget,
     QTableWidgetItem,
@@ -1621,6 +1623,8 @@ class CounterWorker(QThread):
         self.pause_day = None
         self.logic_test_counter = None
         self.show_tyre_labels = False
+        self.belt_assist = BeltWidthAssist()
+        self.pending_belt_settings = None
         self.class_votes = defaultdict(
             lambda: defaultdict(float)
         )
@@ -1857,6 +1861,9 @@ class CounterWorker(QThread):
                 if self.pause_day is not None and self.pause_day != brisbane_now().date():
                     self.operator_paused = False
                     self.pause_day = None
+                if self.pending_belt_settings is not None:
+                    self.belt_assist = BeltWidthAssist(self.pending_belt_settings)
+                    self.pending_belt_settings = None
                 if self.pending_span is not None:
                     span=self.pending_span;self.pending_span=None
                     self.three_line.set_span(*span)
@@ -1942,6 +1949,7 @@ class CounterWorker(QThread):
                     self.confirmed_ids.clear()
                     self.last_seen_frame.clear()
                     self.class_votes.clear()
+                    self.belt_assist.reset()
                     # Completed line counts remain; new track IDs use a new namespace.
                     # Continue reading frames, including recording this one.
                     if self.review_writer is not None:
@@ -1997,6 +2005,10 @@ class CounterWorker(QThread):
                                 float(confidence)
                             )
 
+                        self.belt_assist.observe(track_id, box, list(zip(ids, boxes)),
+                            width, height, self.processing_frame,
+                            confidence >= self.confidence)
+
                         x1, y1, x2, y2 = (
                             int(value) for value in box
                         )
@@ -2020,6 +2032,9 @@ class CounterWorker(QThread):
                             self.class_votes.get(track_id, {})
                         )
 
+                        tyre_type, class_score, size_changed = self.belt_assist.resolve(
+                            track_id, self.processing_frame, tyre_type, class_score)
+                        size_evidence = self.belt_assist.evidence(track_id, self.processing_frame)
                         if tyre_type == "passenger":
                             display_type = "PASSENGER"
                             display_colour = (60, 220, 80)
@@ -2036,6 +2051,9 @@ class CounterWorker(QThread):
                             f"vote:{class_score:.0%}"
                         )
 
+                        if size_evidence:
+                            label += f" size~{size_evidence['diameter_mm']:.0f}mm TRIAL"
+                            if size_changed: label += " assisted"
                         if self.show_tyre_labels:
                             cv2.putText(
                                 frame,
@@ -2060,6 +2078,10 @@ class CounterWorker(QThread):
                                 confidence >= self.confidence, (x2-x1,y2-y1))
                             if event and self.running and oak_in_operating_hours() and not self.operator_paused:
                                 tyre_type, class_conf = tyre_class_vote(self.class_votes.get(track_id, {}))
+                                tyre_type, class_conf, size_changed = self.belt_assist.resolve(
+                                    track_id, self.processing_frame, tyre_type, class_conf)
+                                if size_changed:
+                                    log(f"Belt trial assisted ID {track_id}: {tyre_type}; assumed belt {self.belt_assist.settings.width_mm:.0f} mm")
                                 log_count(source_name, track_id, confidence, tyre_type, class_conf)
                                 self.session_type_counts[tyre_type] += 1
                                 self.counted_ids.add(track_id)
@@ -2077,6 +2099,7 @@ class CounterWorker(QThread):
                             self.previous_observation_frame.pop((index,track_id), None)
                         self.confirmed_ids.discard(track_id)
                         self.last_seen_frame.pop(track_id, None)
+                        self.belt_assist.forget(track_id)
 
                 self.draw_foreign_region(frame)
                 if self.source_kind == "oak":
@@ -3407,6 +3430,39 @@ class Main(QMainWindow):
             )
         )
         line_layout.addWidget(self.conf)
+        line_layout.addWidget(QLabel("Belt size assist · experimental"))
+        self.belt_enabled = QCheckBox("Use belt-width size support (assumed calibration)")
+        self.belt_enabled.setChecked(get_state("belt_size_enabled", "1") == "1")
+        line_layout.addWidget(self.belt_enabled)
+        self.belt_observe = QCheckBox("Observe only: display estimates, keep visual classification")
+        self.belt_observe.setChecked(get_state("belt_size_observe", "0") == "1")
+        line_layout.addWidget(self.belt_observe)
+        self.belt_width = QSpinBox(); self.belt_width.setRange(600,2000)
+        self.belt_width.setSuffix(" mm (assumed)")
+        try: self.belt_width.setValue(int(get_state("belt_size_width", "1100")))
+        except (ValueError,TypeError): self.belt_width.setValue(1100)
+        line_layout.addWidget(QLabel("Usable inside belt width"));line_layout.addWidget(self.belt_width)
+        self.belt_edges = []
+        for key,title,default in [("left_top","Left edge at picture top",44),
+                ("right_top","Right edge at picture top",61),
+                ("left_bottom","Left edge at picture bottom",21.5),
+                ("right_bottom","Right edge at picture bottom",77.5)]:
+            control=QSpinBox();control.setRange(0,1000);control.setSuffix(" / 1000 picture width")
+            try: control.setValue(int(get_state("belt_size_"+key,str(round(default*10)))))
+            except (ValueError,TypeError): control.setValue(round(default*10))
+            line_layout.addWidget(QLabel(title));line_layout.addWidget(control)
+            self.belt_edges.append((key,control))
+        note=QLabel("TRIAL: 1100 mm is a guess. Middle-view, isolated flat-looking tyres only; five stable frames. "
+            "Below 680 mm supports passenger; 680–730 mm keeps visual result; 730–900 mm supports SUV/4x4. "
+            "Only visual vote scores below 80% can change. Larger/unclear tyres keep visual result. "
+            "Show Tyre Labels to see estimates. Settings apply live and clear size history. "
+            "Edges are camera-specific; recheck after camera movement. Box shape cannot prove a tyre is flat.")
+        note.setWordWrap(True);line_layout.addWidget(note)
+        for control in [self.belt_enabled,self.belt_observe]:
+            control.toggled.connect(self.update_belt_size_settings)
+        for control in [self.belt_width]+[c for _,c in self.belt_edges]:
+            control.valueChanged.connect(self.update_belt_size_settings)
+
 
         try:
             saved_position = int(
@@ -4289,6 +4345,20 @@ class Main(QMainWindow):
             log(("Foreign-object email sent: " if sent else "Foreign-object email not sent: ")+subject)
         threading.Thread(target=send_alert,name="foreign-object-email",daemon=True).start()
 
+    def belt_size_settings(self):
+        return BeltSettings(enabled=self.belt_enabled.isChecked(),
+            observe_only=self.belt_observe.isChecked(),width_mm=self.belt_width.value(),
+            **{key:control.value()/1000 for key,control in self.belt_edges})
+
+    def update_belt_size_settings(self, *_):
+        settings=self.belt_size_settings()
+        set_state("belt_size_enabled","1" if settings.enabled else "0")
+        set_state("belt_size_observe","1" if settings.observe_only else "0")
+        set_state("belt_size_width",str(self.belt_width.value()))
+        for key,control in self.belt_edges:set_state("belt_size_"+key,str(control.value()))
+        worker=getattr(self,"worker",None)
+        if worker is not None:worker.pending_belt_settings=settings
+
     def update_celebration_indicator(self, *_args):
         muted=self.celebration_mute.isChecked()
         selected=(self.celebration_sound_combo.currentData()
@@ -5038,6 +5108,7 @@ class Main(QMainWindow):
                 self.line_angle.value(),
                 self.line_length.value() / 100.0,
             )
+            worker.belt_assist = BeltWidthAssist(self.belt_size_settings())
             worker.three_line.set_mode(self.line_mode.currentData())
             worker.three_line.set_bounds(self.top_line_slider.value()/100,self.bottom_line_slider.value()/100)
             worker.three_line.set_span(self.left_span_slider.value()/100,self.right_span_slider.value()/100)
