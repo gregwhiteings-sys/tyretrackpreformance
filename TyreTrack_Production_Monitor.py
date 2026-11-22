@@ -24,6 +24,9 @@ import json
 import random
 import celebration_library
 import tyre_weight
+import uuid
+from dataclasses import asdict
+from classification_review import ReviewStore, comparison
 from belt_width_assist import BeltSettings, BeltWidthAssist
 from PyQt5.QtCore import QLockFile
 import time
@@ -1422,6 +1425,7 @@ class OakSource:
                     continue
                 recorder.feed(packet.getData(), datetime.now(), int(packet.getSequenceNum()),
                               enabled=RECORD_OAK_VIDEO)
+                self.recording_path = str(recorder.path.with_suffix(".mp4")) if recorder.path else None
                 self.record_drops = recorder.gaps
         except Exception:
             log("OAK H264 recording failed; live counting continues:\n" + traceback.format_exc())
@@ -1571,6 +1575,7 @@ class SecondaryOakPreview(QThread):
 class CounterWorker(QThread):
     frame_ready = pyqtSignal(object)
     counted = pyqtSignal(int, float)
+    review_status = pyqtSignal(str)
     foreign_event = pyqtSignal(object)
     foreign_presence = pyqtSignal(object)
     foreign_status = pyqtSignal(str)
@@ -1623,6 +1628,10 @@ class CounterWorker(QThread):
         self.pause_day = None
         self.logic_test_counter = None
         self.show_tyre_labels = False
+        self.audit = ReviewStore(DATA / 'classification_review', lambda text:self.review_status.emit(text))
+        self.pending_comparisons = {}
+        self.audit_session = uuid.uuid4().hex
+        self.show_belt_edges = False
         self.belt_assist = BeltWidthAssist()
         self.pending_belt_settings = None
         self.class_votes = defaultdict(
@@ -1672,6 +1681,17 @@ class CounterWorker(QThread):
     def latest_oak_overlay(self):
         with self.overlay_lock:
             return self.oak_overlay
+
+    def save_pending_comparison(self,track_id,image=None):
+        item=self.pending_comparisons.pop(track_id,None)
+        if item is None:return
+        payload,original_image=item
+        current=comparison(self.belt_assist,track_id,self.processing_frame,
+            payload['original_class'],payload['visual_vote'],payload['final_class'],
+            payload['mode'],asdict(self.belt_assist.settings))
+        payload.update(current);payload['measurement_frame']=self.processing_frame
+        self.audit.submit('tyre',payload,image if image is not None else original_image,
+            key='tyre:'+self.audit_session+':'+str(track_id))
 
     def foreign_check(self, frame):
         evidence_frame = frame
@@ -1732,6 +1752,7 @@ class CounterWorker(QThread):
                 event_frame=evidence_frame.copy()
                 self.foreign_event.emit(dict(event,frame=event_frame,
                     frame_sequence=inference_sequence,
+                    recording_reference=getattr(self.oak_source,"recording_path",None),
                     evidence_frame_kind="foreign_inference" if self.source_kind=="oak" else "pc_inference",
                     inference_age_seconds=None if inference_received is None else max(0.,now-inference_received),
                     model_sha256=getattr(self,"foreign_model_sha256",None),
@@ -1899,6 +1920,7 @@ class CounterWorker(QThread):
 
                 self.processing_frame += 1
                 height, width = frame.shape[:2]
+                audit_frame = frame.copy()
                 self.foreign_check(frame)
                 left, right, line_y, slope = segment_bounds(
                     width,
@@ -1949,6 +1971,7 @@ class CounterWorker(QThread):
                     self.confirmed_ids.clear()
                     self.last_seen_frame.clear()
                     self.class_votes.clear()
+                    for ident in list(self.pending_comparisons):self.save_pending_comparison(ident)
                     self.belt_assist.reset()
                     # Completed line counts remain; new track IDs use a new namespace.
                     # Continue reading frames, including recording this one.
@@ -2035,6 +2058,11 @@ class CounterWorker(QThread):
                         tyre_type, class_score, size_changed = self.belt_assist.resolve(
                             track_id, self.processing_frame, tyre_type, class_score)
                         size_evidence = self.belt_assist.evidence(track_id, self.processing_frame)
+                        if size_evidence and track_id in self.pending_comparisons:
+                            x1c,y1c,x2c,y2c=map(int,box)
+                            measured_crop=audit_frame[max(0,y1c):min(height,y2c),max(0,x1c):min(width,x2c)].copy()
+                            self.save_pending_comparison(track_id,measured_crop if measured_crop.size else None)
+
                         if tyre_type == "passenger":
                             display_type = "PASSENGER"
                             display_colour = (60, 220, 80)
@@ -2083,6 +2111,19 @@ class CounterWorker(QThread):
                                 if size_changed:
                                     log(f"Belt trial assisted ID {track_id}: {tyre_type}; assumed belt {self.belt_assist.settings.width_mm:.0f} mm")
                                 log_count(source_name, track_id, confidence, tyre_type, class_conf)
+                                visual_type, visual_score = tyre_class_vote(self.class_votes.get(track_id, {}))
+                                mode = 'off' if not self.belt_assist.settings.enabled else 'compare' if self.belt_assist.settings.observe_only else 'assist'
+                                audit_payload = comparison(self.belt_assist, track_id, self.processing_frame,
+                                    visual_type, visual_score, tyre_type, mode, asdict(self.belt_assist.settings))
+                                audit_payload.update(timestamp=brisbane_now().isoformat(),
+                                    scope='test' if self.manual_test else 'production', source=source_name,
+                                    session_id=self.audit_session,track_id=int(track_id),
+                                    frame_sequence=frame_sequence,
+                                    recording_reference=getattr(source,'recording_path',None))
+                                crop = audit_frame[max(0,y1):min(height,y2),max(0,x1):min(width,x2)].copy()
+                                self.pending_comparisons[track_id] = (audit_payload,crop if crop.size else None)
+                                if self.belt_assist.evidence(track_id,self.processing_frame):
+                                    self.save_pending_comparison(track_id)
                                 self.session_type_counts[tyre_type] += 1
                                 self.counted_ids.add(track_id)
                                 self.session_count += 1
@@ -2099,8 +2140,15 @@ class CounterWorker(QThread):
                             self.previous_observation_frame.pop((index,track_id), None)
                         self.confirmed_ids.discard(track_id)
                         self.last_seen_frame.pop(track_id, None)
+                        self.save_pending_comparison(track_id)
                         self.belt_assist.forget(track_id)
 
+                if self.show_belt_edges and self.belt_assist.settings.valid():
+                    for index in (0,1):
+                        start=self.belt_assist.edges(0,width,height)[index]
+                        end=self.belt_assist.edges(height,width,height)[index]
+                        cv2.line(frame,(round(start),0),(round(end),height-1),(255,255,0),2)
+                    cv2.putText(frame,'BELT EDGES / ASSUMED CALIBRATION',(8,20),cv2.FONT_HERSHEY_SIMPLEX,.45,(255,255,0),1)
                 self.draw_foreign_region(frame)
                 if self.source_kind == "oak":
                     # One immutable snapshot, including the frame
@@ -2155,6 +2203,8 @@ class CounterWorker(QThread):
             self.status.emit(f"ERROR: {exc}")
 
         finally:
+            for track_id in list(self.pending_comparisons):self.save_pending_comparison(track_id)
+            self.audit.close()
             if self.review_writer is not None:
                 try:
                     self.review_writer.release()
@@ -2505,6 +2555,7 @@ class ControlScrollArea(QScrollArea):
 
 
 class Main(QMainWindow):
+    review_dashboard_ready = pyqtSignal(object)
     conveyor_stop_result = pyqtSignal(str)
     management_report_ready = pyqtSignal(object)
     live_totals_ready = pyqtSignal(object)
@@ -2745,6 +2796,17 @@ class Main(QMainWindow):
         self.system_health_label.setStyleSheet("color:#9be8dd;font:600 11px 'Segoe UI';")
         self.system_health_label.hide()
         counters_layout.addWidget(self.system_health_label)
+        self.classification_comparison_label=QLabel('TODAY’S CLASSIFICATION COMPARISON · No comparison records yet')
+        self.classification_comparison_label.setWordWrap(True)
+        self.classification_comparison_label.setStyleSheet('color:#c9e5ef;background:#14232b;padding:8px;font:600 14px "Segoe UI";')
+        counters_layout.addWidget(self.classification_comparison_label)
+        self._review_dashboard_busy=False
+        self.review_dashboard_ready.connect(self.show_comparison_dashboard)
+        self.review_dashboard_timer=QTimer(self);self.review_dashboard_timer.setInterval(30000)
+        self.review_dashboard_timer.timeout.connect(self.refresh_comparison_dashboard)
+        self.review_dashboard_timer.start()
+        QTimer.singleShot(1500,self.refresh_comparison_dashboard)
+
         timeline_key=QLabel("ACTIVITY · Green: counts · Amber: no counts · Red: camera issue · Grey: unobserved/upcoming")
         timeline_key.setStyleSheet("color:#9caec0;font:9px 'Segoe UI';")
         timeline_key.hide()
@@ -3291,6 +3353,9 @@ class Main(QMainWindow):
         source_tab.addStretch()
 
         foreign_card, foreign_layout = self.card("FOREIGN OBJECT DETECTOR · FOUR-CLASS OAK MODEL")
+        alert_review_button=QPushButton('Review false alerts / confirmed foreign objects')
+        alert_review_button.clicked.connect(self.open_classification_reviews)
+        foreign_layout.addWidget(alert_review_button)
         self.foreign_switch=QCheckBox("Enable foreign detector")
         self.foreign_switch.setChecked(foreign_enabled_at_startup(DB))
         self.foreign_switch.toggled.connect(self.foreign_enabled_changed)
@@ -3433,10 +3498,27 @@ class Main(QMainWindow):
         line_layout.addWidget(QLabel("Belt size assist · experimental"))
         self.belt_enabled = QCheckBox("Use belt-width size support (assumed calibration)")
         self.belt_enabled.setChecked(get_state("belt_size_enabled", "1") == "1")
-        line_layout.addWidget(self.belt_enabled)
+        if get_state('classification_review_setup','0') != '1':
+            self.belt_enabled.setChecked(True)
+            set_state('belt_size_enabled','1');set_state('belt_size_observe','1')
+            set_state('classification_review_setup','1')
+        self.belt_enabled.hide()
         self.belt_observe = QCheckBox("Observe only: display estimates, keep visual classification")
-        self.belt_observe.setChecked(get_state("belt_size_observe", "0") == "1")
-        line_layout.addWidget(self.belt_observe)
+        self.belt_observe.setChecked(get_state("belt_size_observe", "1") == "1")
+        self.belt_observe.hide()
+        self.belt_mode=QComboBox()
+        self.belt_mode.addItem('Compare only (recommended)', 'compare')
+        self.belt_mode.addItem('Use size assistance for weak votes', 'assist')
+        self.belt_mode.addItem('Off — original classifier only', 'off')
+        initial_mode='off' if not self.belt_enabled.isChecked() else 'compare' if self.belt_observe.isChecked() else 'assist'
+        self.belt_mode.setCurrentIndex(self.belt_mode.findData(initial_mode));line_layout.addWidget(self.belt_mode)
+        self.belt_mode.currentIndexChanged.connect(self.change_belt_review_mode)
+        review_button=QPushButton('Open daily comparison and alert reviews')
+        review_button.clicked.connect(self.open_classification_reviews);line_layout.addWidget(review_button)
+        self.belt_edge_preview=QCheckBox('Show belt edges for setup')
+        self.belt_edge_preview.toggled.connect(self.update_belt_edge_preview);line_layout.addWidget(self.belt_edge_preview)
+        advanced_button=QPushButton('Advanced belt-edge setup')
+        advanced_button.clicked.connect(self.open_belt_edge_setup);line_layout.addWidget(advanced_button)
         self.belt_width = QSpinBox(); self.belt_width.setRange(600,2000)
         self.belt_width.setSuffix(" mm (assumed)")
         try: self.belt_width.setValue(int(get_state("belt_size_width", "1100")))
@@ -3450,9 +3532,9 @@ class Main(QMainWindow):
             control=QSpinBox();control.setRange(0,1000);control.setSuffix(" / 1000 picture width")
             try: control.setValue(int(get_state("belt_size_"+key,str(round(default*10)))))
             except (ValueError,TypeError): control.setValue(round(default*10))
-            line_layout.addWidget(QLabel(title));line_layout.addWidget(control)
+            control.hide()
             self.belt_edges.append((key,control))
-        note=QLabel("TRIAL: 1100 mm is a guess. Middle-view, isolated flat-looking tyres only; five stable frames. "
+        note=QLabel("Compare only records both proposals; only original results affect production totals. Daily files are in data/classification_review/daily. TRIAL: 1100 mm is a guess. Middle-view, isolated flat-looking tyres only; five stable frames. "
             "Below 680 mm supports passenger; 680–730 mm keeps visual result; 730–900 mm supports SUV/4x4. "
             "Only visual vote scores below 80% can change. Larger/unclear tyres keep visual result. "
             "Show Tyre Labels to see estimates. Settings apply live and clear size history. "
@@ -4046,6 +4128,8 @@ class Main(QMainWindow):
             path,_=QFileDialog.getOpenFileName(dialog,"Choose conveyor test video","","Video (*.mp4 *.avi *.mov *.mkv)")
             if path:self.video_test_file.setText(path)
         choose.clicked.connect(browse_test);layout.addWidget(choose)
+        replay_review=QPushButton('Open this video’s classification comparison')
+        replay_review.clicked.connect(self.open_replay_classification_reviews);layout.addWidget(replay_review)
         self.video_test_mode=QComboBox()
         for label,mode in (("Diagonal","zigzag"),("Mirrored diagonal","zigzag_reverse"),("Horizontal","horizontal")):
             self.video_test_mode.addItem(label,mode)
@@ -4105,6 +4189,8 @@ class Main(QMainWindow):
         if not getattr(sys,"frozen",False):command.append(str(Path(__file__).resolve()))
         command += ["--replay-test","--video",path,"--output",str(output),"--middle",str(self.line_pos.value()/100),
                     "--direction",self._video_test_direction,"--mode",mode,"--compare-modes","--stop-file",str(output/"stop.request"),"--top",str(self.top_line_slider.value()/100),"--bottom",str(self.bottom_line_slider.value()/100),"--left",str(self.left_span_slider.value()/100),"--right",str(self.right_span_slider.value()/100)]
+        belt_file=output/'belt_settings.json';belt_file.write_text(json.dumps(asdict(self.belt_size_settings())))
+        command += ['--belt-settings',str(belt_file)]
         if hand:command += ["--hand-count",hand]
         try:
             with (output/"replay_log.txt").open("w",encoding="utf-8") as logfile:
@@ -4330,8 +4416,16 @@ class Main(QMainWindow):
         except Exception:
             log("Incident persistence failed:\\n"+traceback.format_exc())
             self.foreign_status_lbl.setText("Foreign alert could not be saved — check disk")
+        try:
+            clean_record=dict(record)
+            clean_record.update(timestamp=event.get('timestamp',brisbane_now().isoformat()),
+                scope='test' if event.get('source_kind')=='oak_test' else 'production',
+                predicted_class=record['object'],box=list(event['box']),
+                clean_inference_image=True,legacy_incident=incident)
+            self.get_review_store().submit('foreign',clean_record,event['frame'].copy(),key='foreign:'+incident)
+        except Exception as exc:self.on_review_status('Foreign review evidence failed: '+str(exc))
         subject=f"TYRETRACK FOREIGN OBJECT — {record['object']} — {event.get('timestamp','')}"
-        body=(f"Foreign object confirmed on the TyreTrack conveyor.\\n\\n"
+        body=(f"Repeated foreign-object prediction detected on the TyreTrack conveyor; awaiting human review.\\n\\n"
               f"Object: {record['object']}\\n"
               f"Confidence: {float(event.get('confidence',0)):.1%}\\n"
               f"Detected: {event.get('timestamp','')} Brisbane time\\n"
@@ -4344,6 +4438,71 @@ class Main(QMainWindow):
             sent=send_message(subject,body,snapshot,recipient_override=foreign_alert_recipient())
             log(("Foreign-object email sent: " if sent else "Foreign-object email not sent: ")+subject)
         threading.Thread(target=send_alert,name="foreign-object-email",daemon=True).start()
+
+    def refresh_comparison_dashboard(self):
+        path=DATA/'classification_review'/'reviews.sqlite3'
+        if self._review_dashboard_busy or not path.exists():return
+        self._review_dashboard_busy=True;day=brisbane_now().date().isoformat()
+        def read():
+            try:
+                from classification_review import summary
+                result=summary(self.get_review_store().rows(day,scope='production',limit=1000000))
+            except Exception as exc:result={'error':str(exc)}
+            self.review_dashboard_ready.emit(result)
+        threading.Thread(target=read,name='review-dashboard-read',daemon=True).start()
+
+    def show_comparison_dashboard(self,result):
+        self._review_dashboard_busy=False
+        if 'error' in result:
+            self.classification_comparison_label.setText('CLASSIFICATION COMPARISON · Records unavailable: '+result['error']);return
+        def totals(c):
+            return f"Passenger {c.get('passenger',0)} | SUV/4x4 {c.get('4x4',0)} | Unclassified {c.get('unknown',0)+c.get('uncertain_or_unmeasured',0)}"
+        original=result['original_counts'];proposed=result['assisted_counts'];used=result['final_counts']
+        text='TODAY’S CLASSIFICATION COMPARISON · records captured by this build (30-second refresh)\n'
+        text+='Original OAK: '+totals(original)+'\nObserve-only proposal: '+totals(proposed)
+        text+='\nSize-only candidates: '+totals(result.get('size_only_counts',{}))
+        text+='\nUsed for production (these records): '+totals(used)
+        text+=f"\nMeasured {result['measured']} / {result['tyres']} · Size disagreements {result.get('size_disagreements',0)} · Assisted changes {result['disagreements']} · Assumed belt calibration"
+        self.classification_comparison_label.setText(text)
+
+    def open_replay_classification_reviews(self):
+        output=getattr(self,'_replay_output',None)
+        if output is None:
+            QMessageBox.information(self,'Video comparison','Run a video test first.');return
+        from classification_review_ui import open_review
+        open_review(self,ReviewStore(output/'classification_review'),datetime.now(timezone.utc).date().isoformat(),scope_default='replay')
+
+    def get_review_store(self):
+        if not hasattr(self,'_classification_review_store'):
+            self._classification_review_store=ReviewStore(DATA/'classification_review',log)
+        return self._classification_review_store
+
+    def on_review_status(self,text):
+        log(text)
+        if hasattr(self,'test_transport'):self.test_transport.setText(text)
+
+    def open_classification_reviews(self):
+        from classification_review_ui import open_review
+        open_review(self,self.get_review_store(),brisbane_now().date().isoformat())
+
+    def change_belt_review_mode(self,*_):
+        mode=self.belt_mode.currentData()
+        self.belt_enabled.blockSignals(True);self.belt_observe.blockSignals(True)
+        self.belt_enabled.setChecked(mode!='off');self.belt_observe.setChecked(mode=='compare')
+        self.belt_enabled.blockSignals(False);self.belt_observe.blockSignals(False)
+        self.update_belt_size_settings()
+
+    def update_belt_edge_preview(self,checked):
+        worker=getattr(self,'worker',None)
+        if worker is not None:worker.show_belt_edges=checked
+
+    def open_belt_edge_setup(self):
+        dialog=QDialog(self);dialog.setWindowTitle('Advanced belt-edge setup');layout=QVBoxLayout(dialog)
+        note=QLabel('Camera-specific inside edges at top and bottom of the full image. Turn on Show belt edges, then align with the usable belt. Changes apply live.');note.setWordWrap(True);layout.addWidget(note)
+        for key,control in self.belt_edges:
+            layout.addWidget(QLabel(key.replace('_',' ').title()));layout.addWidget(control);control.show()
+        done=QPushButton('Done');done.clicked.connect(dialog.accept);layout.addWidget(done);dialog.exec_()
+        for _,control in self.belt_edges:control.setParent(self);control.hide()
 
     def belt_size_settings(self):
         return BeltSettings(enabled=self.belt_enabled.isChecked(),
@@ -5109,6 +5268,8 @@ class Main(QMainWindow):
                 self.line_length.value() / 100.0,
             )
             worker.belt_assist = BeltWidthAssist(self.belt_size_settings())
+            worker.show_belt_edges=self.belt_edge_preview.isChecked()
+            worker.review_status.connect(self.on_review_status)
             worker.three_line.set_mode(self.line_mode.currentData())
             worker.three_line.set_bounds(self.top_line_slider.value()/100,self.bottom_line_slider.value()/100)
             worker.three_line.set_span(self.left_span_slider.value()/100,self.right_span_slider.value()/100)
@@ -6093,6 +6254,8 @@ class Main(QMainWindow):
         if snapshot_writer is not None:snapshot_writer.wait(3)
         report_thread=getattr(self,"_management_thread",None)
         if report_thread is not None and report_thread.is_alive():report_thread.join(3)
+        review_store=getattr(self,"_classification_review_store",None)
+        if review_store is not None:review_store.close()
         self.stop_alarm_sound()
         event.accept()
 

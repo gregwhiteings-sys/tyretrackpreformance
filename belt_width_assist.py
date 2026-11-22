@@ -69,9 +69,9 @@ class BeltWidthAssist:
         label='passenger' if 450<=mm<680 else '4x4' if 730<mm<=900 else None
         return {'diameter_mm':mm,'candidate':label,'observations':len(values),'assumed_width':True}
 
-    def resolve(self, track_id, frame, visual_type, visual_score):
+    def resolve(self, track_id, frame, visual_type, visual_score, ignore_observe=False):
         evidence=self.evidence(track_id,frame)
-        if (self.settings.observe_only or not evidence or not evidence['candidate']
+        if ((self.settings.observe_only and not ignore_observe) or not evidence or not evidence['candidate']
                 or visual_type not in ('passenger','4x4') or visual_score>=.80):
             return visual_type,visual_score,False
         # A diameter estimate is not a calibrated class confidence. Keep original score.
