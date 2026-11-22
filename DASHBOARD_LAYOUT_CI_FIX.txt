@@ -1,0 +1,5 @@
+Dashboard layout fix
+
+The classification comparison panel now follows the production totals and record prompt in the scrollable statistics rail. Its multi-line text no longer pushes weekday totals off the initial dashboard view. Scroll the statistics rail to read the comparison.
+
+The weekday regression test now checks populated comparison figures at all six screen-size/style combinations. Models, counting and comparison calculations are unchanged.

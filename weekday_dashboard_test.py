@@ -50,6 +50,8 @@ with DatabaseTemporaryDirectory() as folder:
   assert [d['count'] for d in w._dashboard_cache['weekdays']]==[5,3,2,0,0]
   assert len(w.dashboard_day_blocks)==5 and '26 Oct–30 Oct' in w.weekday_heading.text()
   assert 'TODAY' in w.dashboard_day_blocks[2].text() and '—' in w.dashboard_day_blocks[3].text()
+  w.show_comparison_dashboard(dict(original_counts={'passenger':12345}, assisted_counts={'4x4':12345},
+   final_counts={'passenger':12345}, size_only_counts={'4x4':12345}, measured=12345, tyres=12345, disagreements=12345))
   for style in ('Fusion','Windows'):
    qt.setStyle(style)
    for width,height in [(1280,720),(1366,768),(1450,850)]:
