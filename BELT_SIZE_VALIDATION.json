@@ -1,0 +1,10 @@
+{
+  "source_build": "TyreTrack_Rubber_Ring_FOD_On_Updated_Build.zip",
+  "assumed_belt_width_mm": 1100,
+  "new_tests_passed": 6,
+  "full_ci_run": false,
+  "windows_executable_built": false,
+  "physical_calibration_verified": false,
+  "live_oak_tested": false,
+  "model_files_unchanged": true
+}
