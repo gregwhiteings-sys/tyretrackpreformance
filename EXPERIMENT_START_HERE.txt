@@ -175,3 +175,10 @@ Today, This Hour and Best Hour now display tyres next to each total.
 Passenger/SUV class totals are larger. The target message is larger and scrolls gently.
 The text-only animation runs at 20 updates/second and pauses when hidden.
 Hover to read the full stationary message. Counts, reporting and OAK resources are unchanged.
+
+
+NEW CLASSIFICATION COMPARISON / FOREIGN REVIEW
+Default: COUNTING -> Compare only. Dashboard shows original and proposed totals.
+Foreign tab -> Review false alerts / confirmed foreign objects.
+See COMPARISON_AND_FALSE_ALERT_REVIEW_README.txt in the source release.
+1100mm belt width remains an unverified estimate.

@@ -1,0 +1,12 @@
+{
+  "new_backend_test_cases_passed": 6,
+  "size_helper_cases_passed": 6,
+  "actual_qt_ui_with_model_stub": true,
+  "alarm_raw_evidence_test_email_mocked": true,
+  "simulated_worker_and_replay_integration": true,
+  "models_unchanged": true,
+  "full_ci_run": false,
+  "windows_exe_built": false,
+  "live_camera_tested": false,
+  "real_world_accuracy_evaluated": false
+}
