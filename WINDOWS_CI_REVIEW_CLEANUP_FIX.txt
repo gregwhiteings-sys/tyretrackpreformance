@@ -1,0 +1,21 @@
+WINDOWS CI FIX — classification_review_ui_test WinError 32
+
+The UI test used tempfile.TemporaryDirectory instead of the project's
+DatabaseTemporaryDirectory fixture. Some existing UI database helpers commit
+through sqlite connection contexts without closing immediately. Linux permits
+unlinking those open files; Windows rejects deleting counts.db while open.
+
+Fixes:
+- Use DatabaseTemporaryDirectory, which explicitly closes UI-thread handles
+  and fails if background-worker connections remain open. Cleanup errors are
+  NOT ignored and SQLite thread-safety checks remain enabled.
+- Fully consume and explicitly close the review database journal_mode PRAGMA
+  cursor before committing. This also passes retained-cursor tracking.
+- Replace fixed 350/250ms UI-test waits with bounded waits for loaded/saved state.
+- Join the review screen's outstanding I/O workers on dialog close.
+- Assert review writer shutdown and actual temporary-folder deletion.
+
+Validated here: strict UI fixture, review backend, simulated OAK counting worker,
+isolated replay, resource-leak regression, size helper and compatibility audit.
+Windows GitHub CI must still be rerun; this environment is Linux. Model files,
+production count logic and classifier thresholds were not changed by this fix.
