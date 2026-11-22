@@ -2799,7 +2799,6 @@ class Main(QMainWindow):
         self.classification_comparison_label=QLabel('TODAY’S CLASSIFICATION COMPARISON · No comparison records yet')
         self.classification_comparison_label.setWordWrap(True)
         self.classification_comparison_label.setStyleSheet('color:#c9e5ef;background:#14232b;padding:8px;font:600 14px "Segoe UI";')
-        counters_layout.addWidget(self.classification_comparison_label)
         self._review_dashboard_busy=False
         self.review_dashboard_ready.connect(self.show_comparison_dashboard)
         self.review_dashboard_timer=QTimer(self);self.review_dashboard_timer.setInterval(30000)
@@ -3002,6 +3001,9 @@ class Main(QMainWindow):
         # hourly and daily totals visually uncluttered.
         counters_layout.addStretch(1)
         counters_layout.addWidget(self.dashboard_record_progress)
+        # Comparison details can span several lines. Keep them after the
+        # production strips so they scroll without displacing daily totals.
+        counters_layout.addWidget(self.classification_comparison_label)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
