@@ -32,3 +32,33 @@ def weekday_snapshot(connection, source, now=None):
         except (TypeError, ValueError, OverflowError, OSError):
             continue
     return days
+
+
+def month_week_snapshot(connection, source, now=None):
+    """Calendar weeks clipped to this month; original weekday shift counts only."""
+    now=(now or brisbane_now()).astimezone(BRISBANE)
+    first=now.replace(day=1,hour=0,minute=0,second=0,microsecond=0)
+    end=(first.replace(day=28)+timedelta(days=4)).replace(day=1)
+    monday=first-timedelta(days=first.weekday());weeks=[]
+    while monday<end:
+        start=max(first,monday);stop=min(end,monday+timedelta(days=7))
+        # Do not allocate a production-week card for a weekend-only fragment.
+        if any((start+timedelta(days=i)).weekday()<5 for i in range((stop-start).days)):
+            weeks.append(dict(start=start,end=stop,count=0,current=start<=now<stop,
+                              completed=now>=stop,future=now<start))
+        monday+=timedelta(days=7)
+    rows=connection.execute('SELECT ts,metric_utc FROM counts WHERE source=? AND '
+        '((metric_utc>=? AND metric_utc<?) OR (metric_utc IS NULL AND ts>=? AND ts<?))',
+        (source,first.timestamp(),end.timestamp(),(first-timedelta(days=1)).date().isoformat(),
+         (end+timedelta(days=1)).date().isoformat()))
+    for ts,epoch in rows:
+        try:
+            stamp=datetime.fromtimestamp(epoch,BRISBANE) if epoch is not None else datetime.fromisoformat(ts)
+            if stamp.tzinfo is None:stamp=stamp.replace(tzinfo=BRISBANE)
+            stamp=stamp.astimezone(BRISBANE)
+            if not first<=stamp<end or stamp>now or stamp.weekday()>=5:continue
+            if not stamp.replace(hour=5,minute=0,second=0,microsecond=0)<=stamp<stamp.replace(hour=17,minute=5,second=0,microsecond=0):continue
+            for week in weeks:
+                if week['start']<=stamp<week['end']:week['count']+=1;break
+        except (TypeError,ValueError,OverflowError,OSError):continue
+    return weeks

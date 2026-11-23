@@ -1,5 +1,5 @@
 """Real Qt dashboard/review interactions; CPU model stub, isolated state, no camera/network."""
-import os,sys,types,time
+import os,sys,types,time,threading
 from test_resources import DatabaseTemporaryDirectory
 from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
@@ -63,8 +63,44 @@ with DatabaseTemporaryDirectory() as tmp:
  annotated=cv2.imread(saved['payload']['snapshot']);assert ((annotated[:,:,2]>180)&(annotated[:,:,1]<60)).any()
  assert saved['status']=='unreviewed' and saved['payload']['model_sha256']=='fixture-model'
  assert m.production_snapshot()['all_time']==0
- w.close();app.processEvents()
+ # Reproduce the Windows cleanup race deterministically: a dashboard reader
+ # is still opening the review DB when the main window begins closing.
+ previous=getattr(w,'_review_dashboard_thread',None)
+ if previous is not None:previous.join(6)
+ app.processEvents();w._review_dashboard_busy=False
+ entered=threading.Event();release=threading.Event();completed=threading.Event()
+ real_rows=store.rows
+ def delayed_rows(*args,**kwargs):
+  if threading.current_thread().name=='review-dashboard-read':
+   entered.set();assert release.wait(5), 'Test reader release timed out'
+   try:return real_rows(*args,**kwargs)
+   finally:completed.set()
+  return real_rows(*args,**kwargs)
+ store.rows=delayed_rows
+ w.refresh_comparison_dashboard();assert entered.wait(2)
+ reader=w._review_dashboard_thread
+ join_started=threading.Event();real_join=reader.join
+ def joining_reader(timeout=None):
+  join_started.set();return real_join(timeout)
+ reader.join=joining_reader
+ def release_on_shutdown():
+  deadline=time.monotonic()+3
+  while not w.closing and time.monotonic()<deadline:time.sleep(.005)
+  assert w.closing, 'Window never began shutdown'
+  join_started.wait(3)
+  release.set()
+ releaser=threading.Thread(target=release_on_shutdown);releaser.start()
+ w.close();releaser.join(5)
+ assert join_started.is_set(), 'Window close did not join its dashboard reader'
+ assert completed.is_set() and not reader.is_alive(), 'Dashboard reader outlived window close'
+ assert not w.review_dashboard_timer.isActive()
+ w._review_dashboard_busy=False
+ w.refresh_comparison_dashboard()
+ assert w._review_dashboard_thread is reader, 'A new reader started during shutdown'
+ app.processEvents()
+ assert not reader.is_alive()
  assert store.close(), "Review writer did not stop before fixture cleanup"
 assert not p.exists(), 'Temporary database directory was not removed'
+print('PASS delayed dashboard reader joined before close; refresh disabled during shutdown; no cleanup-error suppression')
 print('PASS fixture explicitly closes UI SQLite handles and rejects leaked worker handles before Windows cleanup')
 print('PASS real dashboard comparison, simple mode selection, review dialog false-alert save and zero production counts; model stub/no camera')

@@ -30,9 +30,9 @@ assert w.line_angle.value()==0 and w.line_length.value()==100
 for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
  for _ in range(5):app.processEvents()
- expected_top=218 if height>=800 else 176
- expected_class_row=70 if height>=800 else 56
- expected_font=54 if height>=800 else 44
+ expected_top=194 if height>=800 else 152
+ expected_class_row=62 if height>=800 else 48
+ expected_font=48 if height>=800 else 38
  assert w.today_metric_card.height()==w.class_summary.height()==expected_top,(height,w.today_metric_card.height(),w.class_summary.height())
  assert all(w.class_summary.layout().itemAt(i).widget().height()==expected_class_row for i in range(3))
  assert all(f'{expected_font}px' in label.styleSheet() for label in (w.day_lbl,w.passenger_lbl,w.suv_lbl,w.truck_lbl))
@@ -58,9 +58,9 @@ assert w.record_progress.toolTip()=="Fixed message"
 assert w.dashboard_flow_card.isVisible() and w.dashboard_record_progress.isVisible()
 assert w.dashboard_flow_card.height()==w.averages_metric_card.height()==list(w.projection_labels.values())[0].height()
 assert w.dashboard_record_progress.mapTo(w,w.dashboard_record_progress.rect().topLeft()).y() >= w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomLeft()).y()
-assert w.today_metric_card.height()==w.class_summary.height()==176
-assert all(w.class_summary.layout().itemAt(i).widget().height()==56 for i in range(3))
-assert all('44px' in label.styleSheet() for label in (w.day_lbl,w.passenger_lbl,w.suv_lbl,w.truck_lbl))
+assert w.today_metric_card.height()==w.class_summary.height()==152
+assert all(w.class_summary.layout().itemAt(i).widget().height()==48 for i in range(3))
+assert all('38px' in label.styleSheet() for label in (w.day_lbl,w.passenger_lbl,w.suv_lbl,w.truck_lbl))
 w.set_flow_rate(4.9)
 assert w.dashboard_flow_lbl.text()=='4.9' and '#FF5C68' in w.dashboard_flow_lbl.styleSheet()
 w.set_flow_rate(5)
@@ -80,7 +80,7 @@ assert not w.show_tyre_labels.isChecked()
 assert not hasattr(w, 'target_button')
 assert len(w.projection_labels)==3
 assert 'PROJECTED THIS MONTH' in w.forecast_label.text()
-assert '900 20px' in w.forecast_label.styleSheet()
+assert '900 16px' in w.forecast_label.styleSheet()
 print('PASS: stationary accessible message, steady low-flow threshold, monthly projection and smooth unlabelled defaults')
 print('PASS: actual Qt operator dashboard at 1450,1366,1280; OAK only, foreign off, hidden fixed lines')
 w.resize(1353,689)
