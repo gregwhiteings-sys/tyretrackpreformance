@@ -3,7 +3,7 @@ import os,sys,types,tempfile,shutil
 from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
 stub=types.ModuleType('ultralytics');stub.YOLO=object;sys.modules['ultralytics']=stub
-from PyQt5.QtWidgets import QApplication,QPushButton
+from PyQt5.QtWidgets import QApplication,QPushButton,QScrollArea
 root=Path(__file__).resolve().parent
 folder=Path(tempfile.mkdtemp(prefix='oak_experiment_ui_'))
 for path in root.glob('*.py'):shutil.copy2(path,folder/path.name)
@@ -88,9 +88,27 @@ for _ in range(5):app.processEvents()
 assert w.width()==1353 and w.height()==689,(w.width(),w.height())
 assert w.video.height()>=120 and abs(w.video.height()-w.camera2_view.height())<=1 and w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomRight()).y()<w.height()
 assert all(label.height()==88 and "font:900 16px" in label.styleSheet() for label in w.projection_labels.values())
+# Qt isVisible() includes children clipped by a scroll viewport. Fixed operator
+# controls must fit immediately; scrollable review actions must be reachable
+# and fit inside their own viewport once scrolled into view.
+scroll_positions={area:area.verticalScrollBar().value() for area in w.findChildren(QScrollArea)}
+review_actions=set()
 for control in w.findChildren(QPushButton):
- if control.isVisible():
-  at=control.mapTo(w,control.rect().topLeft());assert at.y()+control.height()<=w.height(),(control.text(),at.y(),control.height(),w.height())
+ if not control.isVisible():continue
+ ancestor=control.parentWidget()
+ while ancestor is not None and not isinstance(ancestor,QScrollArea):ancestor=ancestor.parentWidget()
+ if ancestor is not None:
+  ancestor.ensureWidgetVisible(control,0,0)
+  for _ in range(3):app.processEvents()
+  at=control.mapTo(ancestor.viewport(),control.rect().topLeft())
+  assert at.y()>=0 and at.y()+control.height()<=ancestor.viewport().height(),(control.text(),at.y(),control.height(),ancestor.viewport().height())
+  assert not control.visibleRegion().isEmpty(),control.text()
+  if control.text() in ('Overlap trial results / count verification','Open overlap count reviews'):review_actions.add(control.text())
+ else:
+  at=control.mapTo(w,control.rect().topLeft());assert at.y()>=0 and at.y()+control.height()<=w.height(),(control.text(),at.y(),control.height(),w.height())
+assert len(review_actions)==2,review_actions
+for area,value in scroll_positions.items():area.verticalScrollBar().setValue(value)
+for _ in range(3):app.processEvents()
 w.resize(1280,720)
 for _ in range(5):app.processEvents()
 print('PASS: laptop-height 1353x689 layout keeps projection text and operator buttons in view')

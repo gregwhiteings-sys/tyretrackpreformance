@@ -1,0 +1,5 @@
+Windows layout CI check correction
+
+production_ui_test previously required every visible QPushButton to fit inside the main window without scrolling. Qt isVisible() is true for a child clipped by a scroll viewport. The new overlap actions intentionally sit in the statistics scroll area.
+
+The test now checks fixed controls directly and scrolls each scroll-contained button into its viewport, verifies full vertical bounds and visible region, explicitly checks both overlap actions, then restores the scroll positions. This retains the original fixed-button protection and adds actual reachability checks. The 1353x689 test and administration-page checks pass locally. No application behaviour, counting, reports or model files changed. Rerun Windows CI.
