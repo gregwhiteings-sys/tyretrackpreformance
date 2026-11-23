@@ -58,3 +58,12 @@ def forecast_text(data,test_mode=False):
 def report_text(report):
     data=report.get('production_projections') or {'month':report.get('monthly_forecast')}
     return '\n\n'.join(forecast_text(data.get(period)) for period in ('day','week','month') if period in data)
+
+
+def projection_card_html(title, value, paused=False, font_px=16):
+    """Self-contained rich text: QLabel/QTextDocument inherited fonts may differ."""
+    from html import escape
+    lines=['TEST · PAUSED'] if paused else str(value).splitlines()
+    body='<br>'.join('<nobr>'+escape(line)+'</nobr>' for line in lines)
+    return (f'<div style="font-family:Segoe UI;font-size:{int(font_px)}px;font-weight:900">'
+            f'<span style="font-size:10px">PROJECTED {escape(title)}</span><br>{body}</div>')

@@ -42,10 +42,13 @@ extra='''
     blocks=[b for b in w.dashboard_week_blocks if b.isVisible()]
     assert max(b.width() for b in blocks)-min(b.width() for b in blocks)<=1
     assert all(b.height()>=48 and b.width()>=120 for b in blocks)
-    from PyQt5.QtGui import QTextDocument
+    from PyQt5.QtGui import QTextDocument,QFont
     for label in w.projection_labels.values():
+     assert label.width()>=120,(style,width,height,label.width())
      document=QTextDocument();document.setDefaultFont(label.font());document.setHtml(label.text());document.setTextWidth(label.width()-8)
-     assert document.size().height()<=label.height(),(style,width,height,document.size().height(),label.height())
+     assert document.size().height()<=label.height(),(style,width,height,document.size().height(),label.height(),label.width(),label.font().toString())
+     inherited=QTextDocument();inherited.setDefaultFont(QFont('Segoe UI',40));inherited.setHtml(label.text());inherited.setTextWidth(label.width()-8)
+     assert inherited.size().height()<=label.height(), 'Card inherited an unrelated global font'
 '''
 assert needle in source;source=source.replace(needle,needle+extra)
 source=source.replace('weekday_dashboard_preview.png','month_week_dashboard_preview.png')
