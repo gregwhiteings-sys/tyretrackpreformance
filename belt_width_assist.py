@@ -8,7 +8,7 @@ from statistics import median
 class BeltSettings:
     enabled: bool = True
     observe_only: bool = False
-    width_mm: float = 1100.0  # ASSUMED, not measured at the site
+    width_mm: float = 1180.0  # Confirmed usable inside belt width supplied by site owner
     left_top: float = .44
     right_top: float = .61
     left_bottom: float = .215
@@ -67,7 +67,7 @@ class BeltWidthAssist:
         # Perspective/box fluctuations or changing pose: retain visual classifier.
         if (max(v for _,v in values)-min(v for _,v in values))/mm>.12:return None
         label='passenger' if 450<=mm<680 else '4x4' if 730<mm<=900 else None
-        return {'diameter_mm':mm,'candidate':label,'observations':len(values),'assumed_width':True}
+        return {'diameter_mm':mm,'candidate':label,'observations':len(values),'assumed_width':self.settings.width_mm != 1180.0,'perspective_calibration_verified':False}
 
     def resolve(self, track_id, frame, visual_type, visual_score, ignore_observe=False):
         evidence=self.evidence(track_id,frame)
@@ -77,3 +77,15 @@ class BeltWidthAssist:
         # A diameter estimate is not a calibrated class confidence. Keep original score.
         candidate=evidence['candidate']
         return candidate,visual_score,candidate!=visual_type
+
+
+def confirmed_site_width(get_state, set_state):
+    """Apply the owner's confirmed width once; retain later deliberate edits."""
+    if get_state('belt_width_confirmed_1180', '0') != '1':
+        set_state('belt_size_width', '1180')
+        set_state('belt_width_confirmed_1180', '1')
+    try:
+        value=int(get_state('belt_size_width', '1180'))
+        return value if 600 <= value <= 2000 else 1180
+    except (TypeError, ValueError):
+        return 1180

@@ -1,0 +1,8 @@
+{
+  "confirmed_inside_width_mm": 1180,
+  "confirmed_by": "site owner",
+  "date": "2026-11-23",
+  "migration": "one-time overwrite of old assumed site width; retain subsequent edits",
+  "perspective_calibration": "camera-specific edges must be checked",
+  "production_mode": "existing compare/assist setting preserved"
+}

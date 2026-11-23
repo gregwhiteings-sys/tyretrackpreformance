@@ -1,3 +1,5 @@
+CURRENT CANDIDATE UPDATE: See OVERLAP_1180_UPDATE.txt and overlap_model/trial_status.json. New held-out results: 4/8 boxes detected, 1 false-positive frame / 336 negatives. Neural overlap stays OFF; geometric count review continues. Older results below are historical.
+
 TyreTrack: automatic overlap count review + confirmed adjustments
 
 INSTALL / BUILD

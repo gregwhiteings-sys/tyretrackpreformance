@@ -5,7 +5,7 @@ from belt_width_assist import BeltSettings,BeltWidthAssist
 
 class TestBelt(unittest.TestCase):
     def track(self, ratio=.57, count=7, settings=None, track=1):
-        a=BeltWidthAssist(settings);w,h=640,360;cy=200
+        a=BeltWidthAssist(settings or BeltSettings(width_mm=1100));w,h=640,360;cy=200
         l,r=a.edges(cy,w,h);bw=(r-l)*ratio;cx=(l+r)/2
         box=(cx-bw/2,cy-bw*.35,cx+bw/2,cy+bw*.35)
         for f in range(count):a.observe(track,box,[(track,box)],w,h,f)

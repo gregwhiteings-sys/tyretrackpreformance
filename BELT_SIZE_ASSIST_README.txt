@@ -1,3 +1,5 @@
+CURRENT UPDATE: Site owner confirmed usable inside belt width is 1180 mm. The application migrates once to this value. Later manual edits persist. Camera belt-edge calibration still needs checking. Earlier 1100 mm assumptions below are superseded.
+
 TYRETRACK BELT-WIDTH SIZE ASSIST — EXPERIMENTAL SOURCE BUILD
 
 Based on TyreTrack_Rubber_Ring_FOD_On_Updated_Build.zip (20 Nov 2026).

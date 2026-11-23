@@ -1,0 +1,8 @@
+UPDATE 23 November 2026
+Confirmed usable inside belt width: 1180 mm. Applied once on upgrade, including existing installations. Subsequent manual changes retained. Check Show belt edges for setup after installation; perspective remains approximate. Compare only is recommended; original production classification retained.
+
+Overlap files replaced with new RVC2/OpenVINO 2022.1 6-shave conversion. Input RGB planar U8 416x416 /255, output 1x5x3549. Foreign and tyre models unchanged.
+
+Threshold 55% selected on validation. Held-out: 4 matched boxes, 1 false positive, 4 missed boxes. Recall 50%, precision 80%. One false-positive frame among 336 negatives. Only 1 of 4 candidate episodes hit. Neural overlap remains OFF pending better fresh-video results. Existing geometric review/count linkage continues. No automatic hidden-count additions.
+
+Upload ZIP contents to existing GitHub project and run Windows workflow. This is a source build package, not a newly compiled EXE. Live OAK hardware inference not tested here.

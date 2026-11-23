@@ -27,7 +27,7 @@ import tyre_weight
 import uuid
 from dataclasses import asdict
 from classification_review import ReviewStore, comparison
-from belt_width_assist import BeltSettings, BeltWidthAssist
+from belt_width_assist import BeltSettings, BeltWidthAssist, confirmed_site_width
 from PyQt5.QtCore import QLockFile
 import time
 import traceback
@@ -2114,7 +2114,7 @@ class CounterWorker(QThread):
                                 tyre_type, class_conf, size_changed = self.belt_assist.resolve(
                                     track_id, self.processing_frame, tyre_type, class_conf)
                                 if size_changed:
-                                    log(f"Belt trial assisted ID {track_id}: {tyre_type}; assumed belt {self.belt_assist.settings.width_mm:.0f} mm")
+                                    log(f"Belt trial assisted ID {track_id}: {tyre_type}; reference belt {self.belt_assist.settings.width_mm:.0f} mm")
                                 log_count(source_name, track_id, confidence, tyre_type, class_conf)
                                 visual_type, visual_score = tyre_class_vote(self.class_votes.get(track_id, {}))
                                 mode = 'off' if not self.belt_assist.settings.enabled else 'compare' if self.belt_assist.settings.observe_only else 'assist'
@@ -3518,7 +3518,7 @@ class Main(QMainWindow):
         )
         line_layout.addWidget(self.conf)
         line_layout.addWidget(QLabel("Belt size assist · experimental"))
-        self.belt_enabled = QCheckBox("Use belt-width size support (assumed calibration)")
+        self.belt_enabled = QCheckBox("Use belt-width size support (check camera calibration)")
         self.belt_enabled.setChecked(get_state("belt_size_enabled", "1") == "1")
         if get_state('classification_review_setup','0') != '1':
             self.belt_enabled.setChecked(True)
@@ -3542,9 +3542,8 @@ class Main(QMainWindow):
         advanced_button=QPushButton('Advanced belt-edge setup')
         advanced_button.clicked.connect(self.open_belt_edge_setup);line_layout.addWidget(advanced_button)
         self.belt_width = QSpinBox(); self.belt_width.setRange(600,2000)
-        self.belt_width.setSuffix(" mm (assumed)")
-        try: self.belt_width.setValue(int(get_state("belt_size_width", "1100")))
-        except (ValueError,TypeError): self.belt_width.setValue(1100)
+        self.belt_width.setSuffix(" mm")
+        self.belt_width.setValue(confirmed_site_width(get_state, set_state))
         line_layout.addWidget(QLabel("Usable inside belt width"));line_layout.addWidget(self.belt_width)
         self.belt_edges = []
         for key,title,default in [("left_top","Left edge at picture top",44),
@@ -3556,7 +3555,7 @@ class Main(QMainWindow):
             except (ValueError,TypeError): control.setValue(round(default*10))
             control.hide()
             self.belt_edges.append((key,control))
-        note=QLabel("Compare only records both proposals; only original results affect production totals. Daily files are in data/classification_review/daily. TRIAL: 1100 mm is a guess. Middle-view, isolated flat-looking tyres only; five stable frames. "
+        note=QLabel("Compare only records both proposals; only original results affect production totals. Daily files are in data/classification_review/daily. Confirmed belt width: 1180 mm. Diameter/class suggestions remain experimental; camera edges need checking. Middle-view, isolated flat-looking tyres only; five stable frames. "
             "Below 680 mm supports passenger; 680–730 mm keeps visual result; 730–900 mm supports SUV/4x4. "
             "Only visual vote scores below 80% can change. Larger/unclear tyres keep visual result. "
             "Show Tyre Labels to see estimates. Settings apply live and clear size history. "
