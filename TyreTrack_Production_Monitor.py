@@ -5699,7 +5699,13 @@ class Main(QMainWindow):
 
     def refit_projection_cards(self):
         self._projection_refit_pending=False
-        if not self.closing:self.update_production_forecast()
+        if self.closing:return
+        # Resize events can precede the child scroll viewport's final geometry.
+        height=self.stats_scroll.viewport().height()
+        if (height>=780)!=self._dashboard_expanded or (height<610)!=self._dashboard_tight:
+            self.apply_dashboard_density()
+            return
+        self.update_production_forecast()
 
     def load_web_connection(self):
         if not self._confirm_admin_pin("configure web sharing"):return
@@ -6231,7 +6237,13 @@ class Main(QMainWindow):
         wide_layout=self.width()>=1280
         self.stats_scroll.setMinimumWidth(716 if wide_layout else 0)
         self.primary_camera_view.setMinimumWidth(350 if wide_layout else 0)
-        expanded = self.height() >= 800
+        available_height=self.stats_scroll.viewport().height()
+        # Expanded cards require about 750 px plus clearance on Windows.
+        # Choose from the real viewport after headers/controls, not window height.
+        expanded = available_height >= 780
+        tight = available_height < 610
+        self._dashboard_expanded=expanded
+        self._dashboard_tight=tight
         top_card_height=194 if expanded else 152
         class_row_height=62 if expanded else 48
         total_font_size=48 if expanded else 38
@@ -6245,15 +6257,15 @@ class Main(QMainWindow):
             card=self.weight_labels[key].parentWidget()
             card.setFixedHeight(class_row_height)
             label.setStyleSheet(f"color:{colour};font:900 {total_font_size}px 'Consolas';")
-        self.dashboard_flow_card.setFixedHeight(110 if expanded else 88)
+        self.dashboard_flow_card.setFixedHeight(110 if expanded else 84 if tight else 88)
         for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
-            card.setFixedHeight(116 if expanded else 108)
-        self.averages_metric_card.setFixedHeight(110 if expanded else 88)
+            card.setFixedHeight(116 if expanded else 96 if tight else 108)
+        self.averages_metric_card.setFixedHeight(110 if expanded else 84 if tight else 88)
         compact_laptop = self.height() < 700
         projection_font = "20px" if expanded else "16px"
         projection_padding = "2px"
         for label in self.projection_labels.values():
-            label.setFixedHeight(110 if expanded else 88)
+            label.setFixedHeight(110 if expanded else 84 if tight else 88)
             label.setStyleSheet(
                 "color:#f4f7f9;background:#17251f;border:1px solid #42c879;"
                 "border-radius:8px;font:900 " + projection_font + " 'Segoe UI';padding:" + projection_padding + ";"
@@ -6261,12 +6273,12 @@ class Main(QMainWindow):
         self.hourly_strip.setFixedHeight(96 if expanded else 76)
         for block in self.dashboard_hour_blocks:
             block.setFixedHeight(72 if expanded else 54)
-        self.weekday_strip.setFixedHeight(92 if expanded else 72)
+        self.weekday_strip.setFixedHeight(92 if expanded else 68 if tight else 72)
         for block in self.dashboard_day_blocks:
-            block.setFixedHeight(72 if expanded else 52)
-        self.month_week_strip.setFixedHeight(92 if expanded else 72)
+            block.setFixedHeight(72 if expanded else 48 if tight else 52)
+        self.month_week_strip.setFixedHeight(92 if expanded else 68 if tight else 72)
         for block in self.dashboard_week_blocks:
-            block.setFixedHeight(72 if expanded else 52)
+            block.setFixedHeight(72 if expanded else 48 if tight else 52)
         compact_laptop = self.height() < 700
         camera_min_height = 120 if compact_laptop else 150
         camera_max_height = 340 if compact_laptop else 420 if expanded else 380
@@ -6275,7 +6287,7 @@ class Main(QMainWindow):
         self.camera2_view.setMinimumHeight(camera_min_height)
         self.camera2_view.setMaximumHeight(camera_max_height)
         self.operator_controls_scroll.setMaximumHeight(80)
-        self.counters_panel.layout().setSpacing(10 if expanded else 5)
+        self.counters_panel.layout().setSpacing(10 if expanded else 4 if tight else 5)
         self.test_transport.setFixedHeight(23 if expanded else 20)
         self.fod_badge.setFixedHeight(42 if expanded else 34)
         if hasattr(self,"worker") and hasattr(self,"_dashboard_cache") and not getattr(self,"_projection_refit_pending",False):
