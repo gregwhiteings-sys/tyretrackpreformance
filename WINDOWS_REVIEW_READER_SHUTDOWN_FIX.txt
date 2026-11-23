@@ -1,0 +1,3 @@
+Windows CI shutdown fix — 23 November 2026
+Review dashboard reader was an untracked daemon and could reopen/create the review directory while Windows removed the fixture. Main now retains and joins that reader before closing ReviewStore. Refresh requests and stale reader results are blocked while closing. A slow reader or writer prevents close with a message rather than silently continuing. The real UI regression holds the reader until close starts, then checks it has exited before fixture cleanup. Cleanup errors remain enabled and leaked SQLite worker handles remain failures.
+1180 mm migration, converted overlap model and existing trial-off policy retained. No model or count logic changes.

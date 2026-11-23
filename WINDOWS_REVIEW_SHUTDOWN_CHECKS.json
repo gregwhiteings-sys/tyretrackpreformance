@@ -1,0 +1,11 @@
+{
+  "date": "2026-11-23",
+  "regression_tests_passed": 61,
+  "fix": "Join review dashboard reader before closing ReviewStore; disallow refresh/result delivery while closing; honor writer-close failure",
+  "regression": "Real Qt UI holds reader until close joins it; original closeEvent rejected by same test",
+  "cleanup_errors_ignored": false,
+  "width_and_models": "unchanged from supplied 1180mm build",
+  "windows_ci": "Rerun on GitHub Windows runner; local tests run on Linux",
+  "hardware_tested": false,
+  "weekly_totals": "Current Brisbane month, Monday-Sunday calendar weeks clipped to month; weekday production shifts only; weekend-only fragments omitted; 4 or 5 equal cards; all three totals rows fully visible at tested screen sizes"
+}

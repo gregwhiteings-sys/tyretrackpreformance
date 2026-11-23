@@ -3007,6 +3007,26 @@ class Main(QMainWindow):
         # the selected dashboard sample and removing the detached footer band.
         counters_layout.addWidget(self.hourly_strip)
         counters_layout.addWidget(self.weekday_strip)
+
+        self.month_week_strip=QFrame()
+        week_layout=QVBoxLayout(self.month_week_strip)
+        week_layout.setContentsMargins(0,0,0,0);week_layout.setSpacing(2)
+        self.month_week_heading=QLabel("WEEKLY TOTALS · THIS MONTH · BRISBANE")
+        self.month_week_heading.setStyleSheet("color:#f1b82d;font-size:11px;font-weight:900;")
+        week_layout.addWidget(self.month_week_heading)
+        week_blocks=QHBoxLayout();week_blocks.setSpacing(4)
+        self.dashboard_week_blocks=[]
+        for i in range(5):
+            block=QLabel(f"WEEK {i+1} · —")
+            block.setAlignment(Qt.AlignCenter)
+            block.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+            block.setMinimumWidth(0);block.setFixedHeight(52)
+            block.setStyleSheet("background:#252d33;border:1px solid #84929e;border-radius:6px;color:#84929e;")
+            week_blocks.addWidget(block,1);self.dashboard_week_blocks.append(block)
+        week_layout.addLayout(week_blocks)
+        self.month_week_strip.setFixedHeight(72)
+        counters_layout.addWidget(self.month_week_strip)
+
         # Use the open footer area for the record-pace prompt, keeping the
         # hourly and daily totals visually uncluttered.
         counters_layout.addStretch(1)
@@ -4462,17 +4482,20 @@ class Main(QMainWindow):
 
     def refresh_comparison_dashboard(self):
         path=DATA/'classification_review'/'reviews.sqlite3'
-        if self._review_dashboard_busy or not path.exists():return
+        if self.closing or self._review_dashboard_busy or not path.exists():return
         self._review_dashboard_busy=True;day=brisbane_now().date().isoformat()
+        store=self.get_review_store()  # Resolve on GUI thread, before shutdown can begin.
         def read():
             try:
                 from classification_review import summary
-                result=summary(self.get_review_store().rows(day,scope='production',limit=1000000))
+                result=summary(store.rows(day,scope='production',limit=1000000))
             except Exception as exc:result={'error':str(exc)}
-            self.review_dashboard_ready.emit(result)
-        threading.Thread(target=read,name='review-dashboard-read',daemon=True).start()
+            if not self.closing:self.review_dashboard_ready.emit(result)
+        self._review_dashboard_thread=threading.Thread(target=read,name='review-dashboard-read',daemon=True)
+        self._review_dashboard_thread.start()
 
     def show_comparison_dashboard(self,result):
+        if self.closing:return
         self._review_dashboard_busy=False
         if 'error' in result:
             self.classification_comparison_label.setText('CLASSIFICATION COMPARISON · Records unavailable: '+result['error']);return
@@ -5640,6 +5663,21 @@ class Main(QMainWindow):
             block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};")
             block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
+    def refresh_month_week_totals(self):
+        weeks=(self._dashboard_cache or {}).get('month_weeks',[])
+        if not weeks:return
+        self.month_week_heading.setText(f"WEEKLY TOTALS · {weeks[0]['start']:%B %Y} · BRISBANE")
+        for i,block in enumerate(self.dashboard_week_blocks):
+            block.setVisible(i<len(weeks))
+            if i>=len(weeks):continue
+            week=weeks[i];last=week['end']-timedelta(days=1)
+            colour="#42b7ff" if week['current'] else "#38d996" if week['completed'] else "#84929e"
+            amount="—" if week['future'] else f"{week['count']:,}"
+            tag=" · LIVE" if week['current'] else ""
+            block.setText(f'<span style="font-size:10px">WEEK {i+1} · {week["start"]:%d}–{last:%d %b}{tag}</span><br><span style="font-size:24px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
+            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};")
+            block.setToolTip(f"{week['start']:%d %b}–{last:%d %b %Y} · Monday–Sunday week clipped to this month. Original OAK production counts, weekdays 05:00–17:05 only. Replay/test counts and review adjustments excluded.")
+
     def update_production_forecast(self):
         worker = self.worker
         test_mode = worker is not None and (worker.source_kind == "video" or worker.manual_test)
@@ -5772,8 +5810,9 @@ class Main(QMainWindow):
                     types = con.execute("SELECT tyre_type,COUNT(*) FROM counts WHERE source=? AND metric_utc>=? AND metric_utc<? GROUP BY tyre_type",
                         (OAK_NAME,metrics['day_start'].timestamp(),min(now,metrics['day_end']).timestamp())).fetchall()
                     hourly = hourly_snapshot(con, source=OAK_NAME)
-                    from weekly_dashboard import weekday_snapshot
+                    from weekly_dashboard import weekday_snapshot,month_week_snapshot
                     weekdays = weekday_snapshot(con, source=OAK_NAME, now=now)
+                    month_weeks=month_week_snapshot(con,source=OAK_NAME,now=now)
                     from monthly_forecast import all_snapshots
                     if time.monotonic()-getattr(self, '_month_collected', 0)>60 or not hasattr(self, '_month_data'):
                         self._month_data=all_snapshots(con,OAK_NAME,now)
@@ -5796,7 +5835,7 @@ class Main(QMainWindow):
                     self._prior_best_date=day_key
                 prior_best=self._prior_best_value
                 self.dashboard_ready.emit(dict(metrics=metrics, types=types, hourly=hourly,
-                    best=best, prior_best=prior_best, weekdays=weekdays, monthly_forecast=monthly_forecast, production_projections=production_projections, activity=activity, collect_ms=(time.monotonic()-started)*1000))
+                    best=best, prior_best=prior_best, weekdays=weekdays, month_weeks=month_weeks, monthly_forecast=monthly_forecast, production_projections=production_projections, activity=activity, collect_ms=(time.monotonic()-started)*1000))
             self._dashboard_loader = CoalescedExport(collect,
                 lambda exc: log(f"Dashboard background refresh failed: {exc}"))
         self._dashboard_loader.request()
@@ -5878,6 +5917,7 @@ class Main(QMainWindow):
             self.refresh_production_hours()
         self.apply_live_totals()
         self.refresh_weekday_totals()
+        self.refresh_month_week_totals()
         best_date, best_count = self._dashboard_cache['best'] if self._dashboard_cache else (None, 0)
         self.best_daily_lbl.setText(f"{best_count:,} tyres")
         self.best_daily_lbl.setToolTip(f"Best production day: {best_date or 'No OAK counts yet'} · 05:00–17:05 Brisbane; includes today")
@@ -6182,10 +6222,10 @@ class Main(QMainWindow):
         self.stats_scroll.setMinimumWidth(716 if wide_layout else 0)
         self.primary_camera_view.setMinimumWidth(350 if wide_layout else 0)
         expanded = self.height() >= 800
-        top_card_height=218 if expanded else 176
-        class_row_height=70 if expanded else 56
-        total_font_size=54 if expanded else 44
-        self.dashboard_top_spacer.setFixedHeight(26 if expanded else 0)
+        top_card_height=194 if expanded else 152
+        class_row_height=62 if expanded else 48
+        total_font_size=48 if expanded else 38
+        self.dashboard_top_spacer.setFixedHeight(0)
         self.today_metric_card.setFixedHeight(top_card_height)
         self.class_summary.setFixedHeight(top_card_height)
         self.day_lbl.setStyleSheet(f"color:#f7f8fa;font:900 {total_font_size}px 'Consolas';")
@@ -6195,25 +6235,28 @@ class Main(QMainWindow):
             card=self.weight_labels[key].parentWidget()
             card.setFixedHeight(class_row_height)
             label.setStyleSheet(f"color:{colour};font:900 {total_font_size}px 'Consolas';")
-        self.dashboard_flow_card.setFixedHeight(124 if expanded else 88)
+        self.dashboard_flow_card.setFixedHeight(110 if expanded else 88)
         for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
             card.setFixedHeight(116 if expanded else 108)
-        self.averages_metric_card.setFixedHeight(124 if expanded else 88)
+        self.averages_metric_card.setFixedHeight(110 if expanded else 88)
         compact_laptop = self.height() < 700
-        projection_font = "24px" if expanded else "16px" if compact_laptop else "20px"
-        projection_padding = "6px" if not compact_laptop else "2px"
+        projection_font = "20px" if expanded else "16px"
+        projection_padding = "2px"
         for label in self.projection_labels.values():
-            label.setFixedHeight(124 if expanded else 88)
+            label.setFixedHeight(110 if expanded else 88)
             label.setStyleSheet(
                 "color:#f4f7f9;background:#17251f;border:1px solid #42c879;"
                 "border-radius:8px;font:900 " + projection_font + " 'Segoe UI';padding:" + projection_padding + ";"
             )
-        self.hourly_strip.setFixedHeight(108 if expanded else 96)
+        self.hourly_strip.setFixedHeight(96 if expanded else 76)
         for block in self.dashboard_hour_blocks:
-            block.setFixedHeight(80 if expanded else 72)
-        self.weekday_strip.setFixedHeight(122 if expanded else 92)
+            block.setFixedHeight(72 if expanded else 54)
+        self.weekday_strip.setFixedHeight(92 if expanded else 72)
         for block in self.dashboard_day_blocks:
-            block.setFixedHeight(92 if expanded else 72)
+            block.setFixedHeight(72 if expanded else 52)
+        self.month_week_strip.setFixedHeight(92 if expanded else 72)
+        for block in self.dashboard_week_blocks:
+            block.setFixedHeight(72 if expanded else 52)
         compact_laptop = self.height() < 700
         camera_min_height = 120 if compact_laptop else 150
         camera_max_height = 340 if compact_laptop else 420 if expanded else 380
@@ -6280,8 +6323,22 @@ class Main(QMainWindow):
         if snapshot_writer is not None:snapshot_writer.wait(3)
         report_thread=getattr(self,"_management_thread",None)
         if report_thread is not None and report_thread.is_alive():report_thread.join(3)
+        # Stop refreshes and drain the reader before closing its store or removing data.
+        self.review_dashboard_timer.stop()
+        review_reader=getattr(self,"_review_dashboard_thread",None)
+        if review_reader is not None and review_reader.is_alive():
+            review_reader.join(6)
+            if review_reader.is_alive():
+                QMessageBox.warning(self,"Still stopping","The review reader is still finishing. Wait, then close the app again.")
+                self.closing=False
+                event.ignore()
+                return
         review_store=getattr(self,"_classification_review_store",None)
-        if review_store is not None:review_store.close()
+        if review_store is not None and not review_store.close():
+            QMessageBox.warning(self,"Still stopping","Review records are still being saved. Wait, then close the app again.")
+            self.closing=False
+            event.ignore()
+            return
         self.stop_alarm_sound()
         event.accept()
 
