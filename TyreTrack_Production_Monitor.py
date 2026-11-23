@@ -2847,9 +2847,12 @@ class Main(QMainWindow):
         # totals beside it, so the class figures read as first-class KPIs.
         self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 54px 'Consolas';")
         self.projection_labels={}
+        from monthly_forecast import projection_card_html
         projection_row=QHBoxLayout()
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
-            label=QLabel(f'<span style="font-size:11px">PROJECTED {title}</span><br>— tyres<br>— tonnes')
+            label=QLabel(projection_card_html(title,"— tyres\n— tonnes"))
+            label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+            label.setMinimumWidth(0)
             label.setFixedHeight(88)
             label.setAlignment(Qt.AlignCenter)
             label.setWordWrap(True)
@@ -2914,6 +2917,10 @@ class Main(QMainWindow):
         averages.setFixedHeight(88)
         self.averages_metric_card=averages
         self.production_average.setStyleSheet("color:#f1b82d;font:700 13px 'Consolas';")
+        for card in (averages,dashboard_flow_card):
+            card.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
+            card.setMinimumWidth(0)
+            card.findChild(QLabel,"metricName").setWordWrap(True)
         average_forecast_row=QHBoxLayout();average_forecast_row.setSpacing(5)
         # The average, rate and three forecast cards share one even-width grid.
         average_forecast_row.addWidget(averages,1)
@@ -5681,13 +5688,13 @@ class Main(QMainWindow):
     def update_production_forecast(self):
         worker = self.worker
         test_mode = worker is not None and (worker.source_kind == "video" or worker.manual_test)
-        from monthly_forecast import forecast_text
+        from monthly_forecast import forecast_text,projection_card_html
         projections=(self._dashboard_cache or {}).get('production_projections',{})
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
             data=projections.get(period)
             value=(f"{data['projected_tyres']:,} tyres\n{data['projected_tonnes']:,.1f} tonnes" if data and data['ready'] else "— tyres\n— tonnes")
-            text=f'<span style="font-size:11px">PROJECTED {title}</span><br>'+("TEST · PAUSED" if test_mode else value.replace("\n","<br>"))
             label=self.projection_labels[period]
+            text=projection_card_html(title,value,test_mode,font_px=20 if label.height()>=100 else 16)
             if label.text()!=text:label.setText(text)
             label.setToolTip(forecast_text(data,test_mode)+"\nBrisbane weekdays 05:00–17:05. Estimate, not guaranteed output.")
 
