@@ -50,6 +50,21 @@ with tempfile.TemporaryDirectory() as tmp:
  assert not r.submit(p) and r.dropped==1
  r.close()
 print('PASS evidence queue bounded, no waiting or unbounded image accumulation')
+# An evidence-image failure on shutdown must still finalise the primary video.
+with tempfile.TemporaryDirectory() as tmp:
+ r=TrainingRecorder(tmp,lambda x:None,disk_usage=disk)
+ for i,p in enumerate(packets[:15]):r.feed(p,now,i,True)
+ assert r.submit(dict(kind='overlap_start',event_id='failure',scope='production',timestamp=now.isoformat()),np.zeros((360,640,3),np.uint8))
+ original=cv2.imwrite
+ try:
+  cv2.imwrite=lambda *a,**k:False
+  r.close()
+ finally:cv2.imwrite=original
+ assert r.recorder.writer is None
+ video=next(Path(tmp).rglob('*.mp4'))
+ with av.open(str(video)) as f:assert sum(1 for _ in f.decode(video=0))==15
+print('PASS shutdown evidence error still closes handles and finalises the playable primary video')
+
 # Exercise the real OAK recorder loop with simulated encoded packets; no camera.
 import os,sys
 os.environ['QT_QPA_PLATFORM']='offscreen'

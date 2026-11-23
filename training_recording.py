@@ -103,5 +103,7 @@ class TrainingRecorder:
     def close(self):
         try:
             while not self.events.empty():self._drain()
-            self.recorder.close()
         except Exception as exc:self.log(f'Automatic training recording close: {exc}')
+        finally:
+            try:self.recorder.close()
+            except Exception as exc:self.log(f'Automatic training video finalisation: {exc}')
