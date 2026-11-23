@@ -66,4 +66,30 @@ def projection_card_html(title, value, paused=False, font_px=16):
     lines=['TEST · PAUSED'] if paused else str(value).splitlines()
     body='<br>'.join('<nobr>'+escape(line)+'</nobr>' for line in lines)
     return (f'<div style="font-family:Segoe UI;font-size:{int(font_px)}px;font-weight:900">'
-            f'<span style="font-size:10px">PROJECTED {escape(title)}</span><br>{body}</div>')
+            f'<span style="font-size:{min(10,int(font_px))}px">PROJECTED {escape(title)}</span><br>{body}</div>')
+
+
+def fit_projection_html(title, value, width, height, font, paint_device, paused=False, preferred_px=16):
+    """Fit using the same paint device/DPI and zero document margin as QLabel."""
+    from PyQt5.QtGui import QTextDocument
+    for px in range(int(preferred_px),7,-1):
+        text=projection_card_html(title,value,paused,font_px=px)
+        document=QTextDocument()
+        document.documentLayout().setPaintDevice(paint_device)
+        document.setDocumentMargin(0)
+        document.setDefaultFont(font)
+        document.setHtml(text)
+        document.setTextWidth(max(1,width))
+        if document.size().height()<=height and document.idealWidth()<=width:
+            return text
+    return text
+
+
+def set_projection_card(label, title, value, paused=False):
+    rect=label.contentsRect()
+    # Leave extra clearance for borders, style padding and rounding at high DPI.
+    width=max(1,rect.width()-2*label.margin()-4)
+    height=max(1,rect.height()-2*label.margin()-4)
+    text=fit_projection_html(title,value,width,height,label.font(),label,paused,
+                             preferred_px=20 if label.height()>=100 else 16)
+    if label.text()!=text:label.setText(text)

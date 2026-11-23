@@ -45,10 +45,10 @@ extra='''
     from PyQt5.QtGui import QTextDocument,QFont
     for label in w.projection_labels.values():
      assert label.width()>=120,(style,width,height,label.width())
-     document=QTextDocument();document.setDefaultFont(label.font());document.setHtml(label.text());document.setTextWidth(label.width()-8)
-     assert document.size().height()<=label.height(),(style,width,height,document.size().height(),label.height(),label.width(),label.font().toString())
-     inherited=QTextDocument();inherited.setDefaultFont(QFont('Segoe UI',40));inherited.setHtml(label.text());inherited.setTextWidth(label.width()-8)
-     assert inherited.size().height()<=label.height(), 'Card inherited an unrelated global font'
+     document=QTextDocument();document.documentLayout().setPaintDevice(label);document.setDocumentMargin(0);document.setDefaultFont(label.font());document.setHtml(label.text());document.setTextWidth(label.contentsRect().width()-4)
+     assert document.size().height()<=label.contentsRect().height()-4,(style,width,height,document.size().height(),label.height(),label.width(),label.font().toString())
+     inherited=QTextDocument();inherited.documentLayout().setPaintDevice(label);inherited.setDocumentMargin(0);inherited.setDefaultFont(QFont('Segoe UI',40));inherited.setHtml(label.text());inherited.setTextWidth(label.contentsRect().width()-4)
+     assert inherited.size().height()<=label.contentsRect().height()-4, 'Card inherited an unrelated global font'
 '''
 assert needle in source;source=source.replace(needle,needle+extra)
 source=source.replace('weekday_dashboard_preview.png','month_week_dashboard_preview.png')
