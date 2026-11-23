@@ -1,0 +1,115 @@
+{
+  "target": "overlap_groups",
+  "validation_sweep": [
+    {
+      "split": "val",
+      "confidence": 0.25,
+      "images": 57,
+      "tp": 13,
+      "fp": 1,
+      "fn": 3,
+      "precision": 0.9285714285714286,
+      "recall": 0.8125,
+      "f1": 0.8666666666666666,
+      "negative_frames": 41,
+      "false_predictions_per_100_negative_frames": 2.4390243902439024
+    },
+    {
+      "split": "val",
+      "confidence": 0.35,
+      "images": 57,
+      "tp": 13,
+      "fp": 1,
+      "fn": 3,
+      "precision": 0.9285714285714286,
+      "recall": 0.8125,
+      "f1": 0.8666666666666666,
+      "negative_frames": 41,
+      "false_predictions_per_100_negative_frames": 2.4390243902439024
+    },
+    {
+      "split": "val",
+      "confidence": 0.45,
+      "images": 57,
+      "tp": 12,
+      "fp": 1,
+      "fn": 4,
+      "precision": 0.9230769230769231,
+      "recall": 0.75,
+      "f1": 0.8275862068965517,
+      "negative_frames": 41,
+      "false_predictions_per_100_negative_frames": 2.4390243902439024
+    },
+    {
+      "split": "val",
+      "confidence": 0.55,
+      "images": 57,
+      "tp": 11,
+      "fp": 0,
+      "fn": 5,
+      "precision": 1.0,
+      "recall": 0.6875,
+      "f1": 0.8148148148148148,
+      "negative_frames": 41,
+      "false_predictions_per_100_negative_frames": 0.0
+    },
+    {
+      "split": "val",
+      "confidence": 0.65,
+      "images": 57,
+      "tp": 8,
+      "fp": 0,
+      "fn": 8,
+      "precision": 1.0,
+      "recall": 0.5,
+      "f1": 0.6666666666666666,
+      "negative_frames": 41,
+      "false_predictions_per_100_negative_frames": 0.0
+    },
+    {
+      "split": "val",
+      "confidence": 0.75,
+      "images": 57,
+      "tp": 2,
+      "fp": 0,
+      "fn": 14,
+      "precision": 1.0,
+      "recall": 0.125,
+      "f1": 0.2222222222222222,
+      "negative_frames": 41,
+      "false_predictions_per_100_negative_frames": 0.0
+    }
+  ],
+  "chosen_validation": {
+    "split": "val",
+    "confidence": 0.25,
+    "images": 57,
+    "tp": 13,
+    "fp": 1,
+    "fn": 3,
+    "precision": 0.9285714285714286,
+    "recall": 0.8125,
+    "f1": 0.8666666666666666,
+    "negative_frames": 41,
+    "false_predictions_per_100_negative_frames": 2.4390243902439024
+  },
+  "test": {
+    "split": "test",
+    "confidence": 0.25,
+    "images": 34,
+    "tp": 4,
+    "fp": 0,
+    "fn": 8,
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "f1": 0.5,
+    "negative_frames": 22,
+    "false_predictions_per_100_negative_frames": 0.0
+  },
+  "production_ready": false,
+  "reason": "Same-day dataset. Requires fresh-day and OAK replay validation, event-level tracking and count checks.",
+  "belt_width_mm": 1180,
+  "classes": {
+    "0": "overlapping_tyres"
+  }
+}

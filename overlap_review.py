@@ -9,6 +9,11 @@ class OverlapReview:
         self.store=store;self.session=session;self.scope=scope;self.source=source
         self.stable=stable_frames;self.retire=retire_frames
         self.pairs={};self.active=[];self.counts={};self.last_seen={};self.sequence=0
+        self.on_evidence=None
+    def evidence(self,payload,image=None):
+        if self.on_evidence is not None:
+            try:self.on_evidence(payload,image)
+            except Exception:pass # Recording evidence must not interrupt count/review logic.
     def counted(self,track_id,timestamp,tyre_type):
         self.counts[int(track_id)]=dict(track_id=int(track_id),timestamp=timestamp,tyre_type=tyre_type)
     @staticmethod
@@ -45,6 +50,10 @@ class OverlapReview:
                     snapshot_track_ids=sorted(group),snapshot_boxes=[list(map(int,d[:5])) for d in ds if d[4] in group],
                     frame_sequence=frame_sequence,recording_reference=str(recording_reference) if recording_reference else None,
                     key=f'{self.session}-overlap-{self.sequence}'))
+                event=self.active[-1]
+                self.evidence(dict(kind='overlap_start',event_id=event['key'],timestamp=timestamp,
+                    scope=self.scope,track_ids=sorted(group),frame_sequence=frame_sequence,
+                    recording_reference=event['recording_reference'],counting_active=bool(counting_active)),image)
         for event in list(self.active):
             if len(event['ids'])>24 or frame_no-event['first_frame']>900:
                 self._save(event,'review_window_limit');self.active.remove(event);continue
@@ -65,6 +74,7 @@ class OverlapReview:
             recording_reference=event['recording_reference'],
             limitation='Box overlap is a candidate only. Hidden/untracked tyres and tracker ID switches are not resolved. No automatic count correction.')
         image=event['image']
+        self.evidence(dict(payload,kind='overlap_complete',event_id=event['key']))
         if image is not None:
             import cv2
             for x1,y1,x2,y2,ident in event['snapshot_boxes']:

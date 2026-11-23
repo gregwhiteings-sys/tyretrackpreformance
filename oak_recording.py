@@ -10,12 +10,13 @@ def nals(data):
 
 
 class EncodedRecorder:
-    def __init__(self, folder, log, fps=15, segment_seconds=900):
+    def __init__(self, folder, log, fps=15, segment_seconds=900, on_finalized=None):
         self.folder=Path(folder); self.log=log; self.fps=Fraction(str(fps))
         if self.fps <= 0: raise ValueError('Recording FPS must be positive')
         self.segment_seconds=segment_seconds
         self.writer=None; self.started=None; self.path=None; self.frames=0
         self.previous_sequence=None; self.headers={}; self.gaps=0
+        self.on_finalized=on_finalized
 
     def feed(self, data, now, sequence, enabled=True):
         data=bytes(data)
@@ -61,6 +62,9 @@ class EncodedRecorder:
             partial.replace(target)
             raw.unlink()
             self.log(f'OAK recording closed: {target}; frames={index}; stream-copy only, no PC encoding')
+            if self.on_finalized:
+                try:self.on_finalized(target,self.started,index,float(self.fps),self.gaps)
+                except Exception as exc:self.log(f'OAK recording index failed: {exc}; playable MP4 retained')
         except Exception as exc:
             partial.unlink(missing_ok=True)
             self.log(f'OAK MP4 finalisation failed: {exc}; recoverable H264 retained: {raw}')

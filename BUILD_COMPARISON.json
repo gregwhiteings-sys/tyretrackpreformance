@@ -12,6 +12,7 @@
     "Existing Windows dependency pins preserved; ReportLab 4.4.9 added for PDFs and pypdf 6.10.0 for CI validation"
   ],
   "intentional_changes": [
+    "Automatic production training footage, clean event snapshots and count links; storage bounded, no deletion or count changes",
     "Separate async classification review database, original/size/used totals, clean foreign evidence and human-labelled false-alert export; default Compare only; post-count size measurement and isolated replay comparisons",
     "Experimental belt-width size support: confirmed 1180mm with one-time upgrade migration, five stable isolated-box observations, weak visual votes only, observe-only mode and camera-specific edge calibration",
     "Independent grouped live totals; five-second historical refresh with no busy queue; fractional-position marquee on precise 33 ms timer",

@@ -7,51 +7,43 @@
     "0": "overlapping_tyres"
   },
   "imgsz": 416,
-  "confidence": 0.55,
-  "purpose": "overlap group review only; not FOD and not a hidden-tyre counter",
+  "confidence": 0.25,
+  "purpose": "Disabled overlap-group candidate for inspection; not FOD and not a hidden-tyre counter",
   "dataset_summary": {
-    "name": "TyreTrack_Overlap_Expanded_Dataset",
-    "confirmed_belt_width_mm": 1180,
-    "native_resolution": [
-      640,
-      360
-    ],
-    "classes": {
-      "0": "overlapping_tyres"
-    },
-    "images": 1521,
-    "positive_images": 160,
-    "boxes": 164,
-    "reviewed_positive_anchors": 34,
-    "time_clustered_candidate_episodes": 21,
-    "episode_caveat": "30-second time clusters; not proof of distinct physical tyre groups",
-    "recordings": 9,
-    "split": {
+    "individual_tyres": {
       "train": {
-        "images": 868,
-        "positive_images": 110,
-        "negative_images": 758,
-        "candidate_episodes": 11
+        "images": 74,
+        "boxes": 319,
+        "negative_images": 1
       },
       "val": {
-        "images": 310,
-        "positive_images": 43,
-        "negative_images": 267,
-        "candidate_episodes": 6
+        "images": 47,
+        "boxes": 205,
+        "negative_images": 1
       },
       "test": {
-        "images": 343,
-        "positive_images": 7,
-        "negative_images": 336,
-        "candidate_episodes": 4
+        "images": 23,
+        "boxes": 77,
+        "negative_images": 3
       }
     },
-    "removed": {
-      "conservative_temporal_label_limit": 256,
-      "uncertain_or_incomplete_annotation": 23,
-      "near_duplicate_belt_view": 1
-    },
-    "new_video_minutes": 74.74083333333334
+    "overlap_groups": {
+      "train": {
+        "images": 96,
+        "boxes": 32,
+        "negative_images": 64
+      },
+      "val": {
+        "images": 57,
+        "boxes": 16,
+        "negative_images": 41
+      },
+      "test": {
+        "images": 34,
+        "boxes": 12,
+        "negative_images": 22
+      }
+    }
   },
-  "source_split": "whole-recording separation; see dataset manifest"
+  "source_split": "whole recordings: train s0+s2, val s1, test s3; same-day limitation"
 }

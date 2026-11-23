@@ -187,6 +187,7 @@ MAX_BOX_AREA_RATIO = 0.32
 MAX_BOX_ASPECT_RATIO = 3.60
 
 RECORD_OAK_VIDEO = False
+AUTO_TRAINING_RECORDING = True
 _EMAIL_LOCK = threading.Lock()
 _LAST_REPLY_CHECK = 0.0
 _OAK_IDLE_LOCK = threading.Lock()
@@ -1009,6 +1010,11 @@ def set_oak_recording(enabled):
         + ("enabled" if enabled else "disabled")
     )
 
+def set_auto_training_recording(enabled):
+    global AUTO_TRAINING_RECORDING
+    AUTO_TRAINING_RECORDING=bool(enabled)
+    set_state('auto_training_recording','1' if enabled else '0')
+
 
 def acceptable_box(box, width, height):
     x1, y1, x2, y2 = box
@@ -1140,6 +1146,9 @@ class OakSource:
         self.preview_reader = None
         self.recorder = None
         self.record_drops = 0
+        self.training_active = False
+        self.training_capture = None
+        self.training_recording_status = 'waiting for production'
         self.last_read_frame_at = None
 
         self.stop_event = threading.Event()
@@ -1412,7 +1421,10 @@ class OakSource:
 
     def _record_loop(self):
         from oak_recording import EncodedRecorder
+        from training_recording import TrainingRecorder
         recorder = EncodedRecorder(OAK_RECORDINGS, log, fps=self.capture_fps)
+        training=TrainingRecorder(DATA/'oak_training',log,fps=self.capture_fps)
+        self.training_capture=training
         drained = 0
         try:
             while not self.stop_event.is_set() or drained < 120:
@@ -1423,13 +1435,19 @@ class OakSource:
                     if not RECORD_OAK_VIDEO: recorder.close()
                     self.stop_event.wait(.005)
                     continue
-                recorder.feed(packet.getData(), datetime.now(), int(packet.getSequenceNum()),
+                data=packet.getData();sequence=int(packet.getSequenceNum());stamp=brisbane_now()
+                training.feed(data,stamp,sequence,self.training_active,AUTO_TRAINING_RECORDING)
+                self.training_recording_status=training.state
+                recorder.feed(data, stamp, sequence,
                               enabled=RECORD_OAK_VIDEO)
-                self.recording_path = str(recorder.path.with_suffix(".mp4")) if recorder.path else None
+                self.recording_path = training.path or (str(recorder.path.with_suffix(".mp4")) if recorder.path else None)
                 self.record_drops = recorder.gaps
         except Exception:
+            self.training_recording_status='paused: recording thread error'
             log("OAK H264 recording failed; live counting continues:\n" + traceback.format_exc())
         finally:
+            training.close()
+            self.training_capture=None
             recorder.close()
 
     def read(self):
@@ -1881,6 +1899,11 @@ class CounterWorker(QThread):
                     )
 
             self.overlap_review.scope='test' if self.manual_test or self.source_kind!='oak' else 'production'
+            def training_evidence(payload,image=None):
+                capture=getattr(source,'training_capture',None)
+                if capture is not None and self.source_kind=='oak' and not self.manual_test:
+                    capture.submit(payload,image)
+            self.overlap_review.on_evidence=training_evidence
             while self.running:
                 # Camera remains connected outside production hours. Only the count gate changes.
                 if self.pause_day is not None and self.pause_day != brisbane_now().date():
@@ -1907,6 +1930,7 @@ class CounterWorker(QThread):
                     self.three_line.reset_positions()
                     if self.logic_test_counter is not None:self.logic_test_counter.reset_positions()
                 enabled = oak_in_operating_hours() and not self.operator_paused
+                if self.source_kind=='oak':source.training_active=bool(enabled and not self.manual_test)
                 if enabled != self.counting_enabled:
                     self.three_line.reset_positions()
                     self.counting_enabled = enabled
@@ -1925,6 +1949,12 @@ class CounterWorker(QThread):
                 self.processing_frame += 1
                 height, width = frame.shape[:2]
                 audit_frame = frame.copy()
+                if self.source_kind=='oak' and not self.manual_test and enabled and time.monotonic()>=getattr(self,'_next_training_sample',0):
+                    training_evidence(dict(kind='scheduled_baseline',timestamp=brisbane_now().isoformat(),
+                        scope='production',frame_sequence=frame_sequence,
+                        recording_reference=getattr(source,'recording_path',None),
+                        note='Unlabelled sample; not assumed normal or empty'),audit_frame)
+                    self._next_training_sample=time.monotonic()+600
                 self.foreign_check(frame)
                 left, right, line_y, slope = segment_bounds(
                     width,
@@ -3343,6 +3373,15 @@ class Main(QMainWindow):
         source_layout.addWidget(
             self.record_oak_checkbox
         )
+        self.auto_training_checkbox=QCheckBox('Auto-save production training footage')
+        self.auto_training_checkbox.setChecked(get_state('auto_training_recording','1')=='1')
+        set_auto_training_recording(self.auto_training_checkbox.isChecked())
+        self.auto_training_checkbox.setToolTip('Automatic clean 15-minute OAK segments during production, overlap/count event index and clean samples. No extra inference or PC encoding. Stops at 25 GB training folder or below 10 GB free; never deletes footage. Saved in data/oak_training. Manual/test runs excluded.')
+        self.auto_training_checkbox.toggled.connect(set_auto_training_recording)
+        source_layout.addWidget(self.auto_training_checkbox)
+        training_folder=QPushButton('Open automatic training recordings')
+        training_folder.clicked.connect(self.open_training_recordings)
+        source_layout.addWidget(training_folder)
         self.overlay_mode_combo = QComboBox()
         self.overlay_mode_combo.addItems(["None", "Bounding Boxes"])
         self.overlay_mode_combo.setCurrentText("Bounding Boxes")
@@ -6051,6 +6090,13 @@ class Main(QMainWindow):
                 str(exc),
             )
 
+    def open_training_recordings(self):
+        try:
+            folder=DATA/'oak_training';folder.mkdir(parents=True,exist_ok=True)
+            if not QDesktopServices.openUrl(QUrl.fromLocalFile(str(folder))):raise OSError('Folder could not be opened')
+        except Exception as exc:
+            QMessageBox.warning(self,'Automatic training recordings',str(exc))
+
     def open_oak_recordings(self):
         try:
             os.startfile(
@@ -6150,6 +6196,8 @@ class Main(QMainWindow):
         camera='online' if running and preview_age is not None and preview_age<3 else 'stale'
         recorder=getattr(source,"recorder",None)
         recording=('off' if not RECORD_OAK_VIDEO else 'worker active' if running and recorder and recorder.is_alive() else 'check')
+        if AUTO_TRAINING_RECORDING and running:
+            recording='auto '+getattr(source,'training_recording_status','waiting')
         stamp=brisbane_now()
         sample=dict(at=stamp.isoformat(),testing=testing,camera=camera,preview_age=preview_age,ai_age=ai_age,recording=recording,frames=getattr(worker,'processing_frame',0))
         self._support.request(sample)
@@ -6163,7 +6211,7 @@ class Main(QMainWindow):
         text+=text_fps
         text+=f"\nApp CPU {cpu:.0f}%" if cpu is not None else ""
         if disk is not None:text+=f" · Disk free {disk:.1f} GB"+(' · LOW SPACE' if disk<10 else '')
-        warning=not testing and (camera!='online' or ai_age is None or ai_age>3 or recording=='check' or (disk is not None and disk<10))
+        warning=not testing and (camera!='online' or ai_age is None or ai_age>3 or recording=='check' or 'paused:' in recording or (disk is not None and disk<10))
         self._public_health=None if testing else dict(at=stamp.isoformat(),camera=camera,preview_age=preview_age,ai_age=ai_age,recording=recording,processing_fps=result.get('processing_fps'),app_cpu=cpu,free_gb=disk)
         self.system_health_label.setText(text)
         self.system_health_label.setStyleSheet("color:"+('#ffbe66' if warning else '#9be8dd')+";font:600 11px 'Segoe UI';")
