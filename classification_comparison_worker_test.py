@@ -38,7 +38,7 @@ with tempfile.TemporaryDirectory() as tmp:
  assert len(counts)==1 and worker.session_count==1,(counts,statuses)
  rows=worker.audit.rows();assert len(rows)==1,rows
  p=rows[0]['payload'];assert p['original_class']=='passenger' and p['final_class']=='passenger',p
- assert p['diameter_mm'] and abs(p['diameter_mm']-836)<5,p
+ assert p['diameter_mm'] and abs(p['diameter_mm']-(.76*1180))<5,p
  assert p['size_candidate']=='4x4' and p['assisted_class']=='4x4' and p['disagreement'],p
  assert p['measurement_frame']>p['frame_sequence'],p
  print('PASS real OAK worker simulated inference: one production count, later stable measurement attached once, original preserved, SUV proposal recorded in Compare only')

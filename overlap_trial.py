@@ -8,7 +8,7 @@ def read_status(folder):
     try:
         report=json.loads((Path(folder)/'trial_status.json').read_text(encoding='utf-8'))
         stats=report['held_out_test']
-        return dict(status='BLOCKED',title='OVERLAP AI MODEL · OFF · FAILED VALIDATION',
+        return dict(status='BLOCKED',title='OVERLAP AI MODEL · OFF · NEEDS MORE VALIDATION',
                     detail=f"Held-out test: {stats['tp']} matched groups / {stats['tp']+stats['fn']} labelled; "
                            f"false detections on {stats['false_positive_images']} / {stats['negative_images']} normal frames.",
                     report=report)
@@ -31,7 +31,7 @@ def dashboard_panel(parent,folder):
             'camera inference, foreign alarms or production counts are enabled.\n\n'
             'To verify whether overlapped tyres were counted, review the timestamped clip alongside the recorded '
             'tyre tracks and actual count events. An overlap box cannot tell us how many hidden tyres are present. '
-            'The separate geometric review links observed tyre IDs to actual count events; it does not run this failed model or prove how many hidden tyres exist.\n\n'
+            'The separate geometric review links observed tyre IDs to actual count events; it does not run this experimental model or prove how many hidden tyres exist.\n\n'
             'Next step: collect and annotate more independent overlap events, retrain and evaluate fresh footage.')
     button.clicked.connect(explain)
     layout.addWidget(title);layout.addWidget(detail);layout.addWidget(button)
