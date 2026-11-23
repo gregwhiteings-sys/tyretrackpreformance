@@ -1,0 +1,16 @@
+[
+  {
+    "candidate_episodes": 4,
+    "episodes_with_at_least_one_hit": 1,
+    "threshold": 0.55,
+    "tp": 4,
+    "fp": 1,
+    "fn": 4,
+    "precision": 0.8,
+    "recall": 0.5,
+    "f1": 0.6153846153846154,
+    "negative_images": 336,
+    "false_positive_images": 1,
+    "false_positive_images_per_100": 0.2976190476190476
+  }
+]

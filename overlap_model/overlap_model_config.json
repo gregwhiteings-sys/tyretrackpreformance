@@ -1,0 +1,57 @@
+{
+  "confirmed_belt_width_mm": 1180,
+  "research_gate_passed": false,
+  "production_ready": false,
+  "task": "detect",
+  "names": {
+    "0": "overlapping_tyres"
+  },
+  "imgsz": 416,
+  "confidence": 0.55,
+  "purpose": "overlap group review only; not FOD and not a hidden-tyre counter",
+  "dataset_summary": {
+    "name": "TyreTrack_Overlap_Expanded_Dataset",
+    "confirmed_belt_width_mm": 1180,
+    "native_resolution": [
+      640,
+      360
+    ],
+    "classes": {
+      "0": "overlapping_tyres"
+    },
+    "images": 1521,
+    "positive_images": 160,
+    "boxes": 164,
+    "reviewed_positive_anchors": 34,
+    "time_clustered_candidate_episodes": 21,
+    "episode_caveat": "30-second time clusters; not proof of distinct physical tyre groups",
+    "recordings": 9,
+    "split": {
+      "train": {
+        "images": 868,
+        "positive_images": 110,
+        "negative_images": 758,
+        "candidate_episodes": 11
+      },
+      "val": {
+        "images": 310,
+        "positive_images": 43,
+        "negative_images": 267,
+        "candidate_episodes": 6
+      },
+      "test": {
+        "images": 343,
+        "positive_images": 7,
+        "negative_images": 336,
+        "candidate_episodes": 4
+      }
+    },
+    "removed": {
+      "conservative_temporal_label_limit": 256,
+      "uncertain_or_incomplete_annotation": 23,
+      "near_duplicate_belt_view": 1
+    },
+    "new_video_minutes": 74.74083333333334
+  },
+  "source_split": "whole-recording separation; see dataset manifest"
+}

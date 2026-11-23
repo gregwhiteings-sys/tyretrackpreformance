@@ -1,50 +1,82 @@
 {
   "live_enabled": false,
-  "release_gate": "blocked_failed_validation",
-  "reason": "Zero matched held-out groups and excessive false detections.",
+  "release_gate": "blocked_incomplete_recall",
+  "reason": "Improved candidate: 4/8 held-out boxes matched, only 1/4 candidate episodes hit. Research gate not passed.",
   "held_out_test": {
-    "threshold": 0.35,
-    "tp": 0,
-    "fp": 45,
-    "fn": 5,
-    "precision": 0.0,
-    "recall": 0.0,
-    "f1": 0.0,
-    "negative_images": 34,
-    "false_positive_images": 23,
-    "false_positive_images_per_100": 67.6470588235294
+    "candidate_episodes": 4,
+    "episodes_with_at_least_one_hit": 1,
+    "threshold": 0.55,
+    "tp": 4,
+    "fp": 1,
+    "fn": 4,
+    "precision": 0.8,
+    "recall": 0.5,
+    "f1": 0.6153846153846154,
+    "negative_images": 336,
+    "false_positive_images": 1,
+    "false_positive_images_per_100": 0.2976190476190476
   },
   "training_config": {
+    "confirmed_belt_width_mm": 1180,
+    "research_gate_passed": false,
+    "production_ready": false,
     "task": "detect",
     "names": {
       "0": "overlapping_tyres"
     },
     "imgsz": 416,
-    "confidence": 0.35,
+    "confidence": 0.55,
     "purpose": "overlap group review only; not FOD and not a hidden-tyre counter",
     "dataset_summary": {
-      "train": {
-        "images": 64,
-        "positive_images": 13,
-        "boxes": 14
+      "name": "TyreTrack_Overlap_Expanded_Dataset",
+      "confirmed_belt_width_mm": 1180,
+      "native_resolution": [
+        640,
+        360
+      ],
+      "classes": {
+        "0": "overlapping_tyres"
       },
-      "val": {
-        "images": 27,
-        "positive_images": 4,
-        "boxes": 5
+      "images": 1521,
+      "positive_images": 160,
+      "boxes": 164,
+      "reviewed_positive_anchors": 34,
+      "time_clustered_candidate_episodes": 21,
+      "episode_caveat": "30-second time clusters; not proof of distinct physical tyre groups",
+      "recordings": 9,
+      "split": {
+        "train": {
+          "images": 868,
+          "positive_images": 110,
+          "negative_images": 758,
+          "candidate_episodes": 11
+        },
+        "val": {
+          "images": 310,
+          "positive_images": 43,
+          "negative_images": 267,
+          "candidate_episodes": 6
+        },
+        "test": {
+          "images": 343,
+          "positive_images": 7,
+          "negative_images": 336,
+          "candidate_episodes": 4
+        }
       },
-      "test": {
-        "images": 38,
-        "positive_images": 4,
-        "boxes": 5
-      }
+      "removed": {
+        "conservative_temporal_label_limit": 256,
+        "uncertain_or_incomplete_annotation": 23,
+        "near_duplicate_belt_view": 1
+      },
+      "new_video_minutes": 74.74083333333334
     },
     "source_split": "whole-recording separation; see dataset manifest"
   },
   "model_hashes": {
-    "overlap.onnx": "cee8a5532b6205e5db98e0c30a0967c468d21dab4a7b94f78c146314ca0946de",
-    "overlap.pt": "de1e39ee2fe6dea023171011b475f309915db7fa10172b0487ae9ec5a88c498f",
-    "overlap.blob": "fd854bf8e18378585c5f4511a4e54459e9e55419fd5765bb65e597e61bf76066"
+    "overlap.blob": "ac6057efb81c9b1620c43bceda8ccfd75f10af1af6728211868ad4775164ffa3",
+    "overlap.onnx": "075e0ba0d18df963e8c86d942136ce439b8b68dd85ebb73fd868da3697c81b75",
+    "overlap.pt": "cf7a6549f1852555eb2bf09c47227e4292112aafcb51e215c76344de993c17b9"
   },
   "count_linkage": "separate tracked-box heuristic; actual count callbacks; no hidden-count inference",
   "usage": "Stored experimental candidate only; never replaces tyre or foreign model.",
