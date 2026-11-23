@@ -38,6 +38,7 @@ def run(app_module, output):
     try:
         import torch,torchvision,cv2,depthai,lap,optree,av,numpy as np
         from oak_recording import EncodedRecorder
+        from training_recording import TrainingRecorder
         from scipy.linalg import cho_factor
         from ultralytics import YOLO
         from ultralytics.trackers.byte_tracker import BYTETracker

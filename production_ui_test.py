@@ -30,9 +30,9 @@ assert w.line_angle.value()==0 and w.line_length.value()==100
 for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
  for _ in range(5):app.processEvents()
- expected_top=194 if height>=800 else 152
- expected_class_row=62 if height>=800 else 48
- expected_font=48 if height>=800 else 38
+ expected_top=194 if w._dashboard_expanded else 152
+ expected_class_row=62 if w._dashboard_expanded else 48
+ expected_font=48 if w._dashboard_expanded else 38
  assert w.today_metric_card.height()==w.class_summary.height()==expected_top,(height,w.today_metric_card.height(),w.class_summary.height())
  assert all(w.class_summary.layout().itemAt(i).widget().height()==expected_class_row for i in range(3))
  assert all(f'{expected_font}px' in label.styleSheet() for label in (w.day_lbl,w.passenger_lbl,w.suv_lbl,w.truck_lbl))
@@ -87,7 +87,7 @@ w.resize(1353,689)
 for _ in range(5):app.processEvents()
 assert w.width()==1353 and w.height()==689,(w.width(),w.height())
 assert w.video.height()>=120 and abs(w.video.height()-w.camera2_view.height())<=1 and w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomRight()).y()<w.height()
-assert all(label.height()==88 and "font:900 16px" in label.styleSheet() for label in w.projection_labels.values())
+assert all(label.height()==(84 if w._dashboard_tight else 88) and "font:900 16px" in label.styleSheet() for label in w.projection_labels.values())
 # Qt isVisible() includes children clipped by a scroll viewport. Fixed operator
 # controls must fit immediately; scrollable review actions must be reachable
 # and fit inside their own viewport once scrolled into view.

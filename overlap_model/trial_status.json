@@ -1,20 +1,27 @@
 {
+  "candidate": "Reviewed real-footage V2 / 2026-11-23",
   "live_enabled": false,
   "release_gate": "blocked_incomplete_recall",
-  "reason": "Improved candidate: 4/8 held-out boxes matched, only 1/4 candidate episodes hit. Research gate not passed.",
+  "reason": "Candidate matched 4 of 12 held-out groups (33.3% recall), 0 false detections on 22 normal frames; not approved for live use.",
   "held_out_test": {
-    "candidate_episodes": 4,
-    "episodes_with_at_least_one_hit": 1,
-    "threshold": 0.55,
+    "split": "test",
+    "confidence": 0.25,
+    "images": 34,
     "tp": 4,
-    "fp": 1,
-    "fn": 4,
-    "precision": 0.8,
-    "recall": 0.5,
-    "f1": 0.6153846153846154,
-    "negative_images": 336,
-    "false_positive_images": 1,
-    "false_positive_images_per_100": 0.2976190476190476
+    "fp": 0,
+    "fn": 8,
+    "precision": 1.0,
+    "recall": 0.3333333333333333,
+    "f1": 0.5,
+    "negative_frames": 22,
+    "false_predictions_per_100_negative_frames": 0.0,
+    "threshold": 0.25,
+    "negative_images": 22,
+    "false_positive_images": 0,
+    "false_positive_images_per_100": 0.0,
+    "candidate_episodes": 2,
+    "episodes_with_at_least_one_hit": 1,
+    "episode_caveat": "Two visually selected held-out sequences; dense correlated frames, not independent trials."
   },
   "training_config": {
     "confirmed_belt_width_mm": 1180,
@@ -25,61 +32,53 @@
       "0": "overlapping_tyres"
     },
     "imgsz": 416,
-    "confidence": 0.55,
-    "purpose": "overlap group review only; not FOD and not a hidden-tyre counter",
+    "confidence": 0.25,
+    "purpose": "Disabled overlap-group candidate for inspection; not FOD and not a hidden-tyre counter",
     "dataset_summary": {
-      "name": "TyreTrack_Overlap_Expanded_Dataset",
-      "confirmed_belt_width_mm": 1180,
-      "native_resolution": [
-        640,
-        360
-      ],
-      "classes": {
-        "0": "overlapping_tyres"
-      },
-      "images": 1521,
-      "positive_images": 160,
-      "boxes": 164,
-      "reviewed_positive_anchors": 34,
-      "time_clustered_candidate_episodes": 21,
-      "episode_caveat": "30-second time clusters; not proof of distinct physical tyre groups",
-      "recordings": 9,
-      "split": {
+      "individual_tyres": {
         "train": {
-          "images": 868,
-          "positive_images": 110,
-          "negative_images": 758,
-          "candidate_episodes": 11
+          "images": 74,
+          "boxes": 319,
+          "negative_images": 1
         },
         "val": {
-          "images": 310,
-          "positive_images": 43,
-          "negative_images": 267,
-          "candidate_episodes": 6
+          "images": 47,
+          "boxes": 205,
+          "negative_images": 1
         },
         "test": {
-          "images": 343,
-          "positive_images": 7,
-          "negative_images": 336,
-          "candidate_episodes": 4
+          "images": 23,
+          "boxes": 77,
+          "negative_images": 3
         }
       },
-      "removed": {
-        "conservative_temporal_label_limit": 256,
-        "uncertain_or_incomplete_annotation": 23,
-        "near_duplicate_belt_view": 1
-      },
-      "new_video_minutes": 74.74083333333334
+      "overlap_groups": {
+        "train": {
+          "images": 96,
+          "boxes": 32,
+          "negative_images": 64
+        },
+        "val": {
+          "images": 57,
+          "boxes": 16,
+          "negative_images": 41
+        },
+        "test": {
+          "images": 34,
+          "boxes": 12,
+          "negative_images": 22
+        }
+      }
     },
-    "source_split": "whole-recording separation; see dataset manifest"
+    "source_split": "whole recordings: train s0+s2, val s1, test s3; same-day limitation"
   },
   "model_hashes": {
-    "overlap.blob": "ac6057efb81c9b1620c43bceda8ccfd75f10af1af6728211868ad4775164ffa3",
-    "overlap.onnx": "075e0ba0d18df963e8c86d942136ce439b8b68dd85ebb73fd868da3697c81b75",
-    "overlap.pt": "cf7a6549f1852555eb2bf09c47227e4292112aafcb51e215c76344de993c17b9"
+    "overlap.blob": "f9b68d2cbc68dfcbed6c16ce9e681f8bdd0114459d85b8d59557979488ae6ab1",
+    "overlap.onnx": "0953e77214c8e31638dc9274e018aeb59bc688b3f4d1a4f14bf64b0de3d5f19c",
+    "overlap.pt": "e61f976f4ced95eaaef8fc0f4e1fdd954462344d62fda2bd36626372a07d9774"
   },
-  "count_linkage": "separate tracked-box heuristic; actual count callbacks; no hidden-count inference",
-  "usage": "Stored experimental candidate only; never replaces tyre or foreign model.",
+  "count_linkage": "Existing tracked-box heuristic and count callbacks remain separate; no automatic additions",
+  "usage": "Stored experimental candidate only; never replaces tyre or foreign model",
   "conversion": {
     "runtime": "OpenVINO 2022.1 / RVC2",
     "shaves": 6,
@@ -89,6 +88,8 @@
       5,
       3549
     ],
-    "live_enabled": false
+    "live_enabled": false,
+    "hardware_tested": false,
+    "onnx_pt_positive_box_difference_px": 0.8790054321289062
   }
 }

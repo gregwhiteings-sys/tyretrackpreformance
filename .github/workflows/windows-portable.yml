@@ -1,6 +1,7 @@
 name: TyreTrack Windows Portable Build
 
 on:
+  pull_request:
   workflow_dispatch:
   push:
     branches:
