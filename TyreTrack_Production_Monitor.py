@@ -5688,15 +5688,18 @@ class Main(QMainWindow):
     def update_production_forecast(self):
         worker = self.worker
         test_mode = worker is not None and (worker.source_kind == "video" or worker.manual_test)
-        from monthly_forecast import forecast_text,projection_card_html
+        from monthly_forecast import forecast_text,set_projection_card
         projections=(self._dashboard_cache or {}).get('production_projections',{})
         for period,title in [('day','TODAY'),('week','THIS WEEK'),('month','THIS MONTH')]:
             data=projections.get(period)
             value=(f"{data['projected_tyres']:,} tyres\n{data['projected_tonnes']:,.1f} tonnes" if data and data['ready'] else "— tyres\n— tonnes")
             label=self.projection_labels[period]
-            text=projection_card_html(title,value,test_mode,font_px=20 if label.height()>=100 else 16)
-            if label.text()!=text:label.setText(text)
+            set_projection_card(label,title,value,test_mode)
             label.setToolTip(forecast_text(data,test_mode)+"\nBrisbane weekdays 05:00–17:05. Estimate, not guaranteed output.")
+
+    def refit_projection_cards(self):
+        self._projection_refit_pending=False
+        if not self.closing:self.update_production_forecast()
 
     def load_web_connection(self):
         if not self._confirm_admin_pin("configure web sharing"):return
@@ -6275,6 +6278,9 @@ class Main(QMainWindow):
         self.counters_panel.layout().setSpacing(10 if expanded else 5)
         self.test_transport.setFixedHeight(23 if expanded else 20)
         self.fod_badge.setFixedHeight(42 if expanded else 34)
+        if hasattr(self,"worker") and hasattr(self,"_dashboard_cache") and not getattr(self,"_projection_refit_pending",False):
+            self._projection_refit_pending=True
+            QTimer.singleShot(0,self.refit_projection_cards)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
