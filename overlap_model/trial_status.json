@@ -1,0 +1,62 @@
+{
+  "live_enabled": false,
+  "release_gate": "blocked_failed_validation",
+  "reason": "Zero matched held-out groups and excessive false detections.",
+  "held_out_test": {
+    "threshold": 0.35,
+    "tp": 0,
+    "fp": 45,
+    "fn": 5,
+    "precision": 0.0,
+    "recall": 0.0,
+    "f1": 0.0,
+    "negative_images": 34,
+    "false_positive_images": 23,
+    "false_positive_images_per_100": 67.6470588235294
+  },
+  "training_config": {
+    "task": "detect",
+    "names": {
+      "0": "overlapping_tyres"
+    },
+    "imgsz": 416,
+    "confidence": 0.35,
+    "purpose": "overlap group review only; not FOD and not a hidden-tyre counter",
+    "dataset_summary": {
+      "train": {
+        "images": 64,
+        "positive_images": 13,
+        "boxes": 14
+      },
+      "val": {
+        "images": 27,
+        "positive_images": 4,
+        "boxes": 5
+      },
+      "test": {
+        "images": 38,
+        "positive_images": 4,
+        "boxes": 5
+      }
+    },
+    "source_split": "whole-recording separation; see dataset manifest"
+  },
+  "model_hashes": {
+    "overlap.onnx": "cee8a5532b6205e5db98e0c30a0967c468d21dab4a7b94f78c146314ca0946de",
+    "overlap.pt": "de1e39ee2fe6dea023171011b475f309915db7fa10172b0487ae9ec5a88c498f",
+    "overlap.blob": "fd854bf8e18378585c5f4511a4e54459e9e55419fd5765bb65e597e61bf76066"
+  },
+  "count_linkage": "separate tracked-box heuristic; actual count callbacks; no hidden-count inference",
+  "usage": "Stored experimental candidate only; never replaces tyre or foreign model.",
+  "conversion": {
+    "runtime": "OpenVINO 2022.1 / RVC2",
+    "shaves": 6,
+    "input": "RGB planar U8 416x416; divide by 255",
+    "output": [
+      1,
+      5,
+      3549
+    ],
+    "live_enabled": false
+  }
+}
