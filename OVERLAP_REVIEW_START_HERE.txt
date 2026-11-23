@@ -1,0 +1,31 @@
+TyreTrack: automatic overlap count review + confirmed adjustments
+
+INSTALL / BUILD
+Extract the complete source ZIP into the GitHub project root and run the Windows workflow. This is source for building the portable Windows app, not a newly compiled EXE. Preserve the site's existing data and private configuration when installing. No live OAK hardware validation was performed here.
+
+WHAT RUNS
+The existing tyre tracker supplies bounding boxes and IDs. A suspected overlap requires >=20% intersection of the smaller box for three successive processed frames. This is only a geometric candidate: perspective can make separate tyres' boxes overlap, and hidden tyres can have no track at all. No additional neural network runs on the camera or PC. Foreign alarms and production counting logic are unchanged.
+
+Each completed candidate review saves a timestamped snapshot, observed IDs, actual counted IDs, IDs not counted, session ID, frame sequence and recording filename when available. A record completes after all member tracks retire (90 processed frames without observations), at a bounded review-window limit, on tracker recovery or on shutdown. Counts arriving after the initial overlap can still be attached while the event is pending. Paused/test context is stored. Events are not guaranteed to represent distinct physical tyres when IDs switch.
+
+DASHBOARD
+Scroll down the statistics rail. OVERLAP COUNT REVIEW shows today's completed candidates, cases with observed tracks not counted and confirmed missed adjustments. It refreshes with the classification summary (30 seconds). Open overlap count reviews opens the overlap filter directly; choose the Brisbane date and Production. Select an event for its image and count-link detail. Open recording folder locates the saved segment; frame sequence is a camera sequence, not an MP4 seek offset. Review the actual clip at the event timestamp.
+
+CONFIRMED MISSED COUNTS
+1. Review the clip. Count the actual missed tyres, excluding IDs already counted. An overlap box alone does not prove how many tyres are there.
+2. Select Confirmed overlap and Save human review.
+3. Enter the absolute Confirmed missed tyres quantity, class (choose Unclassified if mixed/uncertain), reviewer name and evidence/reason in Notes.
+4. Save missed adjustment. Repeated saves do not add twice. Quantity zero reverses the adjustment; changes retain revision history. A conflicting change requires Refresh.
+
+This correction is kept in a separate audit ledger: original counts are never inserted, edited or deleted by a review. Daily and weekly PDF/CSV/email reports show recorded count + confirmed missed = reviewed total. Original hourly charts, production KPIs, best records, weight estimates and forecasts remain based on recorded counts. Re-export a past report to include later corrections; already-sent reports do not update themselves. Reviewed corrections are not automatically re-sent. No auto-correction or automatic human confirmation is enabled.
+
+MODEL CONVERSION / FAILED TRIAL
+Supplied best.onnx checked: input [1,3,416,416], output [1,5,3549], one class overlapping_tyres. Converted with authorized Luxonis blobconverter to RVC2/OpenVINO 2022.1 FP16, six shaves, RGB U8 input with /255 scaling. Compiled blob inspected: input [416,416,3,1], output [3549,5,1]. Assets and hashes are under overlap_model.
+
+The supplied held-out result is 0/5 matched overlap groups, 45 false-positive boxes, false detections on 23/34 negative frames (threshold .35). This model remains OFF and is not loaded into the live pipeline. Conversion verifies format compatibility, not detection accuracy or live camera performance. The dashboard shows this failed result explicitly. The geometric review is independent of this model. More independent annotated overlap events and new-day evaluation are needed before deploying neural overlap inference.
+
+RECORDS / BACKUP
+Reviews, corrections, snapshots and adjustment history are in data/classification_review. Back up that entire folder alongside counts and configuration; the existing counts-only backup does not include this review folder. Reviewed evidence ZIP and comparison CSV can be exported from the review screen. Corrections require a confirmed PRODUCTION overlap record; test/replay records cannot alter reviewed production totals. Window-limit/session-boundary events may refer to the same physical episode: reviewers must check the clip and existing corrections before adding any missed tyres.
+
+VALIDATION
+Tested: real worker simulated overlap/count linking, late count association, transient rejection, scope isolation, saved evidence, correction idempotency/revision/conflict/reversal, unchanged production DB, daily/weekly reconciliation, actual Qt correction screen, original comparison/false-alert review UI, management report export/scheduler and six dashboard layouts. Windows CI and live OAK checks are still required. No production emails were sent.

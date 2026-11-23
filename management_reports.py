@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from email.message import EmailMessage
 from html import escape
 from pathlib import Path
-import csv, json, math, os, sqlite3, threading
+import csv, io, json, math, os, sqlite3, threading
 from hourly_dashboard import BRISBANE, brisbane_now
 from tyre_weight import category, totals
 _LOCK = threading.RLock()
@@ -38,6 +38,24 @@ def read_events(con,source,start,end):
         except (TypeError,ValueError,OverflowError,OSError):pass
     return sorted(events)
 
+
+def confirmed_overlap_adjustments(db,start,end):
+    """Read current absolute corrections without creating/modifying the review DB."""
+    path=Path(db).parent/'classification_review'/'reviews.sqlite3'
+    if not path.is_file():return [],None
+    try:
+        with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True,timeout=5)) as con:
+            names={r[0] for r in con.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            if not {'records','overlap_adjustments'}<=names:return [],None
+            con.row_factory=sqlite3.Row
+            rows=con.execute("SELECT r.id,r.stamp,a.quantity,a.tyre_type,a.reviewer,a.notes,a.revision,a.updated_at FROM records r JOIN overlap_adjustments a ON a.record_id=r.id WHERE r.kind='overlap' AND r.scope='production' AND r.status='confirmed_overlap' AND a.quantity>0 ORDER BY r.stamp").fetchall()
+        selected=[]
+        for row in rows:
+            stamp=local_stamp(row['stamp'])
+            if start<=stamp<end and stamp.weekday()<5 and (5,0)<=(stamp.hour,stamp.minute)<(17,5):selected.append(dict(row))
+        return selected,None
+    except (sqlite3.Error,ValueError,OSError) as exc:return [],str(exc)
+
 def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=None):
     now=local_stamp((now or brisbane_now()).isoformat())
     monday=now.replace(hour=0,minute=0,second=0,microsecond=0)-timedelta(days=now.weekday())
@@ -64,6 +82,8 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
             con.row_factory=sqlite3.Row
             for row in con.execute('SELECT * FROM supervisor_no_count WHERE started_brisbane>=? AND started_brisbane<? ORDER BY started_brisbane',(start.date().isoformat(),(end.date()+timedelta(days=1)).isoformat())):
                 supervisors.append(dict(row))
+    adjustments,adjustment_error=confirmed_overlap_adjustments(db,start,end)
+    confirmed_missed=sum(a['quantity'] for a in adjustments)
     kinds=Counter(kind for _,kind in events);weight=totals(kinds)
     weekdays=[]
     for index in range(5):
@@ -94,7 +114,7 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
             try:
                 item=json.loads(path.read_text(encoding='utf-8'));stamp=local_stamp(item.get('timestamp',''))
                 if item.get('source_kind')=='oak' and start<=stamp<end:
-                    alarms.append(dict(timestamp=stamp.isoformat(),object=str(item.get('object','Unknown')),confidence=float(item.get('confidence',0)),snapshot=Path(item.get('snapshot','')).name))
+                    alarms.append(dict(timestamp=stamp.isoformat(),object=str(item.get('object','Unknown')),confidence=float(item.get('confidence',0)),snapshot=Path(str(item.get('snapshot','')).replace('\\','/')).name))
             except (ValueError,TypeError,OSError):unreadable_incidents+=1
     recordings=[]
     if recordings_dir and Path(recordings_dir).is_dir():
@@ -111,14 +131,16 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
             activity.extend(activity_bins(events,a,b,read_observations(Path(db).parent/'system_health',a,b)))
     complete=now>=close and (weekly or now.weekday()<5)
     delta=((len(events)-len(previous))/len(previous)*100) if complete and previous else None
-    return dict(activity=activity,production_projections=production_projections,monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
+    return dict(overlap_adjustments=adjustments,adjustment_error=adjustment_error,confirmed_missed=confirmed_missed,
+        reviewed_total=None if adjustment_error else len(events)+confirmed_missed,activity=activity,production_projections=production_projections,monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
         total=len(events),types=dict(kinds),weight=weight,slots=slots,weekdays=weekdays,best=best,
         average_hour=len(events)*60/minutes if minutes else 0,flow_minute=len(events)/minutes if minutes else 0,
         peak_flow=max((s['count']/s['minutes'] for s in completed if s['minutes']>0),default=0),
         best_day=list(historical) if historical else [None,0],all_time=all_time,
         previous_total=len(previous),previous_label=previous_start.strftime('%d %b %Y'),delta_percent=delta,
         no_count_gaps=gaps,supervisors=supervisors,alarms=sorted(alarms,key=lambda r:r['timestamp']),
-        unreadable_incidents=unreadable_incidents,recordings=sorted(recordings))
+        unreadable_incidents=unreadable_incidents,recordings=sorted(recordings),
+        incident_image_directory=str(Path(incidents_dir).resolve()) if incidents_dir else None)
 
 def commentary(r):
     name='Week' if r['weekly'] else datetime.fromisoformat(r['start']).strftime('%A')
@@ -142,6 +164,9 @@ def write_csv(r,path):
             types=types or {};v=totals(types)
             w.writerow([safe_csv(x) for x in [kind,date,start,end,count,*[types.get(k,0) for k in KINDS],v['total_kg'],v['total_epu'],details]])
         row('PERIOD_TOTAL',r['start'][:10],r['start'],r['end'],r['total'],r['types'],'Estimated class weights; Brisbane UTC+10. '+commentary(r))
+        for a in r.get('overlap_adjustments',[]):
+            row('CONFIRMED_MISSED',start=a['stamp'],count=a['quantity'],types={a['tyre_type']:a['quantity']},details=f"Review {a['id']}; revision {a['revision']}; {a['reviewer']}; {a['notes']}")
+        row('REVIEWED_TOTAL',r['start'][:10],count=r.get('reviewed_total',''),details='Original recorded total plus confirmed missed adjustments; original counts/forecasts/charts retained. '+(r.get('adjustment_error') or ''))
         from monthly_forecast import forecast_text
         for period,projection in r.get('production_projections',{'month':r.get('monthly_forecast')}).items():
             if projection:
@@ -156,11 +181,35 @@ def write_csv(r,path):
         for key in ('average_hour','flow_minute','peak_flow','best_day','all_time','previous_total','delta_percent'):
             row('METRIC',details=f'{key}: {r[key]}')
 
+
+def alert_snapshot(report, alert):
+    """Read only local incident-folder images; retain a timestamp in embedded pixels."""
+    from PIL import Image, ImageDraw, ImageOps
+    folder=report.get('incident_image_directory')
+    name=alert.get('snapshot','')
+    if not folder or not name:
+        return None
+    root=Path(folder).resolve();path=(root/name).resolve()
+    if path.parent!=root:
+        return None
+    try:
+        with Image.open(path) as original:
+            image=ImageOps.exif_transpose(original).convert('RGB')
+            image.thumbnail((1200,800))
+        stamp=local_stamp(alert['timestamp']).strftime('%d %b %Y %H:%M:%S Brisbane (UTC+10)')
+        # Place the timestamp outside the evidence, preserving the detection box.
+        framed=Image.new('RGB',(max(400,image.width),image.height+30),'#10283c')
+        framed.paste(image,(0,0));ImageDraw.Draw(framed).text((8,image.height+8),stamp,fill='white')
+        data=io.BytesIO();framed.save(data,format='JPEG',quality=85);data.seek(0)
+        return data
+    except (OSError,ValueError,Image.DecompressionBombError):
+        return None
+
 def write_pdf(r,path,logo=None):
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet,ParagraphStyle
-    from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableStyle,PageBreak,Flowable
+    from reportlab.platypus import SimpleDocTemplate,Paragraph,Spacer,Table,TableStyle,PageBreak,Flowable,Image,KeepTogether
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
     import reportlab
@@ -221,6 +270,13 @@ def write_pdf(r,path,logo=None):
     from monthly_forecast import report_text
     projection_text=report_text(r)
     story += [heading('DAILY / WEEKLY / MONTHLY PROJECTIONS'), Paragraph(escape(projection_text).replace('\n','<br/>'),ParagraphStyle(name='Projection',parent=styles['BriefHeading'],fontSize=15,leading=20)),Spacer(1,8)]
+    story += [heading('Confirmed missed-tyre adjustments')]
+    if r.get('adjustment_error'):
+        story.append(p('Reviewed total unavailable: adjustment records could not be read. '+r['adjustment_error']))
+    else:
+        story.append(p(f"Original recorded count: {r['total']:,} + confirmed missed: {r.get('confirmed_missed',0):,} = reviewed total: {r.get('reviewed_total',r['total']):,}. Original charts, hourly totals, weight estimates and forecasts remain based on recorded counts."))
+    if r.get('overlap_adjustments'):
+        story.append(table([['Event time (Brisbane)','Missed / class','Reviewer / reason']]+[[local_stamp(a['stamp']).strftime('%d %b %Y %H:%M:%S'),str(a['quantity'])+' / '+a['tyre_type'],a['reviewer']+' | '+a['notes']+' | revision '+str(a['revision'])] for a in r['overlap_adjustments']],[width*.3,width*.2,width*.5]))
     kpis=[('TOTAL TYRES',f"{r['total']:,}"),('ESTIMATED WEIGHT',f"{r['weight']['total_kg']/1000:,.2f} tonnes"),('TOTAL EPU',f"{r['weight']['total_epu']:,}"),('AVERAGE / HOUR',f"{r['average_hour']:,.1f}"),('BEST DAY',f"{r['best_day'][1]:,} tyres"),('ALL-TIME OAK COUNTS',f"{r['all_time']:,}")]
     tiles=[]
     for a in (0,3):tiles.append([Paragraph(f'<font size="7" color="#526779">{label}</font><br/><font name="BriefBold" size="17" color="#008b85">{value}</font>',ParagraphStyle(name='KPI',parent=styles['BriefBody'],leading=22)) for label,value in kpis[a:a+3]])
@@ -237,8 +293,20 @@ def write_pdf(r,path,logo=None):
         for s in r['supervisors']:rows.append([s['incident_id']+'\n'+s['started_brisbane'],s['status']+'\n'+str(s.get('supervisor') or 'Unassigned'),str(s.get('reason') or 'Awaiting reply')+'\n'+str(s.get('comments') or '')])
         story.append(table(rows,[width*.31,width*.25,width*.44]))
     else:story.append(p('No supervisor incident records for this period.'))
-    story +=[heading('Foreign-object alerts - trial model'),p(f"{len(r['alarms'])} recorded live OAK alerts. Supported trial classes: wheel rim and person. Test alerts are excluded; zero records do not establish that monitoring was enabled.")]
-    if r['alarms']:story.append(table([['Brisbane time','Object','Confidence']]+[[a['timestamp'][11:19],a['object'],f"{a['confidence']:.0%}"] for a in r['alarms']],[width*.4,width*.4,width*.2]))
+    story +=[heading('Foreign-object alerts - trial model'),p(f"{len(r['alarms'])} recorded live OAK alerts. These are model alerts, not confirmed foreign objects. Test alerts are excluded; zero records do not establish that monitoring was enabled.")]
+    if r['alarms']:story.append(table([['Brisbane time','Object','Confidence']]+[[local_stamp(a['timestamp']).strftime('%d %b %Y %H:%M:%S'),a['object'],f"{a['confidence']:.0%}"] for a in r['alarms']],[width*.4,width*.4,width*.2]))
+    if r['alarms']:
+        story += [PageBreak(),heading('Foreign-alert snapshots'),p('Detection evidence with event timestamps in Brisbane (UTC+10). Alerts may include false detections; use alert reviews to confirm them.')]
+        for index,alert in enumerate(r['alarms'],1):
+            caption=p(f"Alert {index} | {local_stamp(alert['timestamp']).strftime('%d %b %Y %H:%M:%S')} Brisbane (UTC+10) | {alert['object']} | Confidence {alert['confidence']:.0%}")
+            data=alert_snapshot(r,alert)
+            if data is None:
+                story.extend([caption,p('Snapshot unavailable (not saved, missing or unreadable).')])
+            else:
+                picture=Image(data)
+                scale=min(width/picture.imageWidth,240/picture.imageHeight)
+                picture.drawWidth=picture.imageWidth*scale;picture.drawHeight=picture.imageHeight*scale
+                story.append(KeepTogether([caption,picture,Spacer(1,12)]))
     if r['unreadable_incidents']:story.append(p(f"{r['unreadable_incidents']} incident files could not be read; review the local incident folder."))
     story +=[heading('Recorded footage and audit trail'),p(f"{len(r['recordings'])} matching timestamped MP4 files found in the recording folder. Use the report times to review the corresponding footage; file presence does not verify continuous coverage."),p('Recording references: '+(', '.join(r['recordings'][:8]) or 'None found.'))]
     if len(r['recordings'])>8:story.append(p('Full recording reference list is included in the CSV.'))
@@ -263,8 +331,11 @@ def make_email(settings,r,paths,snapshot=None):
     sender,password,recipient=settings
     msg=EmailMessage();msg['From']=sender;msg['To']=recipient
     msg['Subject']=f"TYRECYCLE / OZCOM | {'Weekly' if r['weekly'] else 'Daily'} production | {r['start'][:10]} | {r['total']:,} tyres"
-    msg.set_content('TYRECYCLE / OZCOM - TYRETRACK\n\n'+commentary(r)+f"\n\nEstimated weight: {r['weight']['total_kg']:,} kg\nEPU: {r['weight']['total_epu']:,}\nAverage: {r['average_hour']:.1f} tyres/hour\n\nOpen the attached PDF for charts and operational review, or the CSV in Excel.\nWeights are classification estimates. Times are Brisbane UTC+10.")
-    html=f'<html><body style="font-family:Arial;color:#10283c"><h1 style="color:#008b85">TYRECYCLE / OZCOM</h1><h2>{"Weekly" if r["weekly"] else "Daily"} production briefing</h2><p>{escape(commentary(r))}</p><table cellpadding="14" style="background:#edf5f8"><tr><td><b>{r["total"]:,}</b><br>TYRES</td><td><b>{r["weight"]["total_kg"]:,} kg</b><br>ESTIMATED WEIGHT</td><td><b>{r["weight"]["total_epu"]:,}</b><br>EPU</td></tr></table><p><b>Attached:</b> PDF charts and management review; CSV for Excel.</p><p>Brisbane UTC+10. Weights are class-based estimates.</p></body></html>'
+    msg.set_content('TYRECYCLE / OZCOM - TYRETRACK\n\n'+commentary(r)+f"\n\nEstimated weight: {r['weight']['total_kg']:,} kg\nEPU: {r['weight']['total_epu']:,}\nAverage: {r['average_hour']:.1f} tyres/hour\n\nOpen the attached PDF for charts, operational review and timestamped foreign-alert snapshots, or the CSV in Excel.\nWeights are classification estimates. Times are Brisbane UTC+10.")
+    html=f'<html><body style="font-family:Arial;color:#10283c"><h1 style="color:#008b85">TYRECYCLE / OZCOM</h1><h2>{"Weekly" if r["weekly"] else "Daily"} production briefing</h2><p>{escape(commentary(r))}</p><table cellpadding="14" style="background:#edf5f8"><tr><td><b>{r["total"]:,}</b><br>TYRES</td><td><b>{r["weight"]["total_kg"]:,} kg</b><br>ESTIMATED WEIGHT</td><td><b>{r["weight"]["total_epu"]:,}</b><br>EPU</td></tr></table><p><b>Attached:</b> PDF charts, management review and timestamped foreign-alert snapshots; CSV for Excel.</p><p>Brisbane UTC+10. Weights are class-based estimates.</p></body></html>'
+    adjustment_text=('Reviewed total unavailable: adjustment records could not be read.' if r.get('adjustment_error') else f"Original recorded count {r['total']:,} + confirmed missed {r.get('confirmed_missed',0):,} = reviewed total {r.get('reviewed_total',r['total']):,}. See PDF for reviewer and reason.")
+    msg.set_content(msg.get_content()+'\n'+adjustment_text)
+    html=html.replace('</body>','<p>'+escape(adjustment_text)+'</p></body>')
     from monthly_forecast import report_text
     projection_text=report_text(r)
     msg.set_content(msg.get_content()+'\n\n'+projection_text)

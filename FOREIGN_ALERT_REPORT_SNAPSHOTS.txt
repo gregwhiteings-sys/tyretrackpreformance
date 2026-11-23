@@ -1,0 +1,5 @@
+Daily and weekly foreign-alert snapshot update
+
+The attached/exported management PDF now embeds saved live OAK incident images, with the event date and time in Brisbane (UTC+10), object label and confidence. Each image includes a timestamp footer; originals remain unchanged. All in-period alerts are listed, including possible false detections. Test and video-replay alerts are excluded. Missing or unreadable snapshots are explicitly marked. CSV keeps timestamp and filename references. No extra report switch is needed; existing daily/weekly email settings apply.
+
+Validated: daily and weekly PDF embedded image counts, event timezone conversion, Windows filename handling, missing/corrupt image fallback, source/date exclusions, email PDF attachment, existing report reconciliation, mocked email scheduling and Qt export. No email was sent. Windows CI must be rerun.
