@@ -1631,6 +1631,9 @@ class CounterWorker(QThread):
         self.audit = ReviewStore(DATA / 'classification_review', lambda text:self.review_status.emit(text))
         self.pending_comparisons = {}
         self.audit_session = uuid.uuid4().hex
+        from overlap_review import OverlapReview
+        self.overlap_review=OverlapReview(self.audit,self.audit_session,
+            'test' if self.manual_test or self.source_kind!='oak' else 'production',self.source_kind)
         self.show_belt_edges = False
         self.belt_assist = BeltWidthAssist()
         self.pending_belt_settings = None
@@ -1877,6 +1880,7 @@ class CounterWorker(QThread):
                         "Check codec support and disk space."
                     )
 
+            self.overlap_review.scope='test' if self.manual_test or self.source_kind!='oak' else 'production'
             while self.running:
                 # Camera remains connected outside production hours. Only the count gate changes.
                 if self.pause_day is not None and self.pause_day != brisbane_now().date():
@@ -1952,6 +1956,7 @@ class CounterWorker(QThread):
                 except np.linalg.LinAlgError as exc:
                     # A corrupt ByteTrack Kalman covariance can poison subsequent frames.
                     # Reset the tracker; never reset completed counts or session totals.
+                    self.overlap_review.finish('tracker_recovery')
                     self.tracker_recoveries += 1
                     log(f"Tracker numerical failure at frame {self.processing_frame}: {exc}; "
                         f"recovering (attempt {self.tracker_recoveries})")
@@ -2124,11 +2129,15 @@ class CounterWorker(QThread):
                                 self.pending_comparisons[track_id] = (audit_payload,crop if crop.size else None)
                                 if self.belt_assist.evidence(track_id,self.processing_frame):
                                     self.save_pending_comparison(track_id)
+                                self.overlap_review.counted(track_id,audit_payload['timestamp'],tyre_type)
                                 self.session_type_counts[tyre_type] += 1
                                 self.counted_ids.add(track_id)
                                 self.session_count += 1
                                 self.counted.emit(track_id, float(confidence))
 
+
+                self.overlap_review.observe(detections,self.processing_frame,brisbane_now().isoformat(),
+                    audit_frame,frame_sequence,getattr(source,'recording_path',None),self.confidence,self.counting_enabled)
 
                 # Retire stale positions after 90 processed frames, not wall time.
                 # Keep counted IDs for the entire session to prevent repeat counts.
@@ -2203,6 +2212,7 @@ class CounterWorker(QThread):
             self.status.emit(f"ERROR: {exc}")
 
         finally:
+            self.overlap_review.finish()
             for track_id in list(self.pending_comparisons):self.save_pending_comparison(track_id)
             self.audit.close()
             if self.review_writer is not None:
@@ -3004,6 +3014,16 @@ class Main(QMainWindow):
         # Comparison details can span several lines. Keep them after the
         # production strips so they scroll without displacing daily totals.
         counters_layout.addWidget(self.classification_comparison_label)
+        from overlap_trial import dashboard_panel
+        self.overlap_trial_panel=dashboard_panel(self,resource_path("overlap_model"))
+        counters_layout.addWidget(self.overlap_trial_panel)
+        self.overlap_link_label=QLabel('OVERLAP COUNT REVIEW · Waiting for completed candidate events')
+        self.overlap_link_label.setWordWrap(True)
+        self.overlap_link_label.setStyleSheet('color:#c9e5ef;font:11px "Segoe UI";padding:4px;')
+        counters_layout.addWidget(self.overlap_link_label)
+        overlap_reviews=QPushButton('Open overlap count reviews')
+        overlap_reviews.clicked.connect(self.open_overlap_reviews)
+        counters_layout.addWidget(overlap_reviews)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -4466,6 +4486,7 @@ class Main(QMainWindow):
         text+='\nUsed for production (these records): '+totals(used)
         text+=f"\nMeasured {result['measured']} / {result['tyres']} · Size disagreements {result.get('size_disagreements',0)} · Assisted changes {result['disagreements']} · Assumed belt calibration"
         self.classification_comparison_label.setText(text)
+        self.overlap_link_label.setText(f"OVERLAP COUNT REVIEW · {result.get('overlap_events',0)} completed candidate events today · Confirmed missed +{result.get('confirmed_missed',0)} · {result.get('overlap_needs_review',0)} with observed tracks not counted. Heuristic candidates; hidden tyres remain uncertain.")
 
     def open_replay_classification_reviews(self):
         output=getattr(self,'_replay_output',None)
@@ -4482,6 +4503,10 @@ class Main(QMainWindow):
     def on_review_status(self,text):
         log(text)
         if hasattr(self,'test_transport'):self.test_transport.setText(text)
+
+    def open_overlap_reviews(self):
+        from classification_review_ui import open_review
+        open_review(self,self.get_review_store(),brisbane_now().date().isoformat(),kind_default='overlap')
 
     def open_classification_reviews(self):
         from classification_review_ui import open_review

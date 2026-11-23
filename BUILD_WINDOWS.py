@@ -44,7 +44,7 @@ def main():
     smoke([sys.executable,ROOT/'TyreTrack_Production_Monitor.py','--build-smoke-test',source_result],source_result,env,ROOT,180)
     command=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--windowed',
              '--name','TyreTrack','--paths',ROOT,'--noupx',
-             '--hidden-import','dashboard_history','--hidden-import','production_forecast','--hidden-import','monthly_forecast','--hidden-import','production_support','--hidden-import','web_dashboard','--hidden-import','live_totals','--hidden-import','classification_review','--hidden-import','classification_review_ui','--hidden-import','belt_width_assist','--hidden-import','tyre_weight','--hidden-import','management_reports','--collect-all','reportlab','--hidden-import','weekly_dashboard','--hidden-import','oak_preview','--hidden-import','preview_output','--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
+             '--hidden-import','dashboard_history','--hidden-import','production_forecast','--hidden-import','monthly_forecast','--hidden-import','production_support','--hidden-import','web_dashboard','--hidden-import','live_totals','--hidden-import','classification_review','--hidden-import','classification_review_ui','--hidden-import','belt_width_assist','--hidden-import','tyre_weight','--hidden-import','overlap_review','--hidden-import','overlap_trial','--hidden-import','management_reports','--collect-all','reportlab','--hidden-import','weekly_dashboard','--hidden-import','oak_preview','--hidden-import','preview_output','--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
              '--hidden-import','build_support.smoke_test','--hidden-import','foreign_alarm','--hidden-import','foreign_startup','--hidden-import','no_count_replies',
              '--hidden-import','ultralytics.nn.tasks',
              '--hidden-import','ultralytics.trackers.byte_tracker',
@@ -60,7 +60,8 @@ def main():
              '--add-data',str(ROOT/'oak_model_metadata.json')+';.',
              '--add-data',str(ROOT/'rvc2_models')+';rvc2_models',
              '--add-data',str(ROOT/'test_data')+';test_data',
-             '--add-data',str(ROOT/'foreign_model')+';foreign_model']
+             '--add-data',str(ROOT/'foreign_model')+';foreign_model',
+             '--add-data',str(ROOT/'overlap_model')+';overlap_model']
     if (ROOT/'tyrecycle_logo.png').exists():command+=['--add-data',str(ROOT/'tyrecycle_logo.png')+';.']
     command += [ROOT/'TyreTrack_Production_Monitor.py'];run(command)
     internal=BUNDLE/'_internal'
@@ -89,7 +90,7 @@ def main():
     shutil.copy2(ROOT/'RUN_OAK_HARDWARE_TEST.bat',BUNDLE/'RUN_OAK_HARDWARE_TEST.bat')
     shutil.copy2(ROOT/'EXPERIMENT_START_HERE.txt',BUNDLE/'START_HERE.txt')
     shutil.copy2(ROOT/'SOUND_CREDIT.txt',BUNDLE/'SOUND_CREDIT.txt')
-    for name in ['INSTALL_AUTOSTART.bat','REMOVE_AUTOSTART.bat','startup_shortcut.ps1','FULL_CHECK_REPORT.txt','RUN_SAFE_PREVIEW.bat','STREAM_RECOVERY_README.txt','MANAGEMENT_REPORTS_README.txt','COMPARISON_AND_FALSE_ALERT_REVIEW_README.txt']:
+    for name in ['INSTALL_AUTOSTART.bat','REMOVE_AUTOSTART.bat','startup_shortcut.ps1','FULL_CHECK_REPORT.txt','RUN_SAFE_PREVIEW.bat','STREAM_RECOVERY_README.txt','MANAGEMENT_REPORTS_README.txt','COMPARISON_AND_FALSE_ALERT_REVIEW_README.txt','OVERLAP_REVIEW_START_HERE.txt']:
         shutil.copy2(ROOT/name,BUNDLE/name)
     shutil.copy2(LOGS/'installed-versions.txt',BUNDLE/'BUILD_VERSIONS.txt')
     prerequisites=BUNDLE/'prerequisites';prerequisites.mkdir(exist_ok=True)
