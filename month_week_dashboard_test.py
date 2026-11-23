@@ -52,5 +52,21 @@ extra='''
 '''
 assert needle in source;source=source.replace(needle,needle+extra)
 source=source.replace('weekday_dashboard_preview.png','month_week_dashboard_preview.png')
+
+constrained="""
+  w.resize(1920,1080)
+  original_min=w.stats_scroll.minimumHeight();original_max=w.stats_scroll.maximumHeight()
+  for budget in (746,585,620,900,746):
+   w.stats_scroll.setFixedHeight(budget);w.apply_dashboard_density()
+   for _ in range(10):qt.processEvents()
+   viewport=w.stats_scroll.viewport()
+   assert w._dashboard_expanded==(viewport.height()>=780)
+   for strip in (w.hourly_strip,w.weekday_strip,w.month_week_strip):
+    bottom=strip.mapTo(viewport,strip.rect().bottomLeft()).y()+1
+    assert bottom<=viewport.height()-8, ('constrained viewport',budget,bottom,viewport.height())
+  w.stats_scroll.setMinimumHeight(original_min);w.stats_scroll.setMaximumHeight(original_max)
+"""
+source=source.replace("  qt.setStyle('Fusion');w.resize(1280,720);qt.processEvents()",constrained+"\n  qt.setStyle('Fusion');w.resize(1280,720);qt.processEvents()")
+
 exec(compile(source,'month_week_real_ui_fixture','exec'),{'__file__':str(Path('weekday_dashboard_test.py').resolve())})
 print('PASS weekly cards equal width, 3 totals rows fully visible without scrolling at 4 sizes/2 styles; real async production totals')
