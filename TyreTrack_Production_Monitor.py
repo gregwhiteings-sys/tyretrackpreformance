@@ -3431,6 +3431,7 @@ class Main(QMainWindow):
         def toggle_overlap(value):
             set_state('overlap_auto_enabled','1' if value else '0')
             if self.worker is not None:self.worker.overlap_auto_enabled=bool(value)
+            self.overlap_trial_panel.setText('OVERLAP V7 · '+('ENABLED · waiting for production frames' if value else 'OFF · no automatic additions'))
         self.overlap_auto_checkbox.toggled.connect(toggle_overlap)
         source_layout.addWidget(self.overlap_auto_checkbox)
         self.auto_training_checkbox=QCheckBox('Auto-save production training footage')
@@ -4633,6 +4634,8 @@ class Main(QMainWindow):
     def on_review_status(self,text):
         log(text)
         if hasattr(self,'test_transport'):self.test_transport.setText(text)
+        if text.startswith('OVERLAP') and hasattr(self,'overlap_trial_panel'):
+            self.overlap_trial_panel.setText(text+'\n65% · assumes two tyres · automatic additions included in totals; review/reverse below.')
 
     def open_overlap_reviews(self):
         from classification_review_ui import open_review

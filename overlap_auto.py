@@ -126,6 +126,7 @@ class Background:
     def run(self):
         try:
             detector=Detector(self.path)
+            self.on_error('OVERLAP V7 ACTIVE · 65% · automatic +1 enabled')
             while not self.stop.is_set():
                 try:m=self.pending.get(timeout=.2)
                 except Empty:continue
