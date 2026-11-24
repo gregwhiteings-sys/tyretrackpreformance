@@ -16,6 +16,10 @@ def run(app_module, output):
                 if not path.is_file() or path.stat().st_size == 0:
                     raise RuntimeError(f"Missing or empty required resource: {name} ({path})")
                 print(f"SMOKE: OK {name}", flush=True)
+            from overlap_auto import Detector
+            import numpy as np
+            Detector(app_module.resource_path('overlap_v7/best.onnx'))(np.zeros((360,640,3),np.uint8))
+            print("SMOKE: V7 packaged ONNX inference passed",flush=True)
             print("SMOKE: generating isolated PDF/CSV with bundled fonts",flush=True)
             from management_reports import smoke_report
             smoke_report()

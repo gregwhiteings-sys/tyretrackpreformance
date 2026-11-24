@@ -140,6 +140,9 @@ class ReviewStore:
         if len(reviewer)>80 or len(notes)>1000:raise ValueError('Use a reviewer name up to 80 characters and a reason up to 1000 characters')
         with self.connect() as c:
             c.execute('BEGIN IMMEDIATE')
+            auto=c.execute('SELECT payload FROM records WHERE id=?',(key,)).fetchone()
+            if auto and json.loads(auto[0]).get('automatic_correction'):
+                raise ValueError('Use Reverse V7 correction; do not add a second manual adjustment to an automatic event')
             row=c.execute('SELECT kind,status,scope,day FROM records WHERE id=?',(key,)).fetchone()
             if not row or row[:3]!=('overlap','confirmed_overlap','production'):
                 raise ValueError('Confirm a production overlap review before saving a missed adjustment')
@@ -163,7 +166,7 @@ class ReviewStore:
     def export(self,target,day=None,kind=None,scope='production'):
         # Explicitly reviewed cases only; unreviewed/unsure are never negative labels.
         rows=self.rows(day,kind,scope,limit=1000000)
-        fields=['id','stamp','kind','scope','status','reason','notes','original_class','size_candidate','diameter_mm','assisted_class','final_class','predicted_class','confidence','disagreement','recording_reference','frame_sequence','track_ids','counted_track_ids','not_counted_track_ids','association_status','termination_reason','confirmed_missed','adjustment_class','adjustment_reviewer','adjustment_reason','adjustment_revision']
+        fields=['id','stamp','kind','scope','status','reason','notes','original_class','size_candidate','diameter_mm','assisted_class','final_class','predicted_class','confidence','disagreement','recording_reference','frame_sequence','track_ids','counted_track_ids','not_counted_track_ids','association_status','termination_reason','confirmed_missed','adjustment_class','adjustment_reviewer','adjustment_reason','adjustment_revision','automatic_correction','added_tyres','assumed_tyres','model_sha256','snapshot']
         target=Path(target)
         if target.suffix.lower()=='.csv':
             with target.open('w',newline='',encoding='utf-8-sig') as f:

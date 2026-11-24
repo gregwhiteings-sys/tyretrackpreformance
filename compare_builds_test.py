@@ -37,7 +37,10 @@ for name,sha in contract['unchanged_files'].items():
   assert digest(raw,name)==change['new_sha256'],'Recorder differs from audited finalisation callback'
   raw=change['old'].encode()
  if name=='requirements-windows.txt':
-  text=raw.decode().replace('\r\n','\n');addition=reporting['requirements_added']
+  text=raw.decode().replace('\r\n','\n')
+  overlap_addition='\n# V7 overlap runs in a bounded CPU background worker.\nonnxruntime==1.23.2\n'
+  assert text.endswith(overlap_addition),'V7 dependency differs from authorized pin'
+  text=text[:-len(overlap_addition)];addition=reporting['requirements_added']
   assert text.endswith(addition);raw=text[:-len(addition)].encode()
  if digest(raw,name)!=sha:problems.append('Changed resource/module: '+name)
 assert not problems,problems
