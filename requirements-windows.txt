@@ -21,3 +21,6 @@ pypdf==6.10.0
 
 # Inline email weight chart.
 Pillow==11.3.0
+
+# V7 overlap runs in a bounded CPU background worker.
+onnxruntime==1.23.2

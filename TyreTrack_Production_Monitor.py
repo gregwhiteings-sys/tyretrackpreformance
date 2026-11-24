@@ -11,6 +11,12 @@ import hashlib
 import csv
 import math
 import numpy as np
+# Load ORT before torch/Ultralytics and their Windows DLL search paths. Loading
+# torch first can make ORT's native module fail initialization on Windows.
+try:
+    import onnxruntime as _overlap_ort
+except ImportError:
+    _overlap_ort = None  # Original counting stays available; V7 reports its fault.
 import os
 import shutil
 import smtplib
@@ -1600,6 +1606,30 @@ class CounterWorker(QThread):
     status = pyqtSignal(str)
     finished_clean = pyqtSignal()
 
+    def save_auto_overlap(self,payload,image):
+        from overlap_auto import write_correction
+        payload['automatic_correction']=True
+        # Both the frame-time and commit-time gates must permit production counting.
+        if not (self.running and self.overlap_auto_enabled and self.source_kind=='oak'
+                and not self.manual_test and self.counting_enabled and not self.operator_paused
+                and oak_in_operating_hours()):return
+        try:
+            if image is None:raise ValueError('No clean snapshot available')
+            evidence=DATA/'overlap_corrections';evidence.mkdir(parents=True,exist_ok=True)
+            snapshot=evidence/(payload['event_id']+'.jpg')
+            if not cv2.imwrite(str(snapshot),image):raise OSError('Overlap snapshot could not be saved')
+            payload['snapshot']=str(snapshot)
+            added=write_correction(DB,payload)
+        except Exception as exc:
+            self.review_status.emit('OVERLAP +1 NOT SAVED: '+str(exc));return
+        payload['added_tyres']=int(added)
+        payload['association_status']='automatic_plus_one' if added else 'no_automatic_addition'
+        self.audit.submit('overlap',payload,image,key=payload['event_id'])
+        if added:
+            self.session_count+=1;self.session_type_counts['unknown']+=1
+            self.counted.emit(-1,float(payload['confidence']))
+            self.review_status.emit('OVERLAP V7: +1 unclassified tyre added; snapshot and timestamp saved')
+
     def __init__(
         self,
         source_kind,
@@ -1650,6 +1680,10 @@ class CounterWorker(QThread):
         self.pending_comparisons = {}
         self.audit_session = uuid.uuid4().hex
         from overlap_review import OverlapReview
+        self.overlap_auto_enabled = get_state('overlap_auto_enabled','1')=='1'
+        self.overlap_background = None
+        from overlap_auto import Events
+        self.overlap_events = Events(self.save_auto_overlap,self.audit_session)
         self.overlap_review=OverlapReview(self.audit,self.audit_session,
             'test' if self.manual_test or self.source_kind!='oak' else 'production',self.source_kind)
         self.show_belt_edges = False
@@ -1987,6 +2021,9 @@ class CounterWorker(QThread):
                     # A corrupt ByteTrack Kalman covariance can poison subsequent frames.
                     # Reset the tracker; never reset completed counts or session totals.
                     self.overlap_review.finish('tracker_recovery')
+                    self.overlap_events.cancel()
+                    if self.overlap_background is not None:
+                        self.overlap_background.close();self.overlap_background=None
                     self.tracker_recoveries += 1
                     log(f"Tracker numerical failure at frame {self.processing_frame}: {exc}; "
                         f"recovering (attempt {self.tracker_recoveries})")
@@ -2160,11 +2197,29 @@ class CounterWorker(QThread):
                                 if self.belt_assist.evidence(track_id,self.processing_frame):
                                     self.save_pending_comparison(track_id)
                                 self.overlap_review.counted(track_id,audit_payload['timestamp'],tyre_type)
+                                self.overlap_events.counted(track_id,audit_payload['timestamp'],self.processing_frame)
                                 self.session_type_counts[tyre_type] += 1
                                 self.counted_ids.add(track_id)
                                 self.session_count += 1
                                 self.counted.emit(track_id, float(confidence))
 
+
+                auto_active=bool(self.overlap_auto_enabled and self.source_kind=='oak' and not self.manual_test
+                    and self.counting_enabled and not self.operator_paused and oak_in_operating_hours())
+                self.overlap_events.tick(detections,self.processing_frame,auto_active)
+                if auto_active:
+                    if self.overlap_background is None:
+                        from overlap_auto import Background
+                        self.overlap_background=Background(resource_path('overlap_v7/best.onnx'),self.review_status.emit)
+                    result=self.overlap_background.poll()
+                    if result is not None:
+                        boxes,meta=result
+                        if 0<=self.processing_frame-meta['frame']<=15:self.overlap_events.observe(boxes,meta)
+                    self.overlap_background.submit(dict(image=audit_frame.copy(),tracks=[list(d) for d in detections],
+                        frame=self.processing_frame,stamp=brisbane_now().isoformat(),enabled=True,source=source_name,
+                        sequence=frame_sequence,recording=getattr(source,'recording_path',None)))
+                elif self.overlap_background is not None:
+                    self.overlap_background.close();self.overlap_background=None
 
                 self.overlap_review.observe(detections,self.processing_frame,brisbane_now().isoformat(),
                     audit_frame,frame_sequence,getattr(source,'recording_path',None),self.confidence,self.counting_enabled)
@@ -2242,6 +2297,8 @@ class CounterWorker(QThread):
             self.status.emit(f"ERROR: {exc}")
 
         finally:
+            self.overlap_events.cancel()
+            if self.overlap_background is not None:self.overlap_background.close()
             self.overlap_review.finish()
             for track_id in list(self.pending_comparisons):self.save_pending_comparison(track_id)
             self.audit.close()
@@ -3072,7 +3129,8 @@ class Main(QMainWindow):
         # production strips so they scroll without displacing daily totals.
         counters_layout.addWidget(self.classification_comparison_label)
         from overlap_trial import dashboard_panel
-        self.overlap_trial_panel=dashboard_panel(self,resource_path("overlap_model"))
+        self.overlap_trial_panel=QLabel("OVERLAP V7 · 65% · stable group + one OAK count → +1 unclassified\nCorrections are included in totals; review or reverse below.")
+        self.overlap_trial_panel.setWordWrap(True)
         counters_layout.addWidget(self.overlap_trial_panel)
         self.overlap_link_label=QLabel('OVERLAP COUNT REVIEW · Waiting for completed candidate events')
         self.overlap_link_label.setWordWrap(True)
@@ -3373,6 +3431,15 @@ class Main(QMainWindow):
         source_layout.addWidget(
             self.record_oak_checkbox
         )
+        self.overlap_auto_checkbox=QCheckBox('Overlap V7: automatically add one missed tyre')
+        self.overlap_auto_checkbox.setChecked(get_state('overlap_auto_enabled','1')=='1')
+        self.overlap_auto_checkbox.setToolTip('65% confidence, three stable observations, one linked OAK count. Adds one unclassified tyre once after tracks leave. Two counts: no addition. Tests/paused/outside hours excluded. Review/reverse automatic corrections below.')
+        def toggle_overlap(value):
+            set_state('overlap_auto_enabled','1' if value else '0')
+            if self.worker is not None:self.worker.overlap_auto_enabled=bool(value)
+            self.overlap_trial_panel.setText('OVERLAP V7 · '+('ENABLED · waiting for production frames' if value else 'OFF · no automatic additions'))
+        self.overlap_auto_checkbox.toggled.connect(toggle_overlap)
+        source_layout.addWidget(self.overlap_auto_checkbox)
         self.auto_training_checkbox=QCheckBox('Auto-save production training footage')
         self.auto_training_checkbox.setChecked(get_state('auto_training_recording','1')=='1')
         set_auto_training_recording(self.auto_training_checkbox.isChecked())
@@ -4535,6 +4602,8 @@ class Main(QMainWindow):
             try:
                 from classification_review import summary
                 result=summary(store.rows(day,scope='production',limit=1000000))
+                from overlap_auto import corrections
+                result['automatic_overlap_added']=sum(not r['reversed'] for r in corrections(DB,day))
             except Exception as exc:result={'error':str(exc)}
             if not self.closing:self.review_dashboard_ready.emit(result)
         self._review_dashboard_thread=threading.Thread(target=read,name='review-dashboard-read',daemon=True)
@@ -4554,7 +4623,7 @@ class Main(QMainWindow):
         text+='\nUsed for production (these records): '+totals(used)
         text+=f"\nMeasured {result['measured']} / {result['tyres']} · Size disagreements {result.get('size_disagreements',0)} · Assisted changes {result['disagreements']} · Assumed belt calibration"
         self.classification_comparison_label.setText(text)
-        self.overlap_link_label.setText(f"OVERLAP COUNT REVIEW · {result.get('overlap_events',0)} completed candidate events today · Confirmed missed +{result.get('confirmed_missed',0)} · {result.get('overlap_needs_review',0)} with observed tracks not counted. Heuristic candidates; hidden tyres remain uncertain.")
+        self.overlap_link_label.setText(f"OVERLAP COUNT REVIEW · {result.get('overlap_events',0)} completed candidate events today · V7 automatic +{result.get('automatic_overlap_added',0)} included in totals · Reviewed missed +{result.get('confirmed_missed',0)} · {result.get('overlap_needs_review',0)} with observed tracks not counted. V7 assumes two tyres; geometric candidates remain review-only.")
 
     def open_replay_classification_reviews(self):
         output=getattr(self,'_replay_output',None)
@@ -4571,6 +4640,8 @@ class Main(QMainWindow):
     def on_review_status(self,text):
         log(text)
         if hasattr(self,'test_transport'):self.test_transport.setText(text)
+        if text.startswith('OVERLAP') and hasattr(self,'overlap_trial_panel'):
+            self.overlap_trial_panel.setText(text+'\n65% · assumes two tyres · automatic additions included in totals; review/reverse below.')
 
     def open_overlap_reviews(self):
         from classification_review_ui import open_review
