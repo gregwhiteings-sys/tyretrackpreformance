@@ -11,6 +11,12 @@ import hashlib
 import csv
 import math
 import numpy as np
+# Load ORT before torch/Ultralytics and their Windows DLL search paths. Loading
+# torch first can make ORT's native module fail initialization on Windows.
+try:
+    import onnxruntime as _overlap_ort
+except ImportError:
+    _overlap_ort = None  # Original counting stays available; V7 reports its fault.
 import os
 import shutil
 import smtplib
