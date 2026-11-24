@@ -1,5 +1,6 @@
 """Exercise real count worker; simulated OAK result tensors, real review persistence."""
 import os,sys,types,tempfile,time
+from test_resources import DatabaseTemporaryDirectory
 from pathlib import Path
 os.environ['QT_QPA_PLATFORM']='offscreen'
 import numpy as np
@@ -43,7 +44,7 @@ class FakeBackground:
  def close(self):pass
 overlap_auto.Background=FakeBackground
 
-with tempfile.TemporaryDirectory() as tmp:
+with DatabaseTemporaryDirectory() as tmp:
  m.DATA=Path(tmp);m.DB=Path(tmp)/'tyretrack.db';m.init_db();worker=m.CounterWorker('oak','','Bottom to Top',.35,.5)
  worker.belt_assist=BeltWidthAssist(BeltSettings(observe_only=True));worker.status.connect(statuses.append);worker.run()
  assert not any(s.startswith('ERROR') for s in statuses),statuses
