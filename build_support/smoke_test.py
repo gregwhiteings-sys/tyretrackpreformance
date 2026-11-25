@@ -18,8 +18,8 @@ def run(app_module, output):
                 print(f"SMOKE: OK {name}", flush=True)
             from overlap_auto import Detector
             import numpy as np
-            Detector(app_module.resource_path('overlap_v7/best.onnx'))(np.zeros((360,640,3),np.uint8))
-            print("SMOKE: V7 packaged ONNX inference passed",flush=True)
+            Detector(app_module.resource_path('overlap_v8/best.onnx'))(np.zeros((360,640,3),np.uint8))
+            print("SMOKE: V8 packaged ONNX inference passed",flush=True)
             print("SMOKE: generating isolated PDF/CSV with bundled fonts",flush=True)
             from management_reports import smoke_report
             smoke_report()

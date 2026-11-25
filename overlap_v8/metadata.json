@@ -1,0 +1,29 @@
+{
+  "classes": {
+    "0": "overlapping_tyres"
+  },
+  "class_count": 1,
+  "input_size": [
+    1,
+    3,
+    416,
+    416
+  ],
+  "opset": 12,
+  "raw_output": "YOLOv8 detect; external NMS required",
+  "confidence": 0.15,
+  "belt_width_mm": 1180,
+  "model_sha256": "30e0e29d7c1e8b979ee40cdfc9f95f63757d76c4491804c589f3225da8e7041a",
+  "onnx_sha256": "ac858b5e077a1099f13f441642285c652015ed20674e2beb67a12ba375a35c59",
+  "production_ready": false,
+  "note": "Requires independent-day validation, RVC2 conversion and OAK preprocessing/decoder checks; no automatic counts",
+  "build_integration": {
+    "model": "Master V8",
+    "live_confidence": 0.65,
+    "nms_iou": 0.5,
+    "batch": 1,
+    "policy": "Existing owner-authorized +1 event rule retained",
+    "acceptance": "Not independently accepted for accuracy; owner authorized live use",
+    "benchmark_selected_confidence": 0.15
+  }
+}

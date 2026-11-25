@@ -54,4 +54,4 @@ with DatabaseTemporaryDirectory() as tmp:
  with __import__('contextlib').closing(__import__('sqlite3').connect(m.DB)) as c:
   assert c.execute('SELECT COUNT(*) FROM counts').fetchone()[0]==2
  rows=worker.audit.rows(kind='overlap');assert len(rows)==1 and rows[0]['payload']['added_tyres']==1,rows
- print('PASS real OAK worker: one real crossing plus exactly one V7 correction; real DB and evidence record')
+ print('PASS real OAK worker: one real crossing plus exactly one V8 correction; real DB and evidence record')

@@ -16,7 +16,7 @@ import numpy as np
 try:
     import onnxruntime as _overlap_ort
 except ImportError:
-    _overlap_ort = None  # Original counting stays available; V7 reports its fault.
+    _overlap_ort = None  # Original counting stays available; V8 reports its fault.
 import os
 import shutil
 import smtplib
@@ -1628,7 +1628,7 @@ class CounterWorker(QThread):
         if added:
             self.session_count+=1;self.session_type_counts['unknown']+=1
             self.counted.emit(-1,float(payload['confidence']))
-            self.review_status.emit('OVERLAP V7: +1 unclassified tyre added; snapshot and timestamp saved')
+            self.review_status.emit('OVERLAP V8: +1 unclassified tyre added; snapshot and timestamp saved')
 
     def __init__(
         self,
@@ -2210,7 +2210,7 @@ class CounterWorker(QThread):
                 if auto_active:
                     if self.overlap_background is None:
                         from overlap_auto import Background
-                        self.overlap_background=Background(resource_path('overlap_v7/best.onnx'),self.review_status.emit)
+                        self.overlap_background=Background(resource_path('overlap_v8/best.onnx'),self.review_status.emit)
                     result=self.overlap_background.poll()
                     if result is not None:
                         boxes,meta=result
@@ -3129,7 +3129,7 @@ class Main(QMainWindow):
         # production strips so they scroll without displacing daily totals.
         counters_layout.addWidget(self.classification_comparison_label)
         from overlap_trial import dashboard_panel
-        self.overlap_trial_panel=QLabel("OVERLAP V7 · 65% · stable group + one OAK count → +1 unclassified\nCorrections are included in totals; review or reverse below.")
+        self.overlap_trial_panel=QLabel("OVERLAP V8 · 65% · one linked OAK count → +1 unclassified\nAutomatic additions are included in totals. Review or reverse below.")
         self.overlap_trial_panel.setWordWrap(True)
         counters_layout.addWidget(self.overlap_trial_panel)
         self.overlap_link_label=QLabel('OVERLAP COUNT REVIEW · Waiting for completed candidate events')
@@ -3431,13 +3431,13 @@ class Main(QMainWindow):
         source_layout.addWidget(
             self.record_oak_checkbox
         )
-        self.overlap_auto_checkbox=QCheckBox('Overlap V7: automatically add one missed tyre')
+        self.overlap_auto_checkbox=QCheckBox('Overlap V8: automatically add one missed tyre')
         self.overlap_auto_checkbox.setChecked(get_state('overlap_auto_enabled','1')=='1')
         self.overlap_auto_checkbox.setToolTip('65% confidence, three stable observations, one linked OAK count. Adds one unclassified tyre once after tracks leave. Two counts: no addition. Tests/paused/outside hours excluded. Review/reverse automatic corrections below.')
         def toggle_overlap(value):
             set_state('overlap_auto_enabled','1' if value else '0')
             if self.worker is not None:self.worker.overlap_auto_enabled=bool(value)
-            self.overlap_trial_panel.setText('OVERLAP V7 · '+('ENABLED · waiting for production frames' if value else 'OFF · no automatic additions'))
+            self.overlap_trial_panel.setText('OVERLAP V8 · '+('ENABLED · waiting for production frames' if value else 'OFF · no automatic additions'))
         self.overlap_auto_checkbox.toggled.connect(toggle_overlap)
         source_layout.addWidget(self.overlap_auto_checkbox)
         self.auto_training_checkbox=QCheckBox('Auto-save production training footage')
@@ -4617,13 +4617,11 @@ class Main(QMainWindow):
         def totals(c):
             return f"Passenger {c.get('passenger',0)} | SUV/4x4 {c.get('4x4',0)} | Unclassified {c.get('unknown',0)+c.get('uncertain_or_unmeasured',0)}"
         original=result['original_counts'];proposed=result['assisted_counts'];used=result['final_counts']
-        text='TODAY’S CLASSIFICATION COMPARISON · records captured by this build (30-second refresh)\n'
-        text+='Original OAK: '+totals(original)+'\nObserve-only proposal: '+totals(proposed)
-        text+='\nSize-only candidates: '+totals(result.get('size_only_counts',{}))
-        text+='\nUsed for production (these records): '+totals(used)
-        text+=f"\nMeasured {result['measured']} / {result['tyres']} · Size disagreements {result.get('size_disagreements',0)} · Assisted changes {result['disagreements']} · Assumed belt calibration"
+        text='TODAY’S CLASSIFICATION COMPARISON\n'
+        text+='Recorded OAK: '+totals(original)+'\nObserve-only: '+totals(proposed)
+        text+=f"\nMeasured {result['measured']} / {result['tyres']} · Different classification {result['disagreements']} · Observe-only does not change totals"
         self.classification_comparison_label.setText(text)
-        self.overlap_link_label.setText(f"OVERLAP COUNT REVIEW · {result.get('overlap_events',0)} completed candidate events today · V7 automatic +{result.get('automatic_overlap_added',0)} included in totals · Reviewed missed +{result.get('confirmed_missed',0)} · {result.get('overlap_needs_review',0)} with observed tracks not counted. V7 assumes two tyres; geometric candidates remain review-only.")
+        self.overlap_link_label.setText(f"OVERLAP REVIEW · Automatic +{result.get('automatic_overlap_added',0)} already included · Reviewed missed +{result.get('confirmed_missed',0)} separate · {result.get('overlap_needs_review',0)} need review")
 
     def open_replay_classification_reviews(self):
         output=getattr(self,'_replay_output',None)
@@ -4641,7 +4639,7 @@ class Main(QMainWindow):
         log(text)
         if hasattr(self,'test_transport'):self.test_transport.setText(text)
         if text.startswith('OVERLAP') and hasattr(self,'overlap_trial_panel'):
-            self.overlap_trial_panel.setText(text+'\n65% · assumes two tyres · automatic additions included in totals; review/reverse below.')
+            self.overlap_trial_panel.setText(text+'\n65% · assumes two tyres · +1 included in totals · review/reverse below.')
 
     def open_overlap_reviews(self):
         from classification_review_ui import open_review

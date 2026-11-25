@@ -1,3 +1,5 @@
+> Superseded by Master V8; see OVERLAP_V8_UPDATE.md. The +1 policy and reversal ledger are retained.
+
 # V7 automatic overlap correction
 
 Enabled by default at Greg's request; saved setting can turn it off in camera controls.
