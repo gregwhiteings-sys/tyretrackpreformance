@@ -61,7 +61,7 @@ def main():
              '--add-data',str(ROOT/'rvc2_models')+';rvc2_models',
              '--add-data',str(ROOT/'test_data')+';test_data',
              '--add-data',str(ROOT/'foreign_model')+';foreign_model',
-             '--add-data',str(ROOT/'overlap_v7')+';overlap_v7','--add-data',str(ROOT/'overlap_model')+';overlap_model']
+             '--add-data',str(ROOT/'overlap_v8')+';overlap_v8','--add-data',str(ROOT/'overlap_model')+';overlap_model']
     if (ROOT/'tyrecycle_logo.png').exists():command+=['--add-data',str(ROOT/'tyrecycle_logo.png')+';.']
     command += [ROOT/'TyreTrack_Production_Monitor.py'];run(command)
     internal=BUNDLE/'_internal'

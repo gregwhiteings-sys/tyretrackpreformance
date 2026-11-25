@@ -29,7 +29,7 @@ with TemporaryDirectory() as tmp:
    if not state['phase']:
     table.selectRow(0);assert not dialog.findChild(QSpinBox).isEnabled()
     next(w for w in dialog.findChildren(QLineEdit) if w.placeholderText().startswith('What was actually')).setText('Greg reviewed: only one tyre')
-    next(b for b in dialog.findChildren(QPushButton) if b.text()=='Reverse selected V7 +1 correction').click();state['phase']=1
+    next(b for b in dialog.findChildren(QPushButton) if b.text()=='Reverse selected overlap +1 correction').click();state['phase']=1
    elif corrections(db)[0]['reversed']:
     with closing(sqlite3.connect(db)) as c:assert c.execute('SELECT track_id FROM counts').fetchall()==[(7,)]
     state['phase']=2;dialog.accept();return
@@ -39,4 +39,4 @@ with TemporaryDirectory() as tmp:
    if isinstance(dialog,QDialog):dialog.reject()
  QTimer.singleShot(30,step);open_review(None,store,'2026-11-24')
  assert not state['error'],state['error'];assert state['phase']==2;assert store.close()
-print('PASS real Qt V7 reversal, original count retained, manual double-add controls disabled')
+print('PASS real Qt overlap reversal, original count retained, manual double-add controls disabled')

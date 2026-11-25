@@ -102,18 +102,18 @@ def open_review(parent,store,today,scope_default="production",kind_default=None)
         if not r or r['kind']!='overlap':return
         key=r['id'];quantity=missed.value();cls=adjustment_class.currentData();name=reviewer.text();comment=notes.text();revision=r.get('adjustment',{}).get('revision',0)
         task(lambda:('adjusted',f'Confirmed missed adjustment saved (revision {store.adjust_overlap(key,quantity,cls,name,comment,revision)}). Original count records preserved.'))
-    reverse_auto=QPushButton('Reverse selected V7 +1 correction')
+    reverse_auto=QPushButton('Reverse selected overlap +1 correction')
     actions.addWidget(reverse_auto)
     def reverse_selected():
         r=selected()
         if not r or not r['payload'].get('automatic_correction'):
-            notice.setText('Select an automatic V7 overlap record first.');return
+            notice.setText('Select an automatic overlap record first.');return
         if scope.currentData()!='production':return
         key=r['id'];comment=notes.text().strip()
         def undo():
             from overlap_auto import reverse
             reverse(store.root.parent/'tyretrack.db',key,comment)
-            return ('reversed','V7 extra count reversed; original OAK count preserved. Refresh dashboard totals.')
+            return ('reversed','Overlap extra count reversed; original OAK count preserved. Refresh dashboard totals.')
         task(undo)
     reverse_auto.clicked.connect(reverse_selected)
     adjustment_save.clicked.connect(save_adjustment)
@@ -138,7 +138,7 @@ def json_text(p):
     parts=[]
     if 'association_status' in p:
         parts.append('Auto review: '+p['association_status']+' | Observed track IDs: '+str(p.get('track_ids',[]))+' | Counted IDs: '+str(p.get('counted_track_ids',[]))+' | Not counted IDs: '+str(p.get('not_counted_track_ids',[]))+' | '+p.get('limitation',''))
-    if p.get('automatic_correction'):parts.append(f"V7 assumed group size: 2 | Automatic addition recorded: +{p.get('added_tyres',0)} unclassified. Use Reverse V7 correction with a reason to undo.")
+    if p.get('automatic_correction'):parts.append(f"Assumed group size: 2 | Automatic addition recorded: +{p.get('added_tyres',0)} unclassified. Use Reverse overlap correction with a reason to undo.")
     if 'mode' in p:parts.append('Mode: '+modes.get(p['mode'],str(p['mode'])))
     if 'visual_vote' in p:parts.append(f"Original class vote: {p['visual_vote']:.0%}")
     if 'confidence' in p:parts.append(f"Detector confidence: {p['confidence']:.0%}")

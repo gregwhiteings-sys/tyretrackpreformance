@@ -142,7 +142,7 @@ class ReviewStore:
             c.execute('BEGIN IMMEDIATE')
             auto=c.execute('SELECT payload FROM records WHERE id=?',(key,)).fetchone()
             if auto and json.loads(auto[0]).get('automatic_correction'):
-                raise ValueError('Use Reverse V7 correction; do not add a second manual adjustment to an automatic event')
+                raise ValueError('Use Reverse overlap correction; do not add a second manual adjustment to an automatic event')
             row=c.execute('SELECT kind,status,scope,day FROM records WHERE id=?',(key,)).fetchone()
             if not row or row[:3]!=('overlap','confirmed_overlap','production'):
                 raise ValueError('Confirm a production overlap review before saving a missed adjustment')

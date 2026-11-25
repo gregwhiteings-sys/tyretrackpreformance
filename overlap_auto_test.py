@@ -37,6 +37,6 @@ with TemporaryDirectory() as t:
  with closing(sqlite3.connect(db)) as c:assert c.execute('SELECT track_id FROM counts').fetchall()==[(7,)]
  assert corrections(db)[0]['reversed']==1
  for scope in ['test','replay']:assert not write_correction(db,dict(out[0],scope=scope,event_id=scope))
-model=Path(__file__).parent/'overlap_v7/best.onnx';assert hashlib.sha256(model.read_bytes()).hexdigest()==SHA
+model=Path(__file__).parent/'overlap_v8/best.onnx';assert hashlib.sha256(model.read_bytes()).hexdigest()==SHA
 net=Detector(model);assert net.net.get_inputs()[0].shape==[1,3,416,416];assert isinstance(net(np.zeros((360,640,3),np.uint8)),list)
-print('PASS V7 inference; stable +1 once, two-count/zero-count/pause suppression, atomic retry/reversal and test isolation')
+print('PASS V8 inference; stable +1 once, two-count/zero-count/pause suppression, atomic retry/reversal and test isolation')

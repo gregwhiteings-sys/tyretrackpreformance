@@ -1,4 +1,4 @@
-"""V7 background inference and event-level, auditable +1 production corrections.
+"""V8 background inference and event-level, auditable +1 production corrections.
 Never infer an exact group size: the authorized policy assumes two tyres.
 """
 import hashlib,json,sqlite3,threading,time,uuid
@@ -6,7 +6,7 @@ from pathlib import Path
 from queue import Queue,Empty,Full
 from datetime import datetime
 from contextlib import closing
-SHA='0e4baf778eb9c0f434d577a192d1518f252018aa3af1e6f17df757370813ecea'
+SHA='ac858b5e077a1099f13f441642285c652015ed20674e2beb67a12ba375a35c59'
 
 def schema(c):
     c.execute('CREATE TABLE IF NOT EXISTS overlap_auto_counts (event_id TEXT PRIMARY KEY,count_id INTEGER UNIQUE,stamp TEXT,payload TEXT,reversed INTEGER NOT NULL DEFAULT 0,reason TEXT)')
@@ -65,7 +65,7 @@ class Events:
                     counted_ids=sorted(ids),track_ids=sorted(e['ids']),counted_tracks=len(ids),observed_tracks=len(e['ids']),confidence=e['peak'],
                     model_sha256=SHA,assumed_tyres=2,added_tyres=1,tyre_type='unknown',
                     recording_reference=e.get('recording'),group_bbox=e.get('bbox'),frame_sequence=e.get('sequence'),
-                    detection_method='V7 overlap model; assumed two; one linked OAK count')
+                    detection_method='V8 overlap model; assumed two; one linked OAK count')
                 self.emit(p,e['image']);self.used.update(e['ids']);self.active.remove(e)
         live=set().union(*(e['ids'] for e in self.active)) if self.active else set()
         keep={i for i,n in self.seen.items() if frame-n<=120 or i in live}
@@ -89,7 +89,7 @@ class Events:
                 self.seq+=1
                 self.active.append(dict(ids=ids,first=meta['frame'],last=meta['frame'],hits=1,peak=score,
                     stamp=meta['stamp'],source=meta['source'],image=meta['image'],bbox=list(map(float,bb)),recording=meta.get('recording'),
-                    sequence=meta.get('sequence'),key=f'{self.session}-v7-{self.seq}'))
+                    sequence=meta.get('sequence'),key=f'{self.session}-v8-{self.seq}'))
     def cancel(self):
         for e in self.active:self.used.update(e['ids'])
         self.active.clear()
@@ -97,7 +97,7 @@ class Events:
 class Detector:
     def __init__(self,path):
         import onnxruntime as ort
-        if hashlib.sha256(Path(path).read_bytes()).hexdigest()!=SHA:raise ValueError('V7 model hash mismatch')
+        if hashlib.sha256(Path(path).read_bytes()).hexdigest()!=SHA:raise ValueError('V8 model hash mismatch')
         opts=ort.SessionOptions();opts.intra_op_num_threads=1;opts.inter_op_num_threads=1
         self.net=ort.InferenceSession(str(path),sess_options=opts,providers=['CPUExecutionProvider'])
         self.name=self.net.get_inputs()[0].name
@@ -117,7 +117,7 @@ class Detector:
 class Background:
     def __init__(self,path,on_error):
         self.path=path;self.on_error=on_error;self.pending=Queue(1);self.results=Queue(1);self.stop=threading.Event();self.last=0
-        self.thread=threading.Thread(target=self.run,name='overlap-v7',daemon=True);self.thread.start()
+        self.thread=threading.Thread(target=self.run,name='overlap-v8',daemon=True);self.thread.start()
     def submit(self,meta):
         if time.monotonic()-self.last<.5:return
         self.last=time.monotonic()
@@ -126,14 +126,14 @@ class Background:
     def run(self):
         try:
             detector=Detector(self.path)
-            self.on_error('OVERLAP V7 ACTIVE · 65% · automatic +1 enabled')
+            self.on_error('OVERLAP V8 ACTIVE · 65% · automatic +1 enabled')
             while not self.stop.is_set():
                 try:m=self.pending.get(timeout=.2)
                 except Empty:continue
                 boxes=detector(m['image'])
                 try:self.results.put_nowait((boxes,m))
                 except Full:pass
-        except Exception as e:self.on_error('OVERLAP V7 OFF: '+str(e))
+        except Exception as e:self.on_error('OVERLAP V8 OFF: '+str(e))
     def poll(self):
         try:return self.results.get_nowait()
         except Empty:return None
