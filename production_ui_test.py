@@ -13,6 +13,9 @@ m.Main.tick=lambda self:None
 m.Main._confirm_admin_pin=lambda self,action:True
 app=QApplication([]);w=m.Main();w.show()
 assert not w.controls_tabs.isVisible()
+assert not w.review_cards.isVisible()
+assert not w.counters_panel.isAncestorOf(w.review_cards)
+assert w.review_admin_page.isAncestorOf(w.review_cards)
 assert w.foreign_switch.isChecked()
 assert w.source_combo.count()==1 and w.selected_source()==('oak','')
 assert not w.browse_btn.isVisible() and not w.manual_oak_test.isVisible()
@@ -106,7 +109,11 @@ for control in w.findChildren(QPushButton):
   if control.text() in ('Overlap trial results / count verification','Open overlap count reviews'):review_actions.add(control.text())
  else:
   at=control.mapTo(w,control.rect().topLeft());assert at.y()>=0 and at.y()+control.height()<=w.height(),(control.text(),at.y(),control.height(),w.height())
-assert review_actions=={'Open overlap count reviews'},review_actions
+assert not review_actions,review_actions
+transport=w.test_transport.text()
+w.on_review_status('OVERLAP +1 saved: fixture')
+assert w.test_transport.text()==transport
+assert w.review_status_label.text()=='OVERLAP +1 saved: fixture'
 assert w.review_cards.cards[0].height()==w.review_cards.cards[1].height()==168
 assert abs(w.review_cards.cards[0].width()-w.review_cards.cards[1].width())<=1
 assert w.overlap_auto_checkbox.isChecked()
@@ -115,13 +122,30 @@ for _ in range(3):app.processEvents()
 w.resize(1280,720)
 for _ in range(5):app.processEvents()
 print('PASS: laptop-height 1353x689 layout keeps projection text and operator buttons in view')
-next(button for button in w.findChildren(QPushButton) if button.text()=="Admin Settings").click();app.processEvents()
+admin_button=next(button for button in w.findChildren(QPushButton) if button.text()=="Admin Settings")
+w._confirm_admin_pin=lambda action:False
+admin_button.click();app.processEvents()
+assert not w.controls_tabs.isVisible() and not w.review_cards.isVisible()
+w._confirm_admin_pin=lambda action:True
+admin_button.click();app.processEvents()
 assert w.controls_tabs.isVisible() and not w.stats_scroll.isVisible()
+assert admin_button.text()=='Dashboard'
 for index in range(w.controls_tabs.count()):
  w.controls_tabs.setCurrentIndex(index)
  for _ in range(3):app.processEvents()
  scroll=w.controls_tabs.widget(index);host=scroll.widget()
  assert host.width()==scroll.viewport().width()
+w.controls_tabs.setCurrentWidget(w.review_admin_page)
+for _ in range(3):app.processEvents()
+assert w.review_cards.isVisible() and w.overlap_auto_checkbox.isVisible()
+w.review_admin_page.ensureWidgetVisible(w.review_cards.review_button,0,0)
+for _ in range(3):app.processEvents()
+assert not w.review_cards.review_button.visibleRegion().isEmpty()
+admin_button.click();app.processEvents()
+assert w.stats_scroll.isVisible() and not w.review_cards.isVisible()
+assert admin_button.text()=='Admin Settings'
+assert not w.overlap_auto_checkbox.isVisible()
+print('PASS: protected AI reviews page; overlap/observe cards and overlap status absent from operator dashboard, review action reachable in admin')
 print('PASS: administration pages fit scroll viewport')
 
 # Exercise actual health label wiring without camera, files or background requests.

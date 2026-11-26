@@ -3125,10 +3125,6 @@ class Main(QMainWindow):
         # hourly and daily totals visually uncluttered.
         counters_layout.addStretch(1)
         counters_layout.addWidget(self.dashboard_record_progress)
-        from review_cards import ReviewCards
-        self.review_cards=ReviewCards(self.open_overlap_reviews,
-            get_state('overlap_auto_enabled','1')=='1',self)
-        counters_layout.addWidget(self.review_cards)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -3266,20 +3262,20 @@ class Main(QMainWindow):
         tabs.setUsesScrollButtons(True)
         body.addWidget(tabs, 2)
         tabs.hide()
-        admin_btn = QPushButton("Admin Settings")
+        settings_button = QPushButton("Admin Settings")
         def toggle_admin():
             if tabs.isVisible():
                 tabs.hide()
                 self.stats_scroll.show()
-                admin_btn.setText("Admin Settings")
+                settings_button.setText("Admin Settings")
             elif self._confirm_admin_pin("open settings"):
                 # Settings take the right-hand dashboard rail instead of adding
                 # a third squeezed column that makes its controls unreadable.
                 self.stats_scroll.hide()
                 tabs.show()
-                admin_btn.setText("Dashboard")
-        admin_btn.clicked.connect(toggle_admin)
-        tools_row.addWidget(admin_btn)
+                settings_button.setText("Dashboard")
+        settings_button.clicked.connect(toggle_admin)
+        tools_row.addWidget(settings_button)
         video_test_btn=QPushButton("Upload video test")
         video_test_btn.clicked.connect(self.open_video_test)
         tools_row.addWidget(video_test_btn)
@@ -3323,6 +3319,19 @@ class Main(QMainWindow):
         source_tab = tab_page("CAMERA")
         foreign_tab = tab_page("FOREIGN")
         line_tab = tab_page("COUNTING")
+        reviews_tab = tab_page("AI REVIEWS")
+        self.review_admin_page = tabs.widget(tabs.count()-1)
+        from review_cards import ReviewCards
+        self.review_cards=ReviewCards(self.open_overlap_reviews,
+            get_state('overlap_auto_enabled','1')=='1',self)
+        reviews_tab.addWidget(self.review_cards)
+        comparison_button=QPushButton('Open daily comparison and alert reviews')
+        comparison_button.clicked.connect(self.open_classification_reviews)
+        reviews_tab.addWidget(comparison_button)
+        self.review_status_label=QLabel('Overlap and observe-only details are available here.')
+        self.review_status_label.setWordWrap(True)
+        reviews_tab.addWidget(self.review_status_label)
+        reviews_tab.addStretch()
         reports_tab = tab_page("REPORTS")
         hours_tab = tab_page("PERFORMANCE")
         hours_tab.addWidget(self.history_frame)
@@ -3429,7 +3438,7 @@ class Main(QMainWindow):
             if self.worker is not None:self.worker.overlap_auto_enabled=bool(value)
             self.review_cards.set_enabled(value)
         self.overlap_auto_checkbox.toggled.connect(toggle_overlap)
-        source_layout.addWidget(self.overlap_auto_checkbox)
+        reviews_tab.insertWidget(0,self.overlap_auto_checkbox)
         self.auto_training_checkbox=QCheckBox('Auto-save production training footage')
         self.auto_training_checkbox.setChecked(get_state('auto_training_recording','1')=='1')
         set_auto_training_recording(self.auto_training_checkbox.isChecked())
@@ -4624,7 +4633,7 @@ class Main(QMainWindow):
 
     def on_review_status(self,text):
         log(text)
-        if hasattr(self,'test_transport'):self.test_transport.setText(text)
+        if hasattr(self,'review_status_label'):self.review_status_label.setText(text)
         if text.startswith('OVERLAP') and hasattr(self,'review_cards'):
             self.review_cards.show_status(text)
 
