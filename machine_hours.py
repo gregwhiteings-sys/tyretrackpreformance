@@ -4,6 +4,7 @@ from pathlib import Path
 from contextlib import contextmanager,closing
 from datetime import date,datetime,timedelta
 from hourly_dashboard import BRISBANE,brisbane_now
+from tyre_weight import totals as weight_totals
 
 def previous_shift(day):
     d=date.fromisoformat(str(day))-timedelta(days=1)
@@ -84,7 +85,7 @@ class HoursStore:
             new=dict(day=day,meter=meter,opening=opening,notes=notes[:2000],checked=1)
             c.execute('INSERT INTO history VALUES(?,?,?,?)',(day,stamp,json.dumps(dict(old)) if old else 'null',json.dumps(new)))
 
-def recorded_tyres(db,source,day,now=None):
+def recorded_output(db,source,day,now=None):
     """Same Brisbane weekday 05:00–17:05 production window; no test sources."""
     now=(now or brisbane_now()).astimezone(BRISBANE);d=date.fromisoformat(day)
     if d.weekday()>=5 or d>now.date() or not Path(db).exists():return None
@@ -92,15 +93,19 @@ def recorded_tyres(db,source,day,now=None):
     end=min(start.replace(hour=17,minute=5),now)
     if end<=start:return None
     with closing(sqlite3.connect(db,timeout=3)) as c:
-        n=c.execute('SELECT COUNT(*) FROM counts WHERE source=? AND metric_utc>=? AND metric_utc<?',(source,start.timestamp(),end.timestamp())).fetchone()[0]
-        rows=c.execute('SELECT ts FROM counts WHERE source=? AND metric_utc IS NULL AND ts>=? AND ts<?',(source,(d-timedelta(days=1)).isoformat(),(d+timedelta(days=2)).isoformat())).fetchall()
-    for (ts,) in rows:
+        grouped=dict(c.execute('SELECT tyre_type,COUNT(*) FROM counts WHERE source=? AND metric_utc>=? AND metric_utc<? GROUP BY tyre_type',(source,start.timestamp(),end.timestamp())))
+        rows=c.execute('SELECT ts,tyre_type FROM counts WHERE source=? AND metric_utc IS NULL AND ts>=? AND ts<?',(source,(d-timedelta(days=1)).isoformat(),(d+timedelta(days=2)).isoformat())).fetchall()
+    for ts,kind in rows:
         try:
             t=datetime.fromisoformat(ts)
             if t.tzinfo is None:t=t.replace(tzinfo=BRISBANE)
-            if start<=t<end:n+=1
+            if start<=t<end:grouped[kind]=grouped.get(kind,0)+1
         except (ValueError,TypeError):continue
-    return n if n else None # Absence of recorded counts is not proof of zero throughput.
+    return weight_totals(grouped) if grouped else None
+
+def recorded_tyres(db,source,day,now=None):
+    output=recorded_output(db,source,day,now)
+    return output['total_count'] if output else None
 
 def performance(rows,day,db,source,now=None):
     checked={r['day']:r for r in rows if r['checked'] and r['meter'] is not None}
@@ -113,13 +118,31 @@ def performance(rows,day,db,source,now=None):
     if not 0<=hours<=24:result['status']='Check meter readings';return result
     result['hours']=hours
     if hours==0:result['status']='No running hours recorded';return result
-    n=recorded_tyres(db,source,day,now);result['tyres']=n
-    if n is None:result['status']='No production counts available for this shift';return result
-    result.update(rate=n/hours,status='Recorded tyres / actual running hours')
+    output=recorded_output(db,source,day,now)
+    if output is None:result['status']='No production counts available for this shift';return result
+    n=output['total_count'];tonnes=output['total_kg']/1000
+    result.update(tyres=n,rate=n/hours,tonnes=tonnes,
+                  tonnes_rate=tonnes/hours if n>output['unknown'] else None,
+                  unknown_weight=output['unknown'],status='Recorded tyres / actual running hours')
     return result
+
+def monthly_average(rows,db,source,now):
+    """Weighted rate: known estimated tonnes / matched completed-shift run hours."""
+    prefix=now.date().isoformat()[:7];hours=tonnes=0.;shifts=unknown=0
+    for row in rows:
+        if not row['checked'] or not row['day'].startswith(prefix) or row['day']>now.date().isoformat():continue
+        p=performance(rows,row['day'],db,source,now)
+        if not p.get('hours') or p.get('tyres') is None:continue
+        hours+=p['hours'];tonnes+=p['tonnes'];unknown+=p['unknown_weight'];shifts+=1
+    # All-unknown output has no usable weight estimate.
+    rate=tonnes/hours if hours>0 and tonnes>0 else None
+    return dict(month_tonnes_rate=rate,month_hours=hours,month_tonnes=tonnes,
+                month_shifts=shifts,month_unknown_weight=unknown)
 
 def latest(root,db,source,now=None):
     now=now or brisbane_now();rows=HoursStore(root).rows()
     days=[r['day'] for r in rows if r['checked'] and r['day']<=now.date().isoformat()]
-    if not days:return dict(status='Add a checked shift-end meter reading',day=None,hours=None,tyres=None,rate=None)
-    return performance(rows,max(days),db,source,now)
+    result=performance(rows,max(days),db,source,now) if days else dict(status='Add a checked shift-end meter reading',day=None,hours=None,tyres=None,rate=None)
+    result.update(monthly_average(rows,db,source,now))
+    return result
+

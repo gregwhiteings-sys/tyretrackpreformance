@@ -7,11 +7,13 @@ from PyQt5.QtWidgets import QApplication,QDialog,QDateEdit,QDoubleSpinBox,QCheck
 from machine_hours_ui import HoursPanel,open_hours
 from machine_hours import HoursStore
 app=QApplication.instance() or QApplication([])
-host=QWidget();layout=QVBoxLayout(host);panel=HoursPanel(lambda:None);layout.addWidget(panel);host.resize(720,111);host.show()
-panel.show_result({'day':'2026-11-26','hours':9.7,'tyres':970,'rate':100,'status':'Recorded tyres / actual running hours'})
+host=QWidget();layout=QVBoxLayout(host);panel=HoursPanel(lambda:None);layout.addWidget(panel);host.resize(720,166);host.show()
+panel.show_result({'day':'2026-11-26','hours':9.7,'tyres':970,'rate':100,'tonnes_rate':1.2,'month_tonnes_rate':1.35,'unknown_weight':1,'month_unknown_weight':2,'status':'Recorded tyres / actual running hours'})
 assert panel.values['hours'].text()=='9.7 h' and panel.values['rate'].text()=='100.0'
+assert panel.values['tonnes_rate'].text()=='1.20 t/h' and panel.values['month_tonnes_rate'].text()=='1.35 t/h'
+assert 'tyres excluded' in panel.note.text()
 for width in [640,720,880]:
- host.resize(width,111)
+ host.resize(width,166)
  for _ in range(5):app.processEvents()
  for label in panel.findChildren(QLabel):
   at=label.mapTo(panel,label.rect().topLeft());assert at.x()>=0 and at.x()+label.width()<=panel.width()
@@ -21,7 +23,7 @@ host.close()
 with tempfile.TemporaryDirectory() as tmp:
  root=Path(tmp);db=root/'counts.db';store=HoursStore(root/'hours')
  with closing(sqlite3.connect(db)) as c:
-  c.execute('CREATE TABLE counts(ts TEXT,source TEXT,metric_utc REAL)');c.execute("INSERT INTO counts VALUES('2026-11-26T08:00:00+10:00','oak',NULL)");c.commit()
+  c.execute('CREATE TABLE counts(ts TEXT,source TEXT,metric_utc REAL,tyre_type TEXT)');c.execute("INSERT INTO counts VALUES('2026-11-26T08:00:00+10:00','oak',NULL,'passenger')");c.commit()
  state={'phase':0,'error':None};deadline=time.monotonic()+15
  def step():
   dialog=app.activeModalWidget()
@@ -70,3 +72,4 @@ with DatabaseTemporaryDirectory() as tmp:
     assert w.machine_hours_panel.values['tyres'].text()=='1'
     w.close();app.processEvents()
 print('PASS actual dashboard async reading without classification records, matching primary production source, and clean reader shutdown')
+
