@@ -12,7 +12,7 @@ from review_cards import FitLabel
 
 class HoursPanel(QFrame):
     def __init__(self,callback,parent=None):
-        super().__init__(parent);self.setObjectName('machineHoursPanel');self.setFixedHeight(111)
+        super().__init__(parent);self.setObjectName('machineHoursPanel');self.setFixedHeight(166)
         self.setStyleSheet('QFrame#machineHoursPanel {background:#17262b;border:1px solid #587078;border-radius:6px;}')
         outer=QVBoxLayout(self);outer.setContentsMargins(8,5,8,5);outer.setSpacing(2)
         head=QHBoxLayout();self.title=FitLabel('SHREDDER PERFORMANCE · SHIFT-END READINGS')
@@ -20,7 +20,8 @@ class HoursPanel(QFrame):
         self.button=QPushButton('Shredder hours');self.button.setFixedHeight(25)
         self.button.setStyleSheet('font:600 11px "Segoe UI";padding:2px 8px;');self.button.clicked.connect(callback);head.addWidget(self.button)
         outer.addLayout(head);row=QHBoxLayout();self.values={}
-        for key,name in [('hours','ACTUAL RUNNING HOURS'),('tyres','RECORDED TYRES'),('rate','TYRES / RUNNING HOUR')]:
+        for key,name in [('hours','ACTUAL RUNNING HOURS'),('tyres','RECORDED TYRES'),('rate','TYRES / RUNNING HOUR'),('tonnes_rate','EST. TONNES / RUNNING HOUR'),('month_tonnes_rate','MONTH AVG. EST. TONNES / RUN HOUR')]:
+            if key=='tonnes_rate':outer.addLayout(row);row=QHBoxLayout()
             box=QFrame();box.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding);box.setMinimumWidth(0)
             layout=QVBoxLayout(box);layout.setContentsMargins(4,0,4,0);layout.setSpacing(0)
             title=FitLabel(name);title.setStyleSheet('color:#c9e5ef;font:600 10px "Segoe UI";');layout.addWidget(title)
@@ -32,8 +33,14 @@ class HoursPanel(QFrame):
         self.title.setText('SHREDDER · LAST COMPLETED SHIFT · '+day if day else 'SHREDDER PERFORMANCE · SHIFT-END READINGS')
         for key,value in self.values.items():
             n=data.get(key)
-            value.setText('—' if n is None else f'{n:.1f} h' if key=='hours' else f'{n:,.1f}' if key=='rate' else f'{n:,.0f}')
-        self.note.setText(data.get('status','Readings unavailable'));self.note.setToolTip(data.get('error',''))
+            value.setText('—' if n is None else f'{n:.1f} h' if key=='hours' else f'{n:,.2f} t/h' if key.endswith('tonnes_rate') else f'{n:,.1f}' if key=='rate' else f'{n:,.0f}')
+        self.values['month_tonnes_rate'].setToolTip(f"This month's {data.get('month_shifts',0)} checked shifts: total estimated tonnes divided by total matching running hours. Missing readings/counts are excluded.")
+        note=data.get('status','Readings unavailable')
+        if data.get('tonnes_rate') is not None or data.get('month_tonnes_rate') is not None:
+            note='Weight estimates: passenger 8 kg · SUV/4×4 16 kg · truck 45 kg'
+            unknown=data.get('unknown_weight',0);monthly=data.get('month_unknown_weight',0)
+            if unknown or monthly:note+=f' · No weight: {unknown} shift / {monthly} month tyres excluded'
+        self.note.setText(note);self.note.setToolTip(data.get('error','') or note)
 
 def open_hours(parent,root,counts_db,source):
     store=HoursStore(root);dialog=QDialog(parent);dialog.setWindowTitle('Shredder hours — daily readings and photos')
@@ -111,3 +118,4 @@ def open_hours(parent,root,counts_db,source):
     day.dateChanged.connect(load_day);table.itemSelectionChanged.connect(select_row);attach.clicked.connect(add_photos)
     photos.itemDoubleClicked.connect(open_photo);import_button.clicked.connect(import_photos);save.clicked.connect(save_reading);close.clicked.connect(dialog.accept)
     refresh();dialog.exec_()
+

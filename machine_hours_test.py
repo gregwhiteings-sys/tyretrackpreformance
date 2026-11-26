@@ -8,9 +8,9 @@ now=datetime(2026,11,26,18,tzinfo=BRISBANE)
 with tempfile.TemporaryDirectory() as t:
  root=Path(t);store=HoursStore(root/'hours');db=root/'counts.db'
  with closing(sqlite3.connect(db)) as c:
-  c.execute('CREATE TABLE counts(ts TEXT,source TEXT,metric_utc REAL,track_id INTEGER)')
+  c.execute('CREATE TABLE counts(ts TEXT,source TEXT,metric_utc REAL,track_id INTEGER,tyre_type TEXT DEFAULT "passenger")')
   for stamp,source,epoch,ident in [('2026-11-26T05:00:00+10:00','oak',True,1),('2026-11-26T08:00:00+10:00','oak',True,-1),('2026-11-26T09:00:00','oak',False,2),('2026-11-25T08:00:00+10:00','oak',True,3),('2026-11-26T04:59:59+10:00','oak',True,4),('2026-11-26T17:05:00+10:00','oak',True,5),('2026-11-26T08:00:00+10:00','replay',True,6),('2026-11-27T08:00:00+10:00','oak',True,7)]:
-   d=datetime.fromisoformat(stamp);c.execute('INSERT INTO counts VALUES(?,?,?,?)',(stamp,source,d.timestamp() if epoch else None,ident))
+   d=datetime.fromisoformat(stamp);c.execute('INSERT INTO counts(ts,source,metric_utc,track_id) VALUES(?,?,?,?)',(stamp,source,d.timestamp() if epoch else None,ident))
   c.commit()
  before=hashlib.sha256(db.read_bytes()).hexdigest()
  store.save('2026-11-25',1000.0,now=now);assert latest(store.root,db,'oak',now)['hours'] is None
@@ -41,3 +41,4 @@ with tempfile.TemporaryDirectory() as t:
  assert all((imported.root/d['path']).resolve().is_relative_to(imported.root.resolve()) for d in imported.documents('2026-11-26'))
  assert hashlib.sha256(db.read_bytes()).hexdigest()==before,'Production counts modified'
 print('PASS actual running-hour delta, matching Brisbane production counts including +1, test/future/shift exclusion, missing-day/zero/reset validation, audit, local photo import and unchanged production database')
+

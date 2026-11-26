@@ -5,6 +5,17 @@ recorded production tyres, and recorded tyres per actual running hour. The
 hour meter was confirmed by the owner to advance only while the shredder runs.
 It is separate from scheduled-hours and existing pace calculations.
 
+Two further figures show estimated tonnes per running hour for the displayed
+shift and the current Brisbane calendar month's average. The monthly average
+is total estimated tonnes divided by total matching running hours across checked
+shifts with valid readings and recorded counts, not an average of daily rates.
+The app's existing weight factors apply: passenger 8 kg, SUV/4x4 16 kg, truck 45 kg.
+Unclassified tyres (including unclassified overlap additions) have no assumed
+weight: they remain in tyre counts and are explicitly shown as excluded from
+tonnage. An all-unclassified shift has no tonnage rate. These are weight estimates,
+not weighbridge measurements. Missing shifts/counts and zero-hour shifts do not
+contribute to the monthly rate. Partial month coverage is available in its tooltip.
+
 Open **Shredder hours**, select the shift date, enter the cumulative TOTAL HOURS
 reading, optionally attach the meter photo and supervisor sheets, check that
 the shift is complete and the reading verified, then save. The previous checked
@@ -31,3 +42,4 @@ from the production database; this feature does not change tyre counts, model
 settings, overlap rules, alerts or earlier reporting. Photos are imported locally
 by the operator, never published to the source repository. Dashboard reads use
 the existing background review reader and are joined during app shutdown.
+
