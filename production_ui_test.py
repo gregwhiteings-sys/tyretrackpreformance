@@ -107,7 +107,8 @@ for control in w.findChildren(QPushButton):
  else:
   at=control.mapTo(w,control.rect().topLeft());assert at.y()>=0 and at.y()+control.height()<=w.height(),(control.text(),at.y(),control.height(),w.height())
 assert review_actions=={'Open overlap count reviews'},review_actions
-assert 'OVERLAP V8' in w.overlap_trial_panel.text()
+assert w.review_cards.cards[0].height()==w.review_cards.cards[1].height()==168
+assert abs(w.review_cards.cards[0].width()-w.review_cards.cards[1].width())<=1
 assert w.overlap_auto_checkbox.isChecked()
 for area,value in scroll_positions.items():area.verticalScrollBar().setValue(value)
 for _ in range(3):app.processEvents()

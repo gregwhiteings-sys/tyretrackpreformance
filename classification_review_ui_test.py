@@ -21,11 +21,10 @@ with DatabaseTemporaryDirectory() as tmp:
  QTimer.singleShot(100,close_advanced);w.open_belt_edge_setup()
  assert all(control.parent() is w for _,control in w.belt_edges)
  w.show_comparison_dashboard({'original_counts':{'passenger':7,'4x4':3},'assisted_counts':{'passenger':6,'4x4':4},'final_counts':{'passenger':7,'4x4':3},'measured':8,'tyres':10,'disagreements':1})
- assert 'Passenger 7' in w.classification_comparison_label.text() and 'Passenger 6' in w.classification_comparison_label.text()
- footer=w.classification_comparison_label.text()
- assert 'Recorded OAK:' in footer and 'Observe-only:' in footer,footer
- assert all(word not in footer for word in ['Possible','possible','Size-only','Used for production','Assumed belt']),footer
- assert 'does not change totals' in footer and 'Different classification 1' in footer,footer
+ assert w.review_cards.values['passenger'].text()=='6'
+ assert w.review_cards.values['4x4'].text()=='4'
+ assert w.review_cards.additions.text()=='+0'
+ assert not hasattr(w,'classification_comparison_label')
  store=w.get_review_store();store.submit('foreign',{'timestamp':'2026-11-23T08:00:00+10:00','predicted_class':'metal_object'},key='one');assert store.flush(), 'Review writer failed to drain'
  assert store.rows(), store.last_error
  errors=[]

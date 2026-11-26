@@ -2893,9 +2893,6 @@ class Main(QMainWindow):
         self.system_health_label.setStyleSheet("color:#9be8dd;font:600 11px 'Segoe UI';")
         self.system_health_label.hide()
         counters_layout.addWidget(self.system_health_label)
-        self.classification_comparison_label=QLabel('TODAY’S CLASSIFICATION COMPARISON · No comparison records yet')
-        self.classification_comparison_label.setWordWrap(True)
-        self.classification_comparison_label.setStyleSheet('color:#c9e5ef;background:#14232b;padding:8px;font:600 14px "Segoe UI";')
         self._review_dashboard_busy=False
         self.review_dashboard_ready.connect(self.show_comparison_dashboard)
         self.review_dashboard_timer=QTimer(self);self.review_dashboard_timer.setInterval(30000)
@@ -3125,20 +3122,10 @@ class Main(QMainWindow):
         # hourly and daily totals visually uncluttered.
         counters_layout.addStretch(1)
         counters_layout.addWidget(self.dashboard_record_progress)
-        # Comparison details can span several lines. Keep them after the
-        # production strips so they scroll without displacing daily totals.
-        counters_layout.addWidget(self.classification_comparison_label)
-        from overlap_trial import dashboard_panel
-        self.overlap_trial_panel=QLabel("OVERLAP V8 · 65% · one linked OAK count → +1 unclassified\nAutomatic additions are included in totals. Review or reverse below.")
-        self.overlap_trial_panel.setWordWrap(True)
-        counters_layout.addWidget(self.overlap_trial_panel)
-        self.overlap_link_label=QLabel('OVERLAP COUNT REVIEW · Waiting for completed candidate events')
-        self.overlap_link_label.setWordWrap(True)
-        self.overlap_link_label.setStyleSheet('color:#c9e5ef;font:11px "Segoe UI";padding:4px;')
-        counters_layout.addWidget(self.overlap_link_label)
-        overlap_reviews=QPushButton('Open overlap count reviews')
-        overlap_reviews.clicked.connect(self.open_overlap_reviews)
-        counters_layout.addWidget(overlap_reviews)
+        from review_cards import ReviewCards
+        self.review_cards=ReviewCards(self.open_overlap_reviews,
+            get_state('overlap_auto_enabled','1')=='1',self)
+        counters_layout.addWidget(self.review_cards)
 
         self.camera_panel = QWidget()
         self.camera_panel.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
@@ -3431,13 +3418,13 @@ class Main(QMainWindow):
         source_layout.addWidget(
             self.record_oak_checkbox
         )
-        self.overlap_auto_checkbox=QCheckBox('Overlap V8: automatically add one missed tyre')
+        self.overlap_auto_checkbox=QCheckBox('Overlap: automatically add one missed tyre')
         self.overlap_auto_checkbox.setChecked(get_state('overlap_auto_enabled','1')=='1')
         self.overlap_auto_checkbox.setToolTip('65% confidence, three stable observations, one linked OAK count. Adds one unclassified tyre once after tracks leave. Two counts: no addition. Tests/paused/outside hours excluded. Review/reverse automatic corrections below.')
         def toggle_overlap(value):
             set_state('overlap_auto_enabled','1' if value else '0')
             if self.worker is not None:self.worker.overlap_auto_enabled=bool(value)
-            self.overlap_trial_panel.setText('OVERLAP V8 · '+('ENABLED · waiting for production frames' if value else 'OFF · no automatic additions'))
+            self.review_cards.set_enabled(value)
         self.overlap_auto_checkbox.toggled.connect(toggle_overlap)
         source_layout.addWidget(self.overlap_auto_checkbox)
         self.auto_training_checkbox=QCheckBox('Auto-save production training footage')
@@ -4612,16 +4599,7 @@ class Main(QMainWindow):
     def show_comparison_dashboard(self,result):
         if self.closing:return
         self._review_dashboard_busy=False
-        if 'error' in result:
-            self.classification_comparison_label.setText('CLASSIFICATION COMPARISON · Records unavailable: '+result['error']);return
-        def totals(c):
-            return f"Passenger {c.get('passenger',0)} | SUV/4x4 {c.get('4x4',0)} | Unclassified {c.get('unknown',0)+c.get('uncertain_or_unmeasured',0)}"
-        original=result['original_counts'];proposed=result['assisted_counts'];used=result['final_counts']
-        text='TODAY’S CLASSIFICATION COMPARISON\n'
-        text+='Recorded OAK: '+totals(original)+'\nObserve-only: '+totals(proposed)
-        text+=f"\nMeasured {result['measured']} / {result['tyres']} · Different classification {result['disagreements']} · Observe-only does not change totals"
-        self.classification_comparison_label.setText(text)
-        self.overlap_link_label.setText(f"OVERLAP REVIEW · Automatic +{result.get('automatic_overlap_added',0)} already included · Reviewed missed +{result.get('confirmed_missed',0)} separate · {result.get('overlap_needs_review',0)} need review")
+        self.review_cards.show_result(result)
 
     def open_replay_classification_reviews(self):
         output=getattr(self,'_replay_output',None)
@@ -4638,8 +4616,8 @@ class Main(QMainWindow):
     def on_review_status(self,text):
         log(text)
         if hasattr(self,'test_transport'):self.test_transport.setText(text)
-        if text.startswith('OVERLAP') and hasattr(self,'overlap_trial_panel'):
-            self.overlap_trial_panel.setText(text+'\n65% · assumes two tyres · +1 included in totals · review/reverse below.')
+        if text.startswith('OVERLAP') and hasattr(self,'review_cards'):
+            self.review_cards.show_status(text)
 
     def open_overlap_reviews(self):
         from classification_review_ui import open_review
