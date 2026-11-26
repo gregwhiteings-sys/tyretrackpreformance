@@ -3117,6 +3117,9 @@ class Main(QMainWindow):
         week_layout.addLayout(week_blocks)
         self.month_week_strip.setFixedHeight(72)
         counters_layout.addWidget(self.month_week_strip)
+        from machine_hours_ui import HoursPanel
+        self.machine_hours_panel=HoursPanel(self.open_machine_hours,self)
+        counters_layout.addWidget(self.machine_hours_panel)
 
         # Use the open footer area for the record-pace prompt, keeping the
         # hourly and daily totals visually uncluttered.
@@ -4582,16 +4585,21 @@ class Main(QMainWindow):
 
     def refresh_comparison_dashboard(self):
         path=DATA/'classification_review'/'reviews.sqlite3'
-        if self.closing or self._review_dashboard_busy or not path.exists():return
+        if self.closing or self._review_dashboard_busy:return
+        if not path.exists() and not (DATA/'machine_hours'/'hours.sqlite3').exists():return
         self._review_dashboard_busy=True;day=brisbane_now().date().isoformat()
-        store=self.get_review_store()  # Resolve on GUI thread, before shutdown can begin.
+        store=self.get_review_store() if path.exists() else None  # Resolve on GUI thread before shutdown.
         def read():
             try:
                 from classification_review import summary
-                result=summary(store.rows(day,scope='production',limit=1000000))
+                result=summary(store.rows(day,scope='production',limit=1000000) if store is not None else [])
                 from overlap_auto import corrections
                 result['automatic_overlap_added']=sum(not r['reversed'] for r in corrections(DB,day))
             except Exception as exc:result={'error':str(exc)}
+            try:
+                from machine_hours import latest
+                result['machine_hours']=latest(DATA/'machine_hours',DB,OAK_NAME)
+            except Exception as exc:result['machine_hours']={'status':'Shredder readings unavailable','error':str(exc)}
             if not self.closing:self.review_dashboard_ready.emit(result)
         self._review_dashboard_thread=threading.Thread(target=read,name='review-dashboard-read',daemon=True)
         self._review_dashboard_thread.start()
@@ -4600,6 +4608,7 @@ class Main(QMainWindow):
         if self.closing:return
         self._review_dashboard_busy=False
         self.review_cards.show_result(result)
+        if 'machine_hours' in result:self.machine_hours_panel.show_result(result['machine_hours'])
 
     def open_replay_classification_reviews(self):
         output=getattr(self,'_replay_output',None)
@@ -4618,6 +4627,12 @@ class Main(QMainWindow):
         if hasattr(self,'test_transport'):self.test_transport.setText(text)
         if text.startswith('OVERLAP') and hasattr(self,'review_cards'):
             self.review_cards.show_status(text)
+
+    def open_machine_hours(self):
+        if not self._confirm_admin_pin('shredder meter readings'):return
+        from machine_hours_ui import open_hours
+        open_hours(self,DATA/'machine_hours',DB,OAK_NAME)
+        self.refresh_comparison_dashboard()
 
     def open_overlap_reviews(self):
         from classification_review_ui import open_review
