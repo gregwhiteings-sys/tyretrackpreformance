@@ -29,7 +29,7 @@ cards.show_status('OVERLAP +1 NOT SAVED: disk full');assert cards.status.text().
 cards.set_enabled(False);assert cards.status.text().startswith('Off')
 cards.set_enabled(True);assert '65%' in cards.status.text()
 cards.show_result({'error':'database busy'});assert cards.additions.text()=='—' and all(v.text()=='—' for v in cards.values.values())
-cards.show_result(result);assert cards.additions.text()=='+4' and cards.included.text().startswith('Already included')
+cards.show_result(result);assert cards.additions.text()=='+4' and cards.included.text().startswith('Included')
 cards.review_button.click();assert clicked==[True]
 assert result['automatic_overlap_added']==4 and result['original_counts']=={'passenger':1955}
 assert not any('Measured' in w.text() or 'V8' in w.text() for w in cards.findChildren(QLabel))
