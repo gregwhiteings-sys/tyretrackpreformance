@@ -44,7 +44,7 @@ def open_hours(parent,root,counts_db,source):
         'for the same Brisbane weekday 05:00–17:05 window. A missing reading or missing counts leaves the rate pending. '
         'The machine meter measures actual running time; these entries never change tyre counts.')
     info.setWordWrap(True);layout.addWidget(info)
-    table=QTableWidget(0,6);table.setHorizontalHeaderLabels(['Shift date','Closing meter','Checked','Running hours','Recorded tyres','Tyres / run hour'])
+    table=QTableWidget(0,6);table.setHorizontalHeaderLabels(['Shift date','Meter hours','Status','Run hours','Tyres','Tyres / h'])
     table.setSelectionBehavior(QTableWidget.SelectRows);table.setSelectionMode(QTableWidget.SingleSelection)
     table.setEditTriggers(QTableWidget.NoEditTriggers);table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch);layout.addWidget(table,1)
     editor=QWidget();editor_layout=QVBoxLayout(editor);editor_layout.setContentsMargins(0,0,0,0)
@@ -79,7 +79,7 @@ def open_hours(parent,root,counts_db,source):
         records=store.rows();table.setRowCount(len(records))
         for i,r in enumerate(records):
             p=performance(records,r['day'],counts_db,source)
-            values=[r['day'],'' if r['meter'] is None else f"{r['meter']:.1f}",'Yes' if r['checked'] else 'Needs checking',
+            values=[r['day'],'' if r['meter'] is None else f"{r['meter']:.1f}",'Checked' if r['checked'] else 'Check photo',
                 '—' if p['hours'] is None else f"{p['hours']:.1f}",'—' if p['tyres'] is None else f"{p['tyres']:,}",'—' if p['rate'] is None else f"{p['rate']:,.1f}"]
             for j,text in enumerate(values):table.setItem(i,j,QTableWidgetItem(text))
         load_day()
