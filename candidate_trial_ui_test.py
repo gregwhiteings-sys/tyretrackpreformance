@@ -17,6 +17,7 @@ for style in ['Fusion','Windows']:
  for width in [360,640,880]:
   host.resize(width,300)
   for _ in range(5):app.processEvents()
+  assert host.width()==width,(style,width,host.width())
   for label in panel.findChildren(QLabel):
    at=label.mapTo(panel,label.rect().topLeft())
    assert at.x()>=0 and at.x()+label.width()<=panel.width(),(width,label.text())

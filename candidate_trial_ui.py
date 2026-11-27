@@ -3,7 +3,7 @@ from pathlib import Path
 from PyQt5.QtCore import Qt,QDate
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import (QFrame,QVBoxLayout,QGridLayout,QLabel,QPushButton,QDialog,QHBoxLayout,
-    QDateEdit,QTableWidget,QTableWidgetItem,QHeaderView,QComboBox,QLineEdit,QFileDialog,QMessageBox,QApplication)
+    QDateEdit,QTableWidget,QTableWidgetItem,QHeaderView,QComboBox,QLineEdit,QFileDialog,QMessageBox,QApplication,QSizePolicy)
 from candidate_trial import Store
 from hourly_dashboard import brisbane_now
 from review_cards import FitLabel
@@ -31,6 +31,8 @@ class CandidatePanel(QFrame):
         self.status=QLabel('On · 80% candidate confidence · passenger/SUV only');self.status.setWordWrap(True)
         self.status.setStyleSheet('font:11px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.status)
         self.button=QPushButton('Review new classifier / export comparison CSV');self.button.setFixedHeight(28)
+        self.button.setStyleSheet('font:600 11px "Segoe UI";padding:2px 6px;')
+        self.button.setMinimumWidth(0);self.button.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
         self.button.clicked.connect(callback);layout.addWidget(self.button)
     def set_enabled(self,value):
         self.enabled=bool(value)
