@@ -40,12 +40,13 @@ def main():
     # Source probe gives a useful diagnostic before spending time freezing.
     env=os.environ.copy();env['QT_QPA_PLATFORM']='offscreen';env['OMP_NUM_THREADS']='2';env['TYRETRACK_SMOKE_LEVEL']='quick';env['PYTHONUNBUFFERED']='1'
     source_result=LOGS/'source-smoke.json'
-    run([sys.executable,'-m','compileall','-q','TyreTrack_Production_Monitor.py','training_recording.py','belt_width_assist.py','classification_review.py','classification_review_ui.py','count_line.py','hourly_dashboard.py','foreign_alarm.py','foreign_startup.py','oak_rvc2.py','oak_hardware_test.py','oak_ai.py','oak_recording.py','background_export.py','celebration_library.py','build_support'])
+    run([sys.executable,'-m','compileall','-q','TyreTrack_Production_Monitor.py','candidate_trial.py','candidate_trial_ui.py','training_recording.py','belt_width_assist.py','classification_review.py','classification_review_ui.py','count_line.py','hourly_dashboard.py','foreign_alarm.py','foreign_startup.py','oak_rvc2.py','oak_hardware_test.py','oak_ai.py','oak_recording.py','background_export.py','celebration_library.py','build_support'])
     smoke([sys.executable,ROOT/'TyreTrack_Production_Monitor.py','--build-smoke-test',source_result],source_result,env,ROOT,180)
     command=[sys.executable,'-m','PyInstaller','--noconfirm','--clean','--onedir','--windowed',
              '--name','TyreTrack','--paths',ROOT,'--noupx',
              '--hidden-import','dashboard_history','--hidden-import','production_forecast','--hidden-import','monthly_forecast','--hidden-import','production_support','--hidden-import','web_dashboard','--hidden-import','live_totals','--hidden-import','classification_review','--hidden-import','classification_review_ui','--hidden-import','belt_width_assist','--hidden-import','tyre_weight','--hidden-import','overlap_review','--hidden-import','overlap_trial','--hidden-import','machine_hours','--hidden-import','machine_hours_ui','--hidden-import','review_cards','--hidden-import','overlap_auto','--collect-all','onnxruntime','--hidden-import','management_reports','--collect-all','reportlab','--hidden-import','weekly_dashboard','--hidden-import','oak_preview','--hidden-import','preview_output','--hidden-import','training_recording','--hidden-import','oak_recording','--collect-all','av','--hidden-import','background_export','--hidden-import','oak_rvc2','--hidden-import','oak_hardware_test','--hidden-import','oak_ai','--hidden-import','offline_replay','--hidden-import','three_line','--hidden-import','count_line','--hidden-import','hourly_dashboard',
              '--hidden-import','build_support.smoke_test','--hidden-import','foreign_alarm','--hidden-import','foreign_startup','--hidden-import','no_count_replies',
+             '--hidden-import','candidate_trial','--hidden-import','candidate_trial_ui',
              '--hidden-import','ultralytics.nn.tasks',
              '--hidden-import','ultralytics.trackers.byte_tracker',
              '--hidden-import','ultralytics.trackers.bot_sort',
@@ -61,7 +62,8 @@ def main():
              '--add-data',str(ROOT/'rvc2_models')+';rvc2_models',
              '--add-data',str(ROOT/'test_data')+';test_data',
              '--add-data',str(ROOT/'foreign_model')+';foreign_model',
-             '--add-data',str(ROOT/'overlap_v8')+';overlap_v8','--add-data',str(ROOT/'overlap_model')+';overlap_model']
+             '--add-data',str(ROOT/'overlap_v8')+';overlap_v8','--add-data',str(ROOT/'overlap_model')+';overlap_model',
+             '--add-data',str(ROOT/'candidate_classifier')+';candidate_classifier']
     if (ROOT/'tyrecycle_logo.png').exists():command+=['--add-data',str(ROOT/'tyrecycle_logo.png')+';.']
     command += [ROOT/'TyreTrack_Production_Monitor.py'];run(command)
     internal=BUNDLE/'_internal'
@@ -78,6 +80,8 @@ def main():
     assert len(blobs)==1 and digest(blobs[0])==digest(ROOT/'tyre_detector_oak.blob')
     foreign=list(BUNDLE.rglob('foreign_object.pt'))
     assert len(foreign)==1 and digest(foreign[0])==digest(ROOT/'foreign_model/foreign_object.pt')
+    candidate=list(BUNDLE.rglob('candidate_classifier/best.onnx'))
+    assert len(candidate)==1 and digest(candidate[0])=='a8e9faa4b42141343152c057b99e779b915eebb481f502753b1f5a335a454274','Candidate model missing or changed'
     assert not list(BUNDLE.rglob('email_config.ini')), 'Private configuration in bundle'
     result=LOGS/'packaged-smoke.json'
     # Test from an unrelated working directory to catch resource-path assumptions.

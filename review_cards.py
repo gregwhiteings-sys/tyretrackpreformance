@@ -37,7 +37,7 @@ class ReviewCards(QFrame):
         self.enabled=bool(enabled)
         row=QHBoxLayout(self);row.setContentsMargins(0,0,0,0);row.setSpacing(8)
         self.cards=[]
-        for name,title,accent in [('overlapAdditionsCard','TODAY · OVERLAP +1','#57e5ca'),('observeOnlyCard','TODAY · OBSERVE-ONLY','#74caff')]:
+        for name,title,accent in [('overlapAdditionsCard','TODAY · OVERLAP +1','#57e5ca'),('observeOnlyCard','TODAY · BELT SIZE OBSERVE-ONLY','#74caff')]:
             card=QFrame();card.setObjectName(name);card.setFixedHeight(168)
             card.setMinimumWidth(0);card.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             card.setStyleSheet(f'QFrame#{name} {{background:#14232b;border:1px solid #45616d;border-radius:6px;}} QLabel {{border:0;background:transparent;color:#c9e5ef;}}')
