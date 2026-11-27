@@ -2388,7 +2388,7 @@ class PeriodWeightLabel(QLabel):
             self.ensurePolished();area=self.contentsRect();width=max(1,area.width()-4);height=max(1,area.height()-4)
             for scale in (1.,.95,.9,.85,.8,.75,.7,.65,.6):
                 text=re.sub(r'font-size:(\d+)px',lambda m:'font-size:'+str(max(6,round(int(m[1])*scale)))+'px',original)
-                text='<div style="font-family:Segoe UI;font-size:7px">'+text+'</div>'
+                text='<div style="font-family:Segoe UI;font-size:10px;font-weight:700">'+text+'</div>'
                 doc=QTextDocument();doc.documentLayout().setPaintDevice(self);doc.setDocumentMargin(0);doc.setDefaultFont(self.font());doc.setHtml(text);doc.setTextWidth(width)
                 if doc.size().height()<=height and doc.idealWidth()<=width:break
             if self.text()!=text:super().setText(text)
@@ -2881,7 +2881,7 @@ class Main(QMainWindow):
         design_badge.setAlignment(Qt.AlignCenter)
         design_badge.setStyleSheet("background:#303a41;border:1px solid #67737b;border-radius:5px;color:#f1b82d;font-size:13px;font-weight:900;letter-spacing:1px;padding:8px 14px;")
         live_dashboard_tag=QLabel("OPERATOR DASHBOARD")
-        live_dashboard_tag.setStyleSheet("color:#d4dbe0;font-size:11px;font-weight:800;letter-spacing:1px;padding:4px 10px;")
+        live_dashboard_tag.setStyleSheet("color:#d4dbe0;font-size:12px;font-weight:800;letter-spacing:1px;padding:4px 10px;")
         header.addWidget(design_badge)
         header.addWidget(live_dashboard_tag)
 
@@ -2949,7 +2949,7 @@ class Main(QMainWindow):
         counters_layout.addWidget(self.rail_heading)
         self.system_health_label=QLabel("SYSTEM HEALTH · Starting checks")
         self.system_health_label.setWordWrap(True)
-        self.system_health_label.setStyleSheet("color:#9be8dd;font:600 11px 'Segoe UI';")
+        self.system_health_label.setStyleSheet("color:#9be8dd;font:700 12px 'Segoe UI';")
         self.system_health_label.hide()
         counters_layout.addWidget(self.system_health_label)
         self._review_dashboard_busy=False
@@ -2960,14 +2960,14 @@ class Main(QMainWindow):
         QTimer.singleShot(1500,self.refresh_comparison_dashboard)
 
         timeline_key=QLabel("ACTIVITY · Green: counts · Amber: no counts · Red: camera issue · Grey: unobserved/upcoming")
-        timeline_key.setStyleSheet("color:#9caec0;font:9px 'Segoe UI';")
+        timeline_key.setStyleSheet("color:#9caec0;font:700 11px 'Segoe UI';")
         timeline_key.hide()
         counters_layout.addWidget(timeline_key)
         activity_row=QHBoxLayout();activity_row.setSpacing(2)
         self.activity_blocks=[]
         for hour in range(5,18):
             block=QLabel(str(hour).zfill(2));block.setAlignment(Qt.AlignCenter)
-            block.setStyleSheet("background:#354052;color:white;font:10px 'Segoe UI';padding:2px;")
+            block.setStyleSheet("background:#354052;color:white;font:700 11px 'Segoe UI';padding:2px;")
             block.hide()
             activity_row.addWidget(block,1);self.activity_blocks.append(block)
         counters_layout.addLayout(activity_row)
@@ -3019,7 +3019,7 @@ class Main(QMainWindow):
             card.layout().setDirection(QBoxLayout.LeftToRight)
             card.layout().setContentsMargins(8,2,8,2)
             label.setStyleSheet("color:"+colour+";font:900 54px 'Consolas';")
-            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:11px;font-weight:800;min-width:82px;")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:12px;font-weight:800;min-width:82px;")
             weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
             card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
@@ -3113,10 +3113,10 @@ class Main(QMainWindow):
         strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
         hour_header=QHBoxLayout();hour_header.setSpacing(4)
         hour_heading=QLabel("▏  HOURLY · BRISBANE · 05:00–17:05")
-        hour_heading.setStyleSheet("color:#f1b82d;font-size:9px;font-weight:900;letter-spacing:0.3px;")
+        hour_heading.setStyleSheet("color:#f1b82d;font-size:12px;font-weight:900;letter-spacing:0.3px;")
         hour_header.addWidget(hour_heading,3)
         hour_legend=QLabel("RED < AVG · ORANGE = AVG · GREEN > AVG")
-        hour_legend.setStyleSheet("color:#d4dbe0;font-size:8px;font-weight:800;")
+        hour_legend.setStyleSheet("color:#d4dbe0;font-size:10px;font-weight:800;")
         hour_header.addWidget(hour_legend,3)
         strip_layout.addLayout(hour_header)
         blocks=QGridLayout();blocks.setSpacing(4)
@@ -3138,7 +3138,7 @@ class Main(QMainWindow):
         daily_layout=QVBoxLayout(self.weekday_strip)
         daily_layout.setContentsMargins(0,0,0,0);daily_layout.setSpacing(2)
         self.weekday_heading=QLabel("▏  DAILY TOTALS · THIS WEEK · BRISBANE")
-        self.weekday_heading.setStyleSheet("color:#f1b82d;font-size:11px;font-weight:900;letter-spacing:1px;")
+        self.weekday_heading.setStyleSheet("color:#f1b82d;font-size:12px;font-weight:900;letter-spacing:1px;")
         daily_layout.addWidget(self.weekday_heading)
         daily_blocks=QHBoxLayout();daily_blocks.setSpacing(4)
         self.dashboard_day_blocks=[]
@@ -3162,7 +3162,7 @@ class Main(QMainWindow):
         week_layout=QVBoxLayout(self.month_week_strip)
         week_layout.setContentsMargins(0,0,0,0);week_layout.setSpacing(2)
         self.month_week_heading=QLabel("WEEKLY TOTALS · THIS MONTH · BRISBANE")
-        self.month_week_heading.setStyleSheet("color:#f1b82d;font-size:11px;font-weight:900;")
+        self.month_week_heading.setStyleSheet("color:#f1b82d;font-size:12px;font-weight:900;")
         week_layout.addWidget(self.month_week_heading)
         week_blocks=QHBoxLayout();week_blocks.setSpacing(4)
         self.dashboard_week_blocks=[]
@@ -4173,7 +4173,7 @@ class Main(QMainWindow):
         self.counters_panel.setStyleSheet("""
             QFrame#metric {background:#20282e;border:1px solid #596771;border-radius:9px;}
             QLabel {background:transparent;border:none;}
-            QLabel#metricName {color:#f1b82d;font-size:11px;letter-spacing:1px;font-weight:800;}
+            QLabel#metricName {color:#f1b82d;font-size:12px;letter-spacing:1px;font-weight:800;}
             QLabel#railHeading {color:#aab5be;font-size:9px;letter-spacing:2px;}
         """)
         self.stats_scroll.setStyleSheet("""
@@ -5835,7 +5835,7 @@ class Main(QMainWindow):
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
                 tile_period=(period[:2]+"–"+("17:05" if index==12 else period[6:8]))
-                block.setText(f'<span style="font-size:8px">{tile_period}</span><br><span style="font-size:14px;font-weight:900">{amount}</span><br><span style="font-size:7px">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
+                block.setText(f'<span style="font-size:10px;font-weight:700">{tile_period}</span><br><span style="font-size:16px;font-weight:900">{amount}</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
                 if completed or current:
                     below=slot['count']<average
                     on_average=math.isclose(slot['count'],average,rel_tol=0.0,abs_tol=1e-9)
@@ -5843,7 +5843,7 @@ class Main(QMainWindow):
                                  "#ffb84d" if on_average else "#38d996")
                     pace_label=("below" if below else "on" if on_average else "above")
                 else:
-                    pace_colour="#84929e"
+                    pace_colour="#b5c4ce"
                     pace_label="upcoming"
                 tile_bg=("#48262a" if pace_label=="below" else "#47391f" if pace_label=="on" else "#1b3b2a" if pace_label=="above" else "#252d33")
                 block.setStyleSheet(f"background:{tile_bg};border:2px solid {pace_colour};border-radius:6px;color:#f7f8fa;font:8px 'Segoe UI';")
@@ -5858,10 +5858,10 @@ class Main(QMainWindow):
         if not days:return
         self.weekday_heading.setText(f"DAILY TOTALS · THIS WEEK · {days[0]['date']:%d %b}–{days[-1]['date']:%d %b} · BRISBANE")
         for block,day in zip(self.dashboard_day_blocks,days):
-            colour="#42b7ff" if day['current'] else "#38d996" if day['completed'] else "#84929e"
+            colour="#42b7ff" if day['current'] else "#38d996" if day['completed'] else "#b5c4ce"
             amount="—" if day['future'] else f"{day['count']:,}"
             tag=" · TODAY" if day['current'] else ""
-            block.setText(f'<span style="font-size:8px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:14px;font-weight:900">{amount}</span> <span style="font-size:8px">tyres</span><br><span style="font-size:8px">{tyre_weight.weight_note(day) if not day["future"] else "Est. weight —"}</span>')
+            block.setText(f'<span style="font-size:10px;font-weight:700">{day["date"]:%a · %d %b}{tag}</span><br><span style="font-size:16px;font-weight:900">{amount}</span> <span style="font-size:10px;font-weight:700">tyres</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(day) if not day["future"] else "Est. weight —"}</span>')
             block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};font:8px 'Segoe UI';")
             block.setToolTip(tyre_weight.weight_note(day)+f"; {day.get('unknown_weight',0)} source records use passenger 8 kg default.\n{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
@@ -5873,10 +5873,10 @@ class Main(QMainWindow):
             block.setVisible(i<len(weeks))
             if i>=len(weeks):continue
             week=weeks[i];last=week['end']-timedelta(days=1)
-            colour="#42b7ff" if week['current'] else "#38d996" if week['completed'] else "#84929e"
+            colour="#42b7ff" if week['current'] else "#38d996" if week['completed'] else "#b5c4ce"
             amount="—" if week['future'] else f"{week['count']:,}"
             tag=" · LIVE" if week['current'] else ""
-            block.setText(f'<span style="font-size:8px">WEEK {i+1} · {week["start"]:%d}–{last:%d %b}{tag}</span><br><span style="font-size:14px;font-weight:900">{amount}</span> <span style="font-size:8px">tyres</span><br><span style="font-size:8px">{tyre_weight.weight_note(week) if not week["future"] else "Est. weight —"}</span>')
+            block.setText(f'<span style="font-size:10px;font-weight:700">WEEK {i+1} · {week["start"]:%d}–{last:%d %b}{tag}</span><br><span style="font-size:16px;font-weight:900">{amount}</span> <span style="font-size:10px;font-weight:700">tyres</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(week) if not week["future"] else "Est. weight —"}</span>')
             block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};font:8px 'Segoe UI';")
             block.setToolTip(tyre_weight.weight_note(week)+f"; {week.get('unknown_weight',0)} source records use passenger 8 kg default.\n{week['start']:%d %b}–{last:%d %b %Y} · Monday–Sunday week clipped to this month. Original OAK production counts, weekdays 05:00–17:05 only. Replay/test counts and review adjustments excluded.")
 
@@ -6370,7 +6370,7 @@ class Main(QMainWindow):
         warning=not testing and (camera!='online' or ai_age is None or ai_age>3 or recording=='check' or 'paused:' in recording or (disk is not None and disk<10))
         self._public_health=None if testing else dict(at=stamp.isoformat(),camera=camera,preview_age=preview_age,ai_age=ai_age,recording=recording,processing_fps=result.get('processing_fps'),app_cpu=cpu,free_gb=disk)
         self.system_health_label.setText(text)
-        self.system_health_label.setStyleSheet("color:"+('#ffbe66' if warning else '#9be8dd')+";font:600 11px 'Segoe UI';")
+        self.system_health_label.setStyleSheet("color:"+('#ffbe66' if warning else '#9be8dd')+";font:700 12px 'Segoe UI';")
         self.system_health_label.setToolTip("App CPU is TyreTrack process usage normalized across logical cores, not whole-PC CPU. Ages refer to received data; they do not verify detection accuracy. Recording worker active does not verify saved packets or completed files.")
         backup_text="PRIVATE LOCAL BACKUP · "+result.get('backup','Pending')
         if result.get('last_backup'):backup_text+=' · Last successful: '+result['last_backup']
@@ -6379,10 +6379,10 @@ class Main(QMainWindow):
         colours={'activity / camera issue':'#b53c48','activity':'#168c70','no counts observed':'#ad792b','camera issue':'#b53c48','unobserved':'#354052'}
         slots=(self._dashboard_cache or {}).get('activity',[])
         for label in self.activity_blocks:
-            label.setStyleSheet("background:#354052;color:white;font:10px 'Segoe UI';padding:2px;")
+            label.setStyleSheet("background:#354052;color:white;font:700 11px 'Segoe UI';padding:2px;")
             label.setToolTip('Unobserved or upcoming · no conveyor status inferred')
         for label,slot in zip(self.activity_blocks,slots):
-            state=slot['state'];label.setStyleSheet(f"background:{colours[state]};color:white;font:10px 'Segoe UI';padding:2px;")
+            state=slot['state'];label.setStyleSheet(f"background:{colours[state]};color:white;font:700 11px 'Segoe UI';padding:2px;")
             label.setToolTip(f"{slot['start'][11:16]}–{slot['end'][11:16]} · {state} · {slot['count']:,} tyres. No-count periods do not prove conveyor downtime; see supervisor reports.")
 
     def tick(self):

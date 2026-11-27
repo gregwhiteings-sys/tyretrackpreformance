@@ -66,7 +66,7 @@ def projection_card_html(title, value, paused=False, font_px=16):
     lines=['TEST · PAUSED'] if paused else str(value).splitlines()
     body='<br>'.join('<nobr>'+escape(line)+'</nobr>' for line in lines)
     return (f'<div style="font-family:Segoe UI;font-size:{int(font_px)}px;font-weight:900">'
-            f'<span style="font-size:{min(10,int(font_px))}px">PROJECTED {escape(title)}</span><br>{body}</div>')
+            f'<span style="font-size:{min(12,int(font_px))}px">PROJECTED {escape(title)}</span><br>{body}</div>')
 
 
 def fit_projection_html(title, value, width, height, font, paint_device, paused=False, preferred_px=16):
