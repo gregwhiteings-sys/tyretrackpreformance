@@ -18,14 +18,14 @@ class CandidatePanel(QFrame):
         note=QLabel('Same OAK-counted tyres · original totals remain in production');note.setWordWrap(True)
         note.setStyleSheet('font:10px "Segoe UI";color:#c9e5ef;');layout.addWidget(note)
         grid=QGridLayout();self.recorded={};self.candidate={}
-        for col,(key,title) in enumerate([('passenger','Passenger'),('4x4','SUV / 4×4'),('truck','Truck'),('unknown','Unknown')],1):
-            label=FitLabel(title);label.setStyleSheet('font:600 10px "Segoe UI";color:#c9e5ef;');grid.addWidget(label,0,col)
-            for row,mapping in [(1,self.recorded),(2,self.candidate)]:
-                value=FitLabel('0' if key!='truck' or row==1 else '—');value.setStyleSheet('font:700 17px "Segoe UI";color:#57e5ca;')
-                mapping[key]=value;grid.addWidget(value,row,col)
-        for row,title in [(1,'Recorded'),(2,'Candidate')]:
+        for col,title in enumerate(['Class','Recorded','Candidate']):
+            label=FitLabel(title);label.setStyleSheet('font:600 11px "Segoe UI";color:#c9e5ef;');grid.addWidget(label,0,col)
+        for row,(key,title) in enumerate([('passenger','Passenger'),('4x4','SUV / 4×4'),('truck','Truck'),('unknown','Unknown')],1):
             label=FitLabel(title);label.setStyleSheet('font:600 11px "Segoe UI";color:#c9e5ef;');grid.addWidget(label,row,0)
-        for col in range(5):grid.setColumnStretch(col,1)
+            for col,mapping in [(1,self.recorded),(2,self.candidate)]:
+                value=FitLabel('0' if key!='truck' or col==1 else '—');value.setStyleSheet('font:700 17px "Segoe UI";color:#57e5ca;')
+                mapping[key]=value;grid.addWidget(value,row,col)
+        for col in range(3):grid.setColumnStretch(col,1)
         layout.addLayout(grid);self.summary=QLabel('Waiting for new production OAK counts');self.summary.setWordWrap(True)
         self.summary.setStyleSheet('font:11px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.summary)
         self.verified=QLabel('No actual classes confirmed yet');self.verified.setWordWrap(True);self.verified.setStyleSheet('font:10px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.verified)
