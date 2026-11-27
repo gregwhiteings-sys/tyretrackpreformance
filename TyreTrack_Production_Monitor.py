@@ -5802,7 +5802,8 @@ class Main(QMainWindow):
                 else:
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
-                block.setText(f'<span style="font-size:8px">{period}</span><br><span style="font-size:14px;font-weight:900">{amount}</span><br><span style="font-size:7px">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
+                tile_period=(period[:2]+"–"+("17:05" if index==12 else period[6:8]))
+                block.setText(f'<span style="font-size:8px">{tile_period}</span><br><span style="font-size:14px;font-weight:900">{amount}</span><br><span style="font-size:7px">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
                 if completed or current:
                     below=slot['count']<average
                     on_average=math.isclose(slot['count'],average,rel_tol=0.0,abs_tol=1e-9)
