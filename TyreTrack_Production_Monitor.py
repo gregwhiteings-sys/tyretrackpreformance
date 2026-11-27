@@ -1678,6 +1678,8 @@ class CounterWorker(QThread):
         self.show_tyre_labels = False
         self.audit = ReviewStore(DATA / 'classification_review', lambda text:self.review_status.emit(text))
         self.pending_comparisons = {}
+        self.candidate_observe_enabled=get_state('candidate_observe_enabled','1')=='1'
+        self.candidate_trial=None
         self.audit_session = uuid.uuid4().hex
         from overlap_review import OverlapReview
         self.overlap_auto_enabled = get_state('overlap_auto_enabled','1')=='1'
@@ -1737,16 +1739,37 @@ class CounterWorker(QThread):
         with self.overlay_lock:
             return self.oak_overlay
 
-    def save_pending_comparison(self,track_id,image=None):
+    def save_pending_comparison(self,track_id,image=None,candidate_context=None):
         item=self.pending_comparisons.pop(track_id,None)
         if item is None:return
         payload,original_image=item
+        if candidate_context is not None:payload['candidate_context']=candidate_context
         current=comparison(self.belt_assist,track_id,self.processing_frame,
             payload['original_class'],payload['visual_vote'],payload['final_class'],
             payload['mode'],asdict(self.belt_assist.settings))
         payload.update(current);payload['measurement_frame']=self.processing_frame
         self.audit.submit('tyre',payload,image if image is not None else original_image,
             key='tyre:'+self.audit_session+':'+str(track_id))
+        self.record_candidate_trial(payload,image if image is not None else original_image)
+
+    def candidate_crop_context(self,box,boxes,width,height,index,sequence):
+        try:
+            from candidate_trial import crop_context
+            return crop_context(box,boxes,width,height,index,sequence)
+        except Exception:
+            return {'reason':'context_unavailable'}
+
+    def record_candidate_trial(self,payload,image):
+        # Optional trial failures must never interrupt the original count worker.
+        if not (self.candidate_observe_enabled and payload.get('candidate_observe_requested')
+                and self.source_kind=='oak' and not self.manual_test and payload.get('scope')=='production'):return
+        try:
+            if self.candidate_trial is None:
+                from candidate_trial import Trial
+                self.candidate_trial=Trial(DATA/'candidate_trial',resource_path('candidate_classifier/best.onnx'),self.review_status.emit)
+            self.candidate_trial.submit(payload,image)
+        except Exception as exc:
+            self.review_status.emit('CANDIDATE OBSERVE-ONLY: comparison unavailable: '+str(exc))
 
     def foreign_check(self, frame):
         evidence_frame = frame
@@ -2133,7 +2156,8 @@ class CounterWorker(QThread):
                         if size_evidence and track_id in self.pending_comparisons:
                             x1c,y1c,x2c,y2c=map(int,box)
                             measured_crop=audit_frame[max(0,y1c):min(height,y2c),max(0,x1c):min(width,x2c)].copy()
-                            self.save_pending_comparison(track_id,measured_crop if measured_crop.size else None)
+                            self.save_pending_comparison(track_id,measured_crop if measured_crop.size else None,
+                                self.candidate_crop_context(box,boxes,width,height,detection_index,frame_sequence))
 
                         if tyre_type == "passenger":
                             display_type = "PASSENGER"
@@ -2193,6 +2217,8 @@ class CounterWorker(QThread):
                                     frame_sequence=frame_sequence,
                                     recording_reference=getattr(source,'recording_path',None))
                                 crop = audit_frame[max(0,y1):min(height,y2),max(0,x1):min(width,x2)].copy()
+                                audit_payload['candidate_observe_requested']=self.candidate_observe_enabled
+                                audit_payload['candidate_context']=self.candidate_crop_context(box,boxes,width,height,detection_index,frame_sequence)
                                 self.pending_comparisons[track_id] = (audit_payload,crop if crop.size else None)
                                 if self.belt_assist.evidence(track_id,self.processing_frame):
                                     self.save_pending_comparison(track_id)
@@ -2301,6 +2327,7 @@ class CounterWorker(QThread):
             if self.overlap_background is not None:self.overlap_background.close()
             self.overlap_review.finish()
             for track_id in list(self.pending_comparisons):self.save_pending_comparison(track_id)
+            if self.candidate_trial is not None:self.candidate_trial.close()
             self.audit.close()
             if self.review_writer is not None:
                 try:
@@ -3325,6 +3352,19 @@ class Main(QMainWindow):
         self.review_cards=ReviewCards(self.open_overlap_reviews,
             get_state('overlap_auto_enabled','1')=='1',self)
         reviews_tab.addWidget(self.review_cards)
+        self.candidate_observe_checkbox=QCheckBox('New crop classifier: observe only')
+        self.candidate_observe_checkbox.setChecked(get_state('candidate_observe_enabled','1')=='1')
+        self.candidate_observe_checkbox.setToolTip('One background CPU comparison per counted tyre. 80% candidate threshold; passenger/SUV only. Never used for production totals or alarms.')
+        reviews_tab.addWidget(self.candidate_observe_checkbox)
+        from candidate_trial_ui import CandidatePanel
+        self.candidate_panel=CandidatePanel(self.open_candidate_reviews,self)
+        self.candidate_panel.set_enabled(self.candidate_observe_checkbox.isChecked())
+        reviews_tab.addWidget(self.candidate_panel)
+        def toggle_candidate(value):
+            set_state('candidate_observe_enabled','1' if value else '0')
+            if self.worker is not None:self.worker.candidate_observe_enabled=bool(value)
+            self.candidate_panel.set_enabled(value)
+        self.candidate_observe_checkbox.toggled.connect(toggle_candidate)
         comparison_button=QPushButton('Open daily comparison and alert reviews')
         comparison_button.clicked.connect(self.open_classification_reviews)
         reviews_tab.addWidget(comparison_button)
@@ -4595,9 +4635,10 @@ class Main(QMainWindow):
     def refresh_comparison_dashboard(self):
         path=DATA/'classification_review'/'reviews.sqlite3'
         if self.closing or self._review_dashboard_busy:return
-        if not path.exists() and not (DATA/'machine_hours'/'hours.sqlite3').exists():return
+        if not path.exists() and not (DATA/'machine_hours'/'hours.sqlite3').exists() and not (DATA/'candidate_trial'/'trial.sqlite3').exists():return
         self._review_dashboard_busy=True;day=brisbane_now().date().isoformat()
         store=self.get_review_store() if path.exists() else None  # Resolve on GUI thread before shutdown.
+        candidate=getattr(self.worker,'candidate_trial',None) if self.worker is not None else None
         def read():
             try:
                 from classification_review import summary
@@ -4609,6 +4650,11 @@ class Main(QMainWindow):
                 from machine_hours import latest
                 result['machine_hours']=latest(DATA/'machine_hours',DB,OAK_NAME)
             except Exception as exc:result['machine_hours']={'status':'Shredder readings unavailable','error':str(exc)}
+            try:
+                from candidate_trial import Store
+                result['candidate_trial']=Store(DATA/'candidate_trial').summary(day)
+                result['candidate_trial_stats']=candidate.snapshot() if candidate is not None else {}
+            except Exception as exc:result['candidate_trial']={'error':str(exc)}
             if not self.closing:self.review_dashboard_ready.emit(result)
         self._review_dashboard_thread=threading.Thread(target=read,name='review-dashboard-read',daemon=True)
         self._review_dashboard_thread.start()
@@ -4617,6 +4663,7 @@ class Main(QMainWindow):
         if self.closing:return
         self._review_dashboard_busy=False
         self.review_cards.show_result(result)
+        if 'candidate_trial' in result:self.candidate_panel.show_result(result['candidate_trial'],result.get('candidate_trial_stats'))
         if 'machine_hours' in result:self.machine_hours_panel.show_result(result['machine_hours'])
 
     def open_replay_classification_reviews(self):
@@ -4641,6 +4688,11 @@ class Main(QMainWindow):
         if not self._confirm_admin_pin('shredder meter readings'):return
         from machine_hours_ui import open_hours
         open_hours(self,DATA/'machine_hours',DB,OAK_NAME)
+        self.refresh_comparison_dashboard()
+
+    def open_candidate_reviews(self):
+        from candidate_trial_ui import open_candidate_review
+        open_candidate_review(self,DATA/'candidate_trial')
         self.refresh_comparison_dashboard()
 
     def open_overlap_reviews(self):

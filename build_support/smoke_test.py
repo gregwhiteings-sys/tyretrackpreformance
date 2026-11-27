@@ -20,6 +20,10 @@ def run(app_module, output):
             import numpy as np
             Detector(app_module.resource_path('overlap_v8/best.onnx'))(np.zeros((360,640,3),np.uint8))
             print("SMOKE: V8 packaged ONNX inference passed",flush=True)
+            from candidate_trial import Predictor
+            candidate_class,candidate_score=Predictor(app_module.resource_path('candidate_classifier/best.onnx')).predict(np.zeros((80,120,3),np.uint8))
+            assert candidate_class in ('passenger','4x4') and 0<=candidate_score<=1
+            print("SMOKE: observe-only classifier checksum and batch-1 ONNX inference passed",flush=True)
             print("SMOKE: generating isolated PDF/CSV with bundled fonts",flush=True)
             from management_reports import smoke_report
             smoke_report()
