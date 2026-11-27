@@ -15,7 +15,7 @@ class CandidatePanel(QFrame):
         self.setStyleSheet('QFrame#candidateTrialPanel {background:#17262b;border:1px solid #587078;border-radius:6px;}')
         layout=QVBoxLayout(self);layout.setContentsMargins(8,7,8,7);layout.setSpacing(4)
         title=FitLabel('TODAY · NEW CLASSIFIER OBSERVE-ONLY');title.setStyleSheet('font:700 12px "Segoe UI";color:#74caff;');layout.addWidget(title)
-        note=FitLabel('Same OAK-counted tyres · original totals remain in production')
+        note=QLabel('Same OAK-counted tyres · original totals remain in production');note.setWordWrap(True)
         note.setStyleSheet('font:10px "Segoe UI";color:#c9e5ef;');layout.addWidget(note)
         grid=QGridLayout();self.recorded={};self.candidate={}
         for col,(key,title) in enumerate([('passenger','Passenger'),('4x4','SUV / 4×4'),('truck','Truck'),('unknown','Unknown')],1):
@@ -26,9 +26,9 @@ class CandidatePanel(QFrame):
         for row,title in [(1,'Recorded'),(2,'Candidate')]:
             label=FitLabel(title);label.setStyleSheet('font:600 11px "Segoe UI";color:#c9e5ef;');grid.addWidget(label,row,0)
         for col in range(5):grid.setColumnStretch(col,1)
-        layout.addLayout(grid);self.summary=FitLabel('Waiting for new production OAK counts')
+        layout.addLayout(grid);self.summary=QLabel('Waiting for new production OAK counts');self.summary.setWordWrap(True)
         self.summary.setStyleSheet('font:11px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.summary)
-        self.verified=FitLabel('No actual classes confirmed yet');self.verified.setStyleSheet('font:10px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.verified)
+        self.verified=QLabel('No actual classes confirmed yet');self.verified.setWordWrap(True);self.verified.setStyleSheet('font:10px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.verified)
         self.status=QLabel('On · 80% candidate confidence · passenger/SUV only');self.status.setWordWrap(True)
         self.status.setStyleSheet('font:11px "Segoe UI";color:#c9e5ef;');layout.addWidget(self.status)
         self.button=QPushButton('Review new classifier / export comparison CSV');self.button.setFixedHeight(28)
@@ -38,7 +38,8 @@ class CandidatePanel(QFrame):
         # Windows font metrics must not turn a label's initial text width into
         # the page's minimum width before FitLabel gets a resize event.
         for label in self.findChildren(QLabel):
-            label.setMinimumWidth(0);label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
+            label.setMinimumWidth(0)
+            policy=QSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred);policy.setHeightForWidth(label.wordWrap());label.setSizePolicy(policy)
     def set_enabled(self,value):
         self.enabled=bool(value)
         self.status.setText('On · 80% candidate confidence · passenger/SUV only' if value else 'Off · saved trial records retained')
