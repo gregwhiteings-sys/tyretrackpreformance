@@ -11,6 +11,7 @@ from review_cards import FitLabel
 class CandidatePanel(QFrame):
     def __init__(self,callback,parent=None):
         super().__init__(parent);self.enabled=True;self.setObjectName('candidateTrialPanel')
+        self.setMinimumWidth(0);self.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
         self.setStyleSheet('QFrame#candidateTrialPanel {background:#17262b;border:1px solid #587078;border-radius:6px;}')
         layout=QVBoxLayout(self);layout.setContentsMargins(8,7,8,7);layout.setSpacing(4)
         title=FitLabel('TODAY · NEW CLASSIFIER OBSERVE-ONLY');title.setStyleSheet('font:700 12px "Segoe UI";color:#74caff;');layout.addWidget(title)
@@ -34,6 +35,10 @@ class CandidatePanel(QFrame):
         self.button.setStyleSheet('font:600 11px "Segoe UI";padding:2px 6px;')
         self.button.setMinimumWidth(0);self.button.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
         self.button.clicked.connect(callback);layout.addWidget(self.button)
+        # Windows font metrics must not turn a label's initial text width into
+        # the page's minimum width before FitLabel gets a resize event.
+        for label in self.findChildren(QLabel):
+            label.setMinimumWidth(0);label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Preferred)
     def set_enabled(self,value):
         self.enabled=bool(value)
         self.status.setText('On · 80% candidate confidence · passenger/SUV only' if value else 'Off · saved trial records retained')

@@ -22,6 +22,7 @@ for style in ['Fusion','Windows']:
    at=label.mapTo(panel,label.rect().topLeft())
    assert at.x()>=0 and at.x()+label.width()<=panel.width(),(width,label.text())
    assert at.y()>=0 and at.y()+label.height()<=panel.height(),(width,label.text())
+   if not label.wordWrap():assert label.fontMetrics().horizontalAdvance(label.text())<=label.contentsRect().width(),(style,width,label.text())
 panel.show_result({'error':'database busy'});assert all(v.text()=='—' for v in panel.recorded.values())
 panel.show_result(summary);assert panel.candidate['4x4'].text()=='230';host.close()
 
