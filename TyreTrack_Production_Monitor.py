@@ -2363,6 +2363,38 @@ def tyre_total_text(value):
     return f'{int(value):,} <span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
 
 
+class PeriodWeightLabel(QLabel):
+    """Fit full period/count/weight text to the actual styled Windows rectangle."""
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs);self._period_template=self.text();self._period_fitting=False
+    def setText(self,text):
+        self._period_template=text;self._fit_period()
+    def resizeEvent(self,event):
+        super().resizeEvent(event);self._fit_period()
+    def showEvent(self,event):
+        super().showEvent(event);self._fit_period()
+    def changeEvent(self,event):
+        super().changeEvent(event)
+        if hasattr(self,'_period_template'):self._fit_period()
+    def _fit_period(self):
+        if getattr(self,'_period_fitting',False):return
+        import re
+        from PyQt5.QtGui import QTextDocument
+        original=getattr(self,'_period_template','')
+        if 'font-size:' not in original:
+            super().setText(original);return
+        self._period_fitting=True
+        try:
+            self.ensurePolished();area=self.contentsRect();width=max(1,area.width()-4);height=max(1,area.height()-4)
+            for scale in (1.,.95,.9,.85,.8,.75,.7,.65,.6):
+                text=re.sub(r'font-size:(\d+)px',lambda m:'font-size:'+str(max(6,round(int(m[1])*scale)))+'px',original)
+                text='<div style="font-family:Segoe UI;font-size:7px">'+text+'</div>'
+                doc=QTextDocument();doc.documentLayout().setPaintDevice(self);doc.setDocumentMargin(0);doc.setDefaultFont(self.font());doc.setHtml(text);doc.setTextWidth(width)
+                if doc.size().height()<=height and doc.idealWidth()<=width:break
+            if self.text()!=text:super().setText(text)
+        finally:self._period_fitting=False
+
+
 class ScrollingRecordLabel(QLabel):
     """Compatibility name; stationary text with no animation timer."""
     def __init__(self, text="", parent=None):
@@ -3091,7 +3123,7 @@ class Main(QMainWindow):
         self.dashboard_hour_blocks=[]
         for index in range(13):
             end="17:05" if index==12 else f"{index+6:02d}:00"
-            label=QLabel(f"{index+5:02d}:00–{end}\n—")
+            label=PeriodWeightLabel(f"{index+5:02d}:00–{end}\n—")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             label.setMinimumWidth(0);label.setFixedHeight(72)
@@ -3111,7 +3143,7 @@ class Main(QMainWindow):
         daily_blocks=QHBoxLayout();daily_blocks.setSpacing(4)
         self.dashboard_day_blocks=[]
         for name in ("MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"):
-            label=QLabel(name+" · —")
+            label=PeriodWeightLabel(name+" · —")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             label.setMinimumWidth(0);label.setFixedHeight(72)
@@ -3135,7 +3167,7 @@ class Main(QMainWindow):
         week_blocks=QHBoxLayout();week_blocks.setSpacing(4)
         self.dashboard_week_blocks=[]
         for i in range(5):
-            block=QLabel(f"WEEK {i+1} · —")
+            block=PeriodWeightLabel(f"WEEK {i+1} · —")
             block.setAlignment(Qt.AlignCenter)
             block.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             block.setMinimumWidth(0);block.setFixedHeight(52)
