@@ -16,18 +16,18 @@ class HoursPanel(QFrame):
         self.setStyleSheet('QFrame#machineHoursPanel {background:#17262b;border:1px solid #587078;border-radius:6px;}')
         outer=QVBoxLayout(self);outer.setContentsMargins(8,5,8,5);outer.setSpacing(2)
         head=QHBoxLayout();self.title=FitLabel('SHREDDER PERFORMANCE · SHIFT-END READINGS')
-        self.title.setStyleSheet('color:#f1c568;font:700 11px "Segoe UI";');head.addWidget(self.title,1)
+        self.title.setStyleSheet('color:#f1c568;font:800 12px "Segoe UI";');head.addWidget(self.title,1)
         self.button=QPushButton('Shredder hours');self.button.setFixedHeight(25)
-        self.button.setStyleSheet('font:600 11px "Segoe UI";padding:2px 8px;');self.button.clicked.connect(callback);head.addWidget(self.button)
+        self.button.setStyleSheet('font:700 12px "Segoe UI";padding:2px 8px;');self.button.clicked.connect(callback);head.addWidget(self.button)
         outer.addLayout(head);row=QHBoxLayout();self.values={}
         for key,name in [('hours','ACTUAL RUNNING HOURS'),('tyres','RECORDED TYRES'),('rate','TYRES / RUNNING HOUR'),('tonnes_rate','EST. TONNES / RUNNING HOUR'),('month_tonnes_rate','MONTH AVG. EST. TONNES / RUN HOUR')]:
             if key=='tonnes_rate':outer.addLayout(row);row=QHBoxLayout()
             box=QFrame();box.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Expanding);box.setMinimumWidth(0)
             layout=QVBoxLayout(box);layout.setContentsMargins(4,0,4,0);layout.setSpacing(0)
-            title=FitLabel(name);title.setStyleSheet('color:#c9e5ef;font:600 10px "Segoe UI";');layout.addWidget(title)
+            title=FitLabel(name);title.setStyleSheet('color:#c9e5ef;font:700 12px "Segoe UI";');layout.addWidget(title)
             value=FitLabel('—');value.setStyleSheet('color:#57e5ca;font:700 24px "Segoe UI";');layout.addWidget(value);self.values[key]=value;row.addWidget(box,1)
         outer.addLayout(row);self.note=FitLabel('Add a checked shift-end meter reading')
-        self.note.setStyleSheet('color:#c9e5ef;font:11px "Segoe UI";');outer.addWidget(self.note)
+        self.note.setStyleSheet('color:#c9e5ef;font:700 12px "Segoe UI";');outer.addWidget(self.note)
     def show_result(self,data):
         data=data or {};day=data.get('day')
         self.title.setText('SHREDDER · LAST COMPLETED SHIFT · '+day if day else 'SHREDDER PERFORMANCE · SHIFT-END READINGS')
