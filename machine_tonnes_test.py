@@ -21,16 +21,16 @@ with tempfile.TemporaryDirectory() as tmp:
     for day,meter in [('2026-11-24',100),('2026-11-25',102),('2026-11-26',110)]:store.save(day,meter,now=now)
     r=latest(store.root,db,'oak',now)
     assert r['tyres']==63 and r['unknown_weight']==2,r
-    assert abs(r['tonnes_rate']-1.258/8)<1e-10,r
-    assert abs(r['month_tonnes_rate']-2.058/10)<1e-10,r
+    assert abs(r['tonnes_rate']-1.274/8)<1e-10,r
+    assert abs(r['month_tonnes_rate']-2.074/10)<1e-10,r
     assert r['month_shifts']==2 and r['month_hours']==10 and r['month_unknown_weight']==2
-    assert abs(r['month_tonnes_rate']-(.8/2+1.258/8)/2)>.01,'Unweighted mean used'
+    assert abs(r['month_tonnes_rate']-(.8/2+1.274/8)/2)>.01,'Unweighted mean used'
     # Unknown additions count as tyres, but never receive an invented weight.
     with closing(sqlite3.connect(db)) as c:
         assert hashlib.sha256(db.read_bytes()).hexdigest()==before
         c.execute("UPDATE counts SET tyre_type='unknown' WHERE source='oak'");c.commit()
     r=latest(store.root,db,'oak',now)
-    assert r['tonnes_rate'] is None and r['month_tonnes_rate'] is None
+    assert abs(r['tonnes_rate']-(63*8/1000/8))<1e-10 and abs(r['month_tonnes_rate']-(163*8/1000/10))<1e-10
     store.save('2026-11-26',102,now=now)
     r=latest(store.root,db,'oak',now)
     assert r.get('tonnes_rate') is None and r['month_shifts']==1

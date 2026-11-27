@@ -30,9 +30,9 @@ with DatabaseTemporaryDirectory() as folder:
  r,paths=build_briefing(db,'oak',folder/'reports',now,incidents_dir=incident,recordings_dir=recordings.parent)
  assert sum(x['count'] for x in r['activity'])==5
  assert all(x['state'] in ('activity','unobserved') for x in r['activity'])
- assert r['total']==5 and r['weight']['total_kg']==77 and r['weight']['total_epu']==9
- assert r['weight']['weights']=={'passenger':16,'4x4':16,'truck':45}
- assert r['weight']['unknown']==1 and sum(s['count'] for s in r['slots'])==5
+ assert r['total']==5 and r['weight']['total_kg']==85 and r['weight']['total_epu']==10
+ assert r['weight']['weights']=={'passenger':24,'4x4':16,'truck':45}
+ assert r['weight']['unknown']==0 and sum(s['count'] for s in r['slots'])==5
  assert r['previous_total']==4 and r['delta_percent']==25
  assert len(r['alarms'])==1 and r['unreadable_incidents']==1 and len(r['recordings'])==1
  assert r['supervisors'][0]['status']=='AWAITING RESPONSE'
@@ -41,7 +41,7 @@ with DatabaseTemporaryDirectory() as folder:
  text=''.join(p.extract_text() for p in PdfReader(paths['pdf']).pages)
  assert 'MONTHLY PROJECTIONS' in text and 'PROJECTED OCTOBER 2026' in text
  assert r['monthly_forecast']['ready']
- assert all(x in text for x in ['TYRECYCLE / OZCOM','No-count review','Truck','25.0%','Recorded footage','Estimated weight by tyre class','58.4%'])
+ assert all(x in text for x in ['TYRECYCLE / OZCOM','No-count review','Truck','25.0%','Recorded footage','Estimated weight by tyre class','52.9%'])
  with paths['csv'].open(encoding='utf-8-sig',newline='') as f:rows=list(csv.DictReader(f))
  assert {'DAY_PROJECTION','WEEK_PROJECTION','MONTHLY_PROJECTION'} <= {x['record_type'] for x in rows}
  projection_row=next(x for x in rows if x['record_type']=='MONTHLY_PROJECTION')
@@ -49,8 +49,8 @@ with DatabaseTemporaryDirectory() as folder:
  assert float(projection_row['estimated_kg'])==round(r['monthly_forecast']['projected_tonnes']*1000,2)
  assert sum(int(x['tyres']) for x in rows if x['record_type']=='ACTIVITY')==5
  assert sum(int(x['tyres']) for x in rows if x['record_type']=='HOURLY')==5
- assert sum(int(x['estimated_kg']) for x in rows if x['record_type']=='HOURLY')==77
- assert next(x for x in rows if x['record_type']=='WEEKDAY' and x['date']=='2026-10-30')['estimated_kg']=='77'
+ assert sum(int(x['estimated_kg']) for x in rows if x['record_type']=='HOURLY')==85
+ assert next(x for x in rows if x['record_type']=='WEEKDAY' and x['date']=='2026-10-30')['estimated_kg']=='85'
  assert sum(x['record_type']=='FOREIGN_ALERT' for x in rows)==1
  from PIL import Image
  snapshot=folder/'snapshot.png';Image.new('RGB',(16,9),'navy').save(snapshot)

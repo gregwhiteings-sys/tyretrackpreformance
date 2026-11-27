@@ -101,7 +101,7 @@ def recorded_output(db,source,day,now=None):
             if t.tzinfo is None:t=t.replace(tzinfo=BRISBANE)
             if start<=t<end:grouped[kind]=grouped.get(kind,0)+1
         except (ValueError,TypeError):continue
-    return weight_totals(grouped) if grouped else None
+    return weight_totals(grouped,default_passenger=True) if grouped else None
 
 def recorded_tyres(db,source,day,now=None):
     output=recorded_output(db,source,day,now)
@@ -122,7 +122,7 @@ def performance(rows,day,db,source,now=None):
     if output is None:result['status']='No production counts available for this shift';return result
     n=output['total_count'];tonnes=output['total_kg']/1000
     result.update(tyres=n,rate=n/hours,tonnes=tonnes,
-                  tonnes_rate=tonnes/hours if n>output['unknown'] else None,
+                  tonnes_rate=tonnes/hours if n>0 else None,
                   unknown_weight=output['unknown'],status='Recorded tyres / actual running hours')
     return result
 
@@ -146,3 +146,62 @@ def latest(root,db,source,now=None):
     result.update(monthly_average(rows,db,source,now))
     return result
 
+
+def report_running_hours(root,events,start,end,now):
+    """Match checked, completed-shift meter deltas to report-snapshot output.
+
+    Never create or update the meter DB and never use in-progress shifts or
+    estimate running hours from elapsed time, counts or no-count gaps.
+    """
+    path=Path(root)/'hours.sqlite3';readings={};error=None
+    if path.is_file():
+        try:
+            with closing(sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True,timeout=3)) as c:
+                c.row_factory=sqlite3.Row
+                readings={r['day']:dict(r) for r in c.execute('SELECT * FROM readings WHERE checked=1 AND meter IS NOT NULL')}
+        except (sqlite3.Error,OSError) as exc:error=str(exc)
+    days=[];day=start.date()
+    while day<=end.date():
+        if day.weekday()<5:
+            key=day.isoformat();close=datetime.combine(day,datetime.min.time(),BRISBANE).replace(hour=17,minute=5)
+            output=weight_totals({k:sum(t.date()==day and kind==k for t,kind in events) for k in {kind for _,kind in events}},default_passenger=True)
+            row=dict(day=key,tyres=output['total_count'],estimated_kg=output['total_kg'],unknown_weight=output['unknown'],
+                     hours=None,rate=None,tonnes_rate=None,status='Meter reading missing',matched=False)
+            r=readings.get(key);prior=readings.get(previous_shift(key))
+            if close>now or close>end:row['status']='Shift in progress — running average pending'
+            elif error:row['status']='Meter records unavailable'
+            elif r:
+                opening=r['opening'] if r['opening'] is not None else prior['meter'] if prior else None
+                if opening is None:row['status']='Previous shift reading missing'
+                else:
+                    hours=round(r['meter']-opening,4)
+                    if not math.isfinite(hours) or not 0<=hours<=24:row['status']='Check meter readings'
+                    elif hours==0:
+                        row['hours']=0.;row['status']='Check counts with zero running hours' if output['total_count'] else 'No running hours recorded'
+                    else:
+                        row.update(hours=hours,matched=True,rate=output['total_count']/hours,
+                            tonnes_rate=output['total_kg']/1000/hours if output['total_count']>0 else None,
+                            status='Checked completed shift')
+            days.append(row)
+        day+=timedelta(days=1)
+    matched=[r for r in days if r['matched']];hours=sum(r['hours'] for r in matched)
+    tyres=sum(r['tyres'] for r in matched);kg=sum(r['estimated_kg'] for r in matched);unknown=sum(r['unknown_weight'] for r in matched)
+    return dict(days=days,matched_shifts=len(matched),expected_shifts=len(days),running_hours=hours if matched else None,
+        matched_tyres=tyres,matched_kg=kg,unknown_weight=unknown,
+        tyres_per_running_hour=tyres/hours if hours else None,
+        tonnes_per_running_hour=kg/1000/hours if hours and tyres>0 else None,
+        average_running_hours_per_shift=hours/len(matched) if matched else None,
+        average_tyres_per_shift=tyres/len(matched) if matched else None,
+        average_tonnes_per_shift=kg/1000/len(matched) if matched and tyres>0 else None,
+        coverage_complete=bool(days) and all(r['matched'] or r['hours']==0 and r['tyres']==0 for r in days),error=error)
+
+def running_hours_text(data):
+    if not data:return 'Shredder running hours: readings pending.'
+    n=data['matched_shifts'];total=data['expected_shifts']
+    if data['running_hours'] is None:return f'Shredder running hours: readings pending (0/{total} shifts matched).'
+    rate=data['tyres_per_running_hour'];tonnes=data['tonnes_per_running_hour']
+    result=f"Shredder running hours: {data['running_hours']:.2f} h; {n}/{total} shifts matched. Average {rate:,.1f} tyres/running h; "
+    result+=f'{tonnes:,.2f} estimated tonnes/running h.' if tonnes is not None else 'estimated tonnes/running h unavailable.'
+    result+=f" Rates use only the same matched shifts ({data['matched_tyres']:,} tyres)."
+    if data['unknown_weight']:result+=f" {data['unknown_weight']:,} source records use the passenger 8 kg default."
+    return result

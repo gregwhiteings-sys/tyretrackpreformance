@@ -2363,6 +2363,38 @@ def tyre_total_text(value):
     return f'{int(value):,} <span style="font-family:Segoe UI;font-size:20px;font-weight:600;">tyres</span>'
 
 
+class PeriodWeightLabel(QLabel):
+    """Fit full period/count/weight text to the actual styled Windows rectangle."""
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs);self._period_template=self.text();self._period_fitting=False
+    def setText(self,text):
+        self._period_template=text;self._fit_period()
+    def resizeEvent(self,event):
+        super().resizeEvent(event);self._fit_period()
+    def showEvent(self,event):
+        super().showEvent(event);self._fit_period()
+    def changeEvent(self,event):
+        super().changeEvent(event)
+        if hasattr(self,'_period_template'):self._fit_period()
+    def _fit_period(self):
+        if getattr(self,'_period_fitting',False):return
+        import re
+        from PyQt5.QtGui import QTextDocument
+        original=getattr(self,'_period_template','')
+        if 'font-size:' not in original:
+            super().setText(original);return
+        self._period_fitting=True
+        try:
+            self.ensurePolished();area=self.contentsRect();width=max(1,area.width()-4);height=max(1,area.height()-4)
+            for scale in (1.,.95,.9,.85,.8,.75,.7,.65,.6):
+                text=re.sub(r'font-size:(\d+)px',lambda m:'font-size:'+str(max(6,round(int(m[1])*scale)))+'px',original)
+                text='<div style="font-family:Segoe UI;font-size:7px">'+text+'</div>'
+                doc=QTextDocument();doc.documentLayout().setPaintDevice(self);doc.setDocumentMargin(0);doc.setDefaultFont(self.font());doc.setHtml(text);doc.setTextWidth(width)
+                if doc.size().height()<=height and doc.idealWidth()<=width:break
+            if self.text()!=text:super().setText(text)
+        finally:self._period_fitting=False
+
+
 class ScrollingRecordLabel(QLabel):
     """Compatibility name; stationary text with no animation timer."""
     def __init__(self, text="", parent=None):
@@ -3091,7 +3123,7 @@ class Main(QMainWindow):
         self.dashboard_hour_blocks=[]
         for index in range(13):
             end="17:05" if index==12 else f"{index+6:02d}:00"
-            label=QLabel(f"{index+5:02d}:00–{end}\n—")
+            label=PeriodWeightLabel(f"{index+5:02d}:00–{end}\n—")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             label.setMinimumWidth(0);label.setFixedHeight(72)
@@ -3111,7 +3143,7 @@ class Main(QMainWindow):
         daily_blocks=QHBoxLayout();daily_blocks.setSpacing(4)
         self.dashboard_day_blocks=[]
         for name in ("MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY"):
-            label=QLabel(name+" · —")
+            label=PeriodWeightLabel(name+" · —")
             label.setAlignment(Qt.AlignCenter)
             label.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             label.setMinimumWidth(0);label.setFixedHeight(72)
@@ -3135,7 +3167,7 @@ class Main(QMainWindow):
         week_blocks=QHBoxLayout();week_blocks.setSpacing(4)
         self.dashboard_week_blocks=[]
         for i in range(5):
-            block=QLabel(f"WEEK {i+1} · —")
+            block=PeriodWeightLabel(f"WEEK {i+1} · —")
             block.setAlignment(Qt.AlignCenter)
             block.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             block.setMinimumWidth(0);block.setFixedHeight(52)
@@ -5802,7 +5834,8 @@ class Main(QMainWindow):
                 else:
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
-                block.setText(f'<span style="font-size:9px">{period}</span><br><span style="font-size:18px;font-weight:900">{amount}</span>')
+                tile_period=(period[:2]+"–"+("17:05" if index==12 else period[6:8]))
+                block.setText(f'<span style="font-size:8px">{tile_period}</span><br><span style="font-size:14px;font-weight:900">{amount}</span><br><span style="font-size:7px">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
                 if completed or current:
                     below=slot['count']<average
                     on_average=math.isclose(slot['count'],average,rel_tol=0.0,abs_tol=1e-9)
@@ -5813,9 +5846,9 @@ class Main(QMainWindow):
                     pace_colour="#84929e"
                     pace_label="upcoming"
                 tile_bg=("#48262a" if pace_label=="below" else "#47391f" if pace_label=="on" else "#1b3b2a" if pace_label=="above" else "#252d33")
-                block.setStyleSheet(f"background:{tile_bg};border:2px solid {pace_colour};border-radius:6px;color:#f7f8fa;")
+                block.setStyleSheet(f"background:{tile_bg};border:2px solid {pace_colour};border-radius:6px;color:#f7f8fa;font:8px 'Segoe UI';")
                 baseline_note=(f" · {slot['count']:,} is {pace_label} the {average:,.1f} tyre average" if completed or current else "")
-                block.setToolTip(("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming")+baseline_note)
+                block.setToolTip((tyre_weight.weight_note(slot)+f"; {slot.get('unknown_weight',0)} source records use passenger 8 kg default.\n" if not test_mode else "")+("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming")+baseline_note)
             if completed or current:
                 active = index
         self.production_scroll.ensureWidgetVisible(self.production_slots[active])
@@ -5828,9 +5861,9 @@ class Main(QMainWindow):
             colour="#42b7ff" if day['current'] else "#38d996" if day['completed'] else "#84929e"
             amount="—" if day['future'] else f"{day['count']:,}"
             tag=" · TODAY" if day['current'] else ""
-            block.setText(f'<span style="font-size:10px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:24px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
-            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};")
-            block.setToolTip(f"{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
+            block.setText(f'<span style="font-size:8px">{day["date"]:%A · %d %b}{tag}</span><br><span style="font-size:14px;font-weight:900">{amount}</span> <span style="font-size:8px">tyres</span><br><span style="font-size:8px">{tyre_weight.weight_note(day) if not day["future"] else "Est. weight —"}</span>')
+            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};font:8px 'Segoe UI';")
+            block.setToolTip(tyre_weight.weight_note(day)+f"; {day.get('unknown_weight',0)} source records use passenger 8 kg default.\n{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
     def refresh_month_week_totals(self):
         weeks=(self._dashboard_cache or {}).get('month_weeks',[])
@@ -5843,9 +5876,9 @@ class Main(QMainWindow):
             colour="#42b7ff" if week['current'] else "#38d996" if week['completed'] else "#84929e"
             amount="—" if week['future'] else f"{week['count']:,}"
             tag=" · LIVE" if week['current'] else ""
-            block.setText(f'<span style="font-size:10px">WEEK {i+1} · {week["start"]:%d}–{last:%d %b}{tag}</span><br><span style="font-size:24px;font-weight:900">{amount}</span> <span style="font-size:11px">tyres</span>')
-            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};")
-            block.setToolTip(f"{week['start']:%d %b}–{last:%d %b %Y} · Monday–Sunday week clipped to this month. Original OAK production counts, weekdays 05:00–17:05 only. Replay/test counts and review adjustments excluded.")
+            block.setText(f'<span style="font-size:8px">WEEK {i+1} · {week["start"]:%d}–{last:%d %b}{tag}</span><br><span style="font-size:14px;font-weight:900">{amount}</span> <span style="font-size:8px">tyres</span><br><span style="font-size:8px">{tyre_weight.weight_note(week) if not week["future"] else "Est. weight —"}</span>')
+            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};font:8px 'Segoe UI';")
+            block.setToolTip(tyre_weight.weight_note(week)+f"; {week.get('unknown_weight',0)} source records use passenger 8 kg default.\n{week['start']:%d %b}–{last:%d %b %Y} · Monday–Sunday week clipped to this month. Original OAK production counts, weekdays 05:00–17:05 only. Replay/test counts and review adjustments excluded.")
 
     def update_production_forecast(self):
         worker = self.worker
@@ -6114,7 +6147,7 @@ class Main(QMainWindow):
             self.publish_dashboard_image(captured)
 
     def refresh_weight_totals(self, types, test_mode=False):
-        values=tyre_weight.totals(types)
+        values=tyre_weight.totals(types,default_passenger=True)
         for key,label in (("passenger",self.passenger_lbl),("4x4",self.suv_lbl),("truck",self.truck_lbl)):
             label.setText(f"{values['counts'][key]:,}")
             self.weight_labels[key].setText(f"{values['weights'][key]:,} kg")
@@ -6123,7 +6156,7 @@ class Main(QMainWindow):
                 self.left_class_weight_labels[key].setText(f"{values['weights'][key]:,} kg")
         prefix="TEST ESTIMATED WEIGHT" if test_mode else "ESTIMATED WEIGHT"
         self.total_weight_lbl.setText(f"{prefix}: {values['total_kg']:,} kg · {values['total_epu']:,} EPU")
-        self.total_weight_lbl.setToolTip(f"{'Test session' if test_mode else 'Today’s production'}: {values['total_count']:,} counted tyres. Passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU. Weight is an estimate. {values['unknown']:,} unclassified tyres excluded from weight and EPU. Truck uses the requested 45 kg directly, not 5 × 8 kg.")
+        self.total_weight_lbl.setToolTip(f"{'Test session' if test_mode else 'Today’s production'}: {values['total_count']:,} counted tyres. Passenger 8 kg/1 EPU; SUV 16 kg/2 EPU; truck 45 kg/5 EPU. Weight is an estimate. {values['unknown']:,} unclassified source records use passenger 8 kg / 1 EPU for weight and EPU. Truck uses the requested 45 kg directly, not 5 × 8 kg.")
 
     def set_flow_rate(self, rate):
         text = f"{rate:.1f}"
