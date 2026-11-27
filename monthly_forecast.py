@@ -31,7 +31,7 @@ def snapshot(con, source, now, period="month"):
         if not day:continue
         first=min(first,day) if first else day
         types[kind]=types.get(kind,0)+n
-    actual=totals(types)
+    actual=totals(types,default_passenger=True)
     elapsed=remaining=0.0
     day=begin
     while day<end:
@@ -51,7 +51,7 @@ def all_snapshots(con,source,now):
 def forecast_text(data,test_mode=False):
     if test_mode:return 'Production projections paused during video/manual tests'
     if not data or not data.get('ready'):return 'PROJECTION · Waiting for at least one observed production hour in this period'
-    warning=' · Unclassified tyres excluded from weight' if data['unknown'] else ''
+    warning=' · Passenger weight default used for unclassified source records' if data['unknown'] else ''
     return (f"PROJECTED {data['label']} · {data['projected_tyres']:,} tyres · {data['projected_tonnes']:,.1f} tonnes\n"
             f"Estimated from {data['observed_hours']:,.1f} scheduled hours since {data['first_day']}; includes stops. Class-based weight estimate.{warning}")
 

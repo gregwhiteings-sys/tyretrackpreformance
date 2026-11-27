@@ -16,7 +16,7 @@ def build_snapshot(live,cache,now,camera_connected=False,target=0,test_mode=Fals
     if test_mode or not live or not cache:return None
     if live['day']!=now.date().isoformat() or live['hour']!=now.hour:return None
     if cache['metrics']['day_start'].date()!=now.date():return None
-    v=tyre_weight.totals(live['types']);metrics=cache['metrics'];slots,best,_=cache['hourly']
+    v=tyre_weight.totals(live['types'],default_passenger=True);metrics=cache['metrics'];slots,best,_=cache['hourly']
     if slots:
         shift_start=slots[0]['start'];shift_end=shift_start.replace(hour=17,minute=5,second=0,microsecond=0)
         elapsed_seconds=max(0.0,min((now-shift_start).total_seconds(),(shift_end-shift_start).total_seconds()))
@@ -53,7 +53,7 @@ def build_snapshot(live,cache,now,camera_connected=False,target=0,test_mode=Fals
             activity.append({k:slot[k] for k in ('start','end','count','state')})
     return dict(schema=1,health=health,activity=activity,captured_at=now.astimezone(timezone.utc).isoformat(timespec='milliseconds').replace('+00:00','Z'),
         today=live['daily'],this_hour=live['current_hour'],best_hour=best['count'] if best else 0,best_day=cache['best'][1],all_time=live['all_time'],
-        passenger=v['counts']['passenger'],suv=v['counts']['4x4'],truck=v['counts']['truck'],unclassified=v['unknown'],estimated_kg=v['total_kg'],epu=v['total_epu'],
+        passenger=v['counts']['passenger'],suv=v['counts']['4x4'],truck=v['counts']['truck'],unclassified=0,estimated_kg=v['total_kg'],epu=v['total_epu'],
         flow=metrics['flow_per_minute'],average_hour=average_hour,
         production_status=metrics['no_count_status'],camera_connected=bool(camera_connected),projections=projections,
         hours=[dict(label=s['start'].strftime('%H:%M'),count=s['count'],current=s['start']<=now<s['end']) for s in slots],

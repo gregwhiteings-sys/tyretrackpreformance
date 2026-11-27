@@ -39,7 +39,7 @@ class HoursPanel(QFrame):
         if data.get('tonnes_rate') is not None or data.get('month_tonnes_rate') is not None:
             note='Weight estimates: passenger 8 kg · SUV/4×4 16 kg · truck 45 kg'
             unknown=data.get('unknown_weight',0);monthly=data.get('month_unknown_weight',0)
-            if unknown or monthly:note+=f' · No weight: {unknown} shift / {monthly} month tyres excluded'
+            if unknown or monthly:note+=f' · Passenger weight default: {unknown} shift / {monthly} month tyres'
         self.note.setText(note);self.note.setToolTip(data.get('error','') or note)
 
 def open_hours(parent,root,counts_db,source):

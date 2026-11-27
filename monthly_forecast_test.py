@@ -14,11 +14,11 @@ add('2026-11-02T04:59:00','truck',50)
 add('2026-11-07T09:00:00','truck',50)
 add('2026-11-02T05:30:00','truck',50,source='VIDEO')
 r=snapshot(con,'OAK',datetime(2026,11,2,7,tzinfo=BRISBANE))
-assert r['actual_tyres']==93 and r['actual_kg']==890 and r['observed_hours']==2
+assert r['actual_tyres']==93 and r['actual_kg']==898 and r['observed_hours']==2
 assert r['unknown']==1 and r['ready']
 assert r['projected_tyres']==round(93+93/2*r['remaining_hours'])
-assert abs(r['projected_tonnes']-(890+445*r['remaining_hours'])/1000)<1e-8
-assert 'Unclassified' in forecast_text(r)
+assert abs(r['projected_tonnes']-(898+449*r['remaining_hours'])/1000)<1e-8
+assert 'passenger weight default' in forecast_text(r).lower()
 assert 'paused' in forecast_text(r,True)
 assert not snapshot(con,'NONE',datetime(2026,11,2,7,tzinfo=BRISBANE))['ready']
 r=snapshot(con,'OAK',datetime(2026,11,30,18,tzinfo=BRISBANE))

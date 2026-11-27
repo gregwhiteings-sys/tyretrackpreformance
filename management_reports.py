@@ -34,7 +34,7 @@ def read_events(con,source,start,end):
         try:
             stamp=local_stamp(ts,epoch)
             if start<=stamp<end and stamp.weekday()<5 and (5,0)<=(stamp.hour,stamp.minute)<(17,5):
-                events.append((stamp,category(kind)))
+                events.append((stamp,'passenger' if category(kind)=='unknown' else category(kind)))
         except (TypeError,ValueError,OverflowError,OSError):pass
     return sorted(events)
 
@@ -131,9 +131,11 @@ def collect(db,source,now=None,weekly=False,incidents_dir=None,recordings_dir=No
         a=start+timedelta(days=index);b=min(a.replace(hour=17,minute=5),end)
         if a<b and a.weekday()<5:
             activity.extend(activity_bins(events,a,b,read_observations(Path(db).parent/'system_health',a,b)))
+    from machine_hours import report_running_hours
+    running_hours=report_running_hours(Path(db).parent/'machine_hours',events,start,end,now)
     complete=now>=close and (weekly or now.weekday()<5)
     delta=((len(events)-len(previous))/len(previous)*100) if complete and previous else None
-    return dict(automatic_overlap_added=len(auto_overlap),overlap_adjustments=adjustments,adjustment_error=adjustment_error,confirmed_missed=confirmed_missed,
+    return dict(running_hours=running_hours,automatic_overlap_added=len(auto_overlap),overlap_adjustments=adjustments,adjustment_error=adjustment_error,confirmed_missed=confirmed_missed,
         reviewed_total=None if adjustment_error else len(events)+confirmed_missed,activity=activity,production_projections=production_projections,monthly_forecast=monthly_forecast,weekly=weekly,source=source,start=start.isoformat(),end=end.isoformat(),as_of=now.isoformat(),complete=complete,
         total=len(events),types=dict(kinds),weight=weight,slots=slots,weekdays=weekdays,best=best,
         average_hour=len(events)*60/minutes if minutes else 0,flow_minute=len(events)/minutes if minutes else 0,
@@ -153,7 +155,8 @@ def commentary(r):
         b=r['best'];text+=f" The strongest {'clock-hour group' if r['weekly'] else 'completed slot'} was {b['start']}-{b['end']} with {b['count']:,} tyres."
     pending=sum(x['status']!='COMPLETED' for x in r['supervisors'])
     text+=f" {len(r['no_count_gaps'])} count {'gap' if len(r['no_count_gaps'])==1 else 'gaps'} of 10+ minutes; {pending} supervisor {'response' if pending==1 else 'responses'} outstanding."
-    return text
+    from machine_hours import running_hours_text
+    return text+' '+running_hours_text(r.get('running_hours'))
 
 def safe_csv(value):
     if isinstance(value,str) and value.lstrip().startswith(('=','+','-','@')):return "'"+value
@@ -161,19 +164,25 @@ def safe_csv(value):
 
 def write_csv(r,path):
     with Path(path).open('w',newline='',encoding='utf-8-sig') as f:
-        w=csv.writer(f);w.writerow(['record_type','date','start_brisbane','end_brisbane','tyres','passenger','suv_4x4','truck','unclassified','estimated_kg','epu','details'])
-        def row(kind,date='',start='',end='',count='',types=None,details=''):
+        w=csv.writer(f);w.writerow(['record_type','date','start_brisbane','end_brisbane','tyres','passenger','suv_4x4','truck','unclassified','estimated_kg','epu','details','estimated_tonnes','running_hours','tyres_per_running_hour','estimated_tonnes_per_running_hour'])
+        def row(kind,date='',start='',end='',count='',types=None,details='',hours='',rate='',tonnes_rate=''):
             types=types or {};v=totals(types)
-            w.writerow([safe_csv(x) for x in [kind,date,start,end,count,*[types.get(k,0) for k in KINDS],v['total_kg'],v['total_epu'],details]])
+            w.writerow([safe_csv(x) for x in [kind,date,start,end,count,*[types.get(k,0) for k in KINDS],v['total_kg'],v['total_epu'],details,v['total_kg']/1000,hours,rate,tonnes_rate]])
         row('PERIOD_TOTAL',r['start'][:10],r['start'],r['end'],r['total'],r['types'],'Estimated class weights; Brisbane UTC+10. '+commentary(r))
+        running=r.get('running_hours',{})
+        for item in running.get('days',[]):
+            # Structured fields report the same matched period as the human-readable summary.
+            w.writerow(['SHREDDER_SHIFT',item['day'],'','',item['tyres'],'','','','',item['estimated_kg'],'',safe_csv(item['status']),item['estimated_kg']/1000,item['hours'] if item['hours'] is not None else '',item['rate'] if item['rate'] is not None else '',item['tonnes_rate'] if item['tonnes_rate'] is not None else ''])
+        if running:
+            w.writerow(['SHREDDER_PERIOD',r['start'][:10],r['start'],r['end'],running['matched_tyres'],'','','','',running['matched_kg'],'',f"{running['matched_shifts']}/{running['expected_shifts']} shifts matched",running['matched_kg']/1000,*[running.get(k) if running.get(k) is not None else '' for k in ('running_hours','tyres_per_running_hour','tonnes_per_running_hour')]])
         for a in r.get('overlap_adjustments',[]):
             row('CONFIRMED_MISSED',start=a['stamp'],count=a['quantity'],types={a['tyre_type']:a['quantity']},details=f"Review {a['id']}; revision {a['revision']}; {a['reviewer']}; {a['notes']}")
-        row('AUTOMATIC_OVERLAP_INCLUDED',r['start'][:10],count=r.get('automatic_overlap_added',0),details='Already included in PERIOD_TOTAL; Overlap correction assumes two tyres, adds one unclassified. Do not add again.')
+        row('AUTOMATIC_OVERLAP_INCLUDED',r['start'][:10],count=r.get('automatic_overlap_added',0),details='Already included in PERIOD_TOTAL; Overlap correction assumes two tyres, adds one tyre using the passenger weight default. Do not add again.')
         row('REVIEWED_TOTAL',r['start'][:10],count=r.get('reviewed_total',''),details='Original recorded total plus confirmed missed adjustments; original counts/forecasts/charts retained. '+(r.get('adjustment_error') or ''))
         from monthly_forecast import forecast_text
         for period,projection in r.get('production_projections',{'month':r.get('monthly_forecast')}).items():
             if projection:
-                w.writerow([period.upper()+'LY_PROJECTION' if period=='month' else period.upper()+'_PROJECTION',r['as_of'][:10],'','',projection['projected_tyres'] if projection['ready'] else '', '', '', '', '', round(projection['projected_tonnes']*1000,2) if projection['ready'] else '', '', safe_csv(forecast_text(projection))])
+                w.writerow([period.upper()+'LY_PROJECTION' if period=='month' else period.upper()+'_PROJECTION',r['as_of'][:10],'','',projection['projected_tyres'] if projection['ready'] else '', '', '', '', '', round(projection['projected_tonnes']*1000,2) if projection['ready'] else '', '', safe_csv(forecast_text(projection)),projection['projected_tonnes'] if projection['ready'] else '', '', '', ''])
         for s in r['slots']:row('HOURLY',r['start'][:10],s['start'],s['end'],s['count'],s['types'])
         for d in r['weekdays']:row('WEEKDAY',d['date'],count='' if d['future'] else d['count'],types=d['types'],details='Upcoming' if d['future'] else 'Production total')
         for slot in r.get('activity',[]):row('ACTIVITY',start=slot['start'],end=slot['end'],count=slot['count'],details=slot['state']+'; no-count periods do not establish conveyor downtime')
@@ -280,13 +289,27 @@ def write_pdf(r,path,logo=None):
         story.append(p(f"Original recorded count: {r['total']:,} + confirmed missed: {r.get('confirmed_missed',0):,} = reviewed total: {r.get('reviewed_total',r['total']):,}. Original charts, hourly totals, weight estimates and forecasts remain based on recorded counts."))
     if r.get('overlap_adjustments'):
         story.append(table([['Event time (Brisbane)','Missed / class','Reviewer / reason']]+[[local_stamp(a['stamp']).strftime('%d %b %Y %H:%M:%S'),str(a['quantity'])+' / '+a['tyre_type'],a['reviewer']+' | '+a['notes']+' | revision '+str(a['revision'])] for a in r['overlap_adjustments']],[width*.3,width*.2,width*.5]))
-    kpis=[('TOTAL TYRES',f"{r['total']:,}"),('ESTIMATED WEIGHT',f"{r['weight']['total_kg']/1000:,.2f} tonnes"),('TOTAL EPU',f"{r['weight']['total_epu']:,}"),('AVERAGE / HOUR',f"{r['average_hour']:,.1f}"),('BEST DAY',f"{r['best_day'][1]:,} tyres"),('ALL-TIME OAK COUNTS',f"{r['all_time']:,}")]
+    kpis=[('TOTAL TYRES',f"{r['total']:,}"),('ESTIMATED WEIGHT',f"{r['weight']['total_kg']/1000:,.2f} tonnes"),('TOTAL EPU',f"{r['weight']['total_epu']:,}"),('TYRES / SCHEDULED HOUR',f"{r['average_hour']:,.1f}"),('BEST DAY',f"{r['best_day'][1]:,} tyres"),('ALL-TIME OAK COUNTS',f"{r['all_time']:,}")]
     tiles=[]
     for a in (0,3):tiles.append([Paragraph(f'<font size="7" color="#526779">{label}</font><br/><font name="BriefBold" size="17" color="#008b85">{value}</font>',ParagraphStyle(name='KPI',parent=styles['BriefBody'],leading=22)) for label,value in kpis[a:a+3]])
-    t=Table(tiles,colWidths=[width/3]*3);t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#edf5f8')),('BOX',(0,0),(-1,-1),.5,colors.HexColor('#d6e2e9')),('TOPPADDING',(0,0),(-1,-1),9),('BOTTOMPADDING',(0,0),(-1,-1),8)]));story +=[t,Spacer(1,9),p(commentary(r)),heading('Hourly production'+(' - combined clock hours' if r['weekly'] else '')),Bars([s['start'][:2] for s in r['slots']],[s['count'] for s in r['slots']]),heading('Monday-Friday production'),Bars([d['label'] for d in r['weekdays']],[None if d['future'] else d['count'] for d in r['weekdays']],h=99),heading('Tyre classifications'),Mix(),p('Passenger: 8 kg / 1 EPU. SUV / 4x4: 16 kg / 2 EPU. Truck: 45 kg / 5 EPU. Unclassified tyres remain in the total and have no assigned weight. Truck figures require truck-labelled count data.'),PageBreak(),heading('Estimated weight by tyre class'),Mix(weight=True),p('Weight share uses kilograms, not tyre counts. Unclassified tyres have no assigned weight and are excluded. Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre.'),p(f"Automatic overlap corrections included in recorded total: +{r.get('automatic_overlap_added',0)} (unclassified; assumes two tyres per overlap)."),heading('Production detail')]
-    rows=[['Brisbane slot','Tyres','Passenger','SUV / 4x4','Truck','Est. kg']]
-    for s in r['slots']:rows.append([s['start']+'-'+s['end'],f"{s['count']:,}",s['types'].get('passenger',0),s['types'].get('4x4',0),s['types'].get('truck',0),totals(s['types'])['total_kg']])
-    story +=[table(rows,[width*.24,width*.12,width*.17,width*.17,width*.12,width*.18]),p(f"Average flow: {r['flow_minute']:.2f} tyres/min | Best completed-slot flow: {r['peak_flow']:.2f} tyres/min"),p(f"Best day: {r['best_day'][0] or 'No history'} | Previous {'week' if r['weekly'] else 'working day'} ({r['previous_label']}): {r['previous_total']:,} tyres"),heading('No-count review and supervisor responses'),p(f"{len(r['no_count_gaps'])} count {'gap' if len(r['no_count_gaps'])==1 else 'gaps'} of 10+ minutes ({sum(g['minutes'] for g in r['no_count_gaps']):.1f} minutes combined). A count gap does not establish conveyor stoppage or camera availability.")]
+    t=Table(tiles,colWidths=[width/3]*3);t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,-1),colors.HexColor('#edf5f8')),('BOX',(0,0),(-1,-1),.5,colors.HexColor('#d6e2e9')),('TOPPADDING',(0,0),(-1,-1),9),('BOTTOMPADDING',(0,0),(-1,-1),8)]));story +=[t,Spacer(1,9),p(commentary(r)),heading('Hourly production'+(' - combined clock hours' if r['weekly'] else '')),Bars([s['start'][:2] for s in r['slots']],[s['count'] for s in r['slots']]),heading('Monday-Friday production'),Bars([d['label'] for d in r['weekdays']],[None if d['future'] else d['count'] for d in r['weekdays']],h=99),heading('Tyre classifications'),Mix(),p('Passenger: 8 kg / 1 EPU. SUV / 4x4: 16 kg / 2 EPU. Truck: 45 kg / 5 EPU. Any unclassified source records default to passenger at 8 kg / 1 EPU for reporting. Truck figures require truck-labelled count data.'),PageBreak(),heading('Estimated weight by tyre class'),Mix(weight=True),p('Weight share uses kilograms, not tyre counts. Any unclassified source records default to passenger at 8 kg / 1 EPU. Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre.'),p(f"Automatic overlap corrections included in recorded total: +{r.get('automatic_overlap_added',0)} (passenger weight default; assumes two tyres per overlap)."),heading('Production detail')]
+    rows=[['Brisbane slot','Tyres','Passenger','SUV / 4x4','Truck','Est. kg','Est. t']]
+    for s in r['slots']:rows.append([s['start']+'-'+s['end'],f"{s['count']:,}",s['types'].get('passenger',0),s['types'].get('4x4',0),s['types'].get('truck',0),totals(s['types'])['total_kg'],f"{totals(s['types'])['total_kg']/1000:,.3f}"])
+    story +=[table(rows,[width*.22,width*.12,width*.13,width*.15,width*.10,width*.14,width*.14]),p(f"Average flow: {r['flow_minute']:.2f} tyres/min | Best completed-slot flow: {r['peak_flow']:.2f} tyres/min"),p(f"Best day: {r['best_day'][0] or 'No history'} | Previous {'week' if r['weekly'] else 'working day'} ({r['previous_label']}): {r['previous_total']:,} tyres"),heading('No-count review and supervisor responses'),p(f"{len(r['no_count_gaps'])} count {'gap' if len(r['no_count_gaps'])==1 else 'gaps'} of 10+ minutes ({sum(g['minutes'] for g in r['no_count_gaps']):.1f} minutes combined). A count gap does not establish conveyor stoppage or camera availability.")]
+    running=r.get('running_hours',{})
+    if running:
+        from machine_hours import running_hours_text
+        story += [heading('Shredder running hours and averages'),p(running_hours_text(running))]
+        details=[['Shift date','Running h','Tyres','Est. tonnes','Tyres/run h','Est. t/run h']]
+        for item in running['days']:
+            fmt=lambda v: 'Pending' if v is None else f'{v:,.2f}'
+            details.append([item['day'],fmt(item['hours']),f"{item['tyres']:,}",f"{item['estimated_kg']/1000:,.3f}",fmt(item['rate']),fmt(item['tonnes_rate'])])
+        story += [table(details,[width*.19,width*.15,width*.14,width*.17,width*.18,width*.17])]
+        story += [p(item['day']+': '+item['status']) for item in running['days'] if not item['matched']]
+        if running['average_running_hours_per_shift'] is not None:
+            story.append(p(f"Average per matched shift: {running['average_running_hours_per_shift']:.2f} running hours; {running['average_tyres_per_shift']:,.1f} tyres; {('unavailable' if running['average_tonnes_per_shift'] is None else format(running['average_tonnes_per_shift'], ',.3f'))} estimated tonnes. Weekly throughput is total matched output divided by total matched running hours, not the mean of daily rates."))
+        story.append(p('Checked closing meter less opening/prior working-shift meter. Missing or unchecked readings and unfinished shifts are not treated as zero. No-count gaps are not running-hour measurements.'))
+    story += [heading('Daily production weight'),table([['Date','Tyres','Estimated kg','Estimated tonnes']]+[[x['date'],'Upcoming' if x['future'] else x['count'],'—' if x['future'] else totals(x['types'])['total_kg'],'—' if x['future'] else f"{totals(x['types'])['total_kg']/1000:,.3f}"] for x in r['weekdays']],[width*.28,width*.2,width*.26,width*.26])]
     if r.get('activity'):
         story += [heading('Production activity timeline'),p('Green/activity: counts recorded. No counts observed: telemetry exists but no tyres counted. Camera issue: stale preview observed. Unobserved: no health history available. None establishes the reason for conveyor downtime.'),table([['Brisbane period','Tyres','Observation']]+[[slot['start'][:10]+' '+slot['start'][11:16]+'–'+slot['end'][11:16],slot['count'],slot['state']] for slot in r['activity']],[width*.45,width*.15,width*.40])]
     if r['no_count_gaps']:
@@ -334,8 +357,8 @@ def make_email(settings,r,paths,snapshot=None):
     sender,password,recipient=settings
     msg=EmailMessage();msg['From']=sender;msg['To']=recipient
     msg['Subject']=f"TYRECYCLE / OZCOM | {'Weekly' if r['weekly'] else 'Daily'} production | {r['start'][:10]} | {r['total']:,} tyres"
-    msg.set_content('TYRECYCLE / OZCOM - TYRETRACK\n\n'+commentary(r)+f"\n\nEstimated weight: {r['weight']['total_kg']:,} kg\nEPU: {r['weight']['total_epu']:,}\nAverage: {r['average_hour']:.1f} tyres/hour\n\nOpen the attached PDF for charts, operational review and timestamped foreign-alert snapshots, or the CSV in Excel.\nWeights are classification estimates. Times are Brisbane UTC+10.")
-    html=f'<html><body style="font-family:Arial;color:#10283c"><h1 style="color:#008b85">TYRECYCLE / OZCOM</h1><h2>{"Weekly" if r["weekly"] else "Daily"} production briefing</h2><p>{escape(commentary(r))}</p><table cellpadding="14" style="background:#edf5f8"><tr><td><b>{r["total"]:,}</b><br>TYRES</td><td><b>{r["weight"]["total_kg"]:,} kg</b><br>ESTIMATED WEIGHT</td><td><b>{r["weight"]["total_epu"]:,}</b><br>EPU</td></tr></table><p><b>Attached:</b> PDF charts, management review and timestamped foreign-alert snapshots; CSV for Excel.</p><p>Brisbane UTC+10. Weights are class-based estimates.</p></body></html>'
+    msg.set_content('TYRECYCLE / OZCOM - TYRETRACK\n\n'+commentary(r)+f"\n\nEstimated weight: {r['weight']['total_kg']:,} kg / {r['weight']['total_kg']/1000:,.3f} tonnes\nEPU: {r['weight']['total_epu']:,}\nScheduled-window average: {r['average_hour']:.1f} tyres/hour\n\nOpen the attached PDF for charts, operational review and timestamped foreign-alert snapshots, or the CSV in Excel.\nWeights are classification estimates. Times are Brisbane UTC+10.")
+    html=f'<html><body style="font-family:Arial;color:#10283c"><h1 style="color:#008b85">TYRECYCLE / OZCOM</h1><h2>{"Weekly" if r["weekly"] else "Daily"} production briefing</h2><p>{escape(commentary(r))}</p><table cellpadding="14" style="background:#edf5f8"><tr><td><b>{r["total"]:,}</b><br>TYRES</td><td><b>{r["weight"]["total_kg"]:,} kg / {r["weight"]["total_kg"]/1000:,.3f} t</b><br>ESTIMATED WEIGHT</td><td><b>{r["weight"]["total_epu"]:,}</b><br>EPU</td></tr></table><p><b>Attached:</b> PDF charts, management review and timestamped foreign-alert snapshots; CSV for Excel.</p><p>Brisbane UTC+10. Weights are class-based estimates.</p></body></html>'
     adjustment_text=('Reviewed total unavailable: adjustment records could not be read.' if r.get('adjustment_error') else f"Original recorded count {r['total']:,} + confirmed missed {r.get('confirmed_missed',0):,} = reviewed total {r.get('reviewed_total',r['total']):,}. See PDF for reviewer and reason.")
     msg.set_content(msg.get_content()+'\n'+adjustment_text)
     html=html.replace('</body>','<p>'+escape(adjustment_text)+'</p></body>')
@@ -347,7 +370,7 @@ def make_email(settings,r,paths,snapshot=None):
         captured=datetime.fromtimestamp(Path(snapshot).stat().st_mtime,BRISBANE).strftime('%d %b %Y %H:%M:%S Brisbane')
         html=html.replace('</body>',f'<p>Dashboard captured {captured}:</p><img src="cid:dashboard_snapshot" alt="Dashboard reference" style="width:100%;max-width:900px;height:auto"></body>')
     html=html.replace('</body>', '<p><b>Production activity timeline:</b> included in the attached PDF and CSV. Count gaps alone do not establish conveyor downtime.</p></body>')
-    html=html.replace('</body>', '<h3>Estimated weight by tyre class</h3><img src="cid:weight_mix" alt="Estimated weight by class in kilograms" style="width:100%;max-width:620px"><p>Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre. Unclassified tyres excluded.</p></body>')
+    html=html.replace('</body>', '<h3>Estimated weight by tyre class</h3><img src="cid:weight_mix" alt="Estimated weight by class in kilograms" style="width:100%;max-width:620px"><p>Passenger: 8 kg; SUV / 4x4: 16 kg; truck: 45 kg per tyre. Unclassified source records use the passenger weight default.</p></body>')
     msg.add_alternative(html,subtype='html')
     msg.get_body(preferencelist=('html',)).add_related(weight_chart_png(r),maintype='image',subtype='png',cid='<weight_mix>',disposition='inline',filename='Estimated_Weight_By_Class.png')
     for ext,mime in [('pdf',('application','pdf')),('csv',('text','csv'))]:msg.add_attachment(Path(paths[ext]).read_bytes(),maintype=mime[0],subtype=mime[1],filename=Path(paths[ext]).name)

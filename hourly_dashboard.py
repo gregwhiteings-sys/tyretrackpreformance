@@ -1,3 +1,4 @@
+from tyre_weight import add_weight
 """Brisbane production-hour metrics, 05:00–17:05 daily (UTC+10)."""
 from datetime import datetime, timedelta, timezone
 BRISBANE = timezone(timedelta(hours=10), "Brisbane UTC+10")
@@ -10,9 +11,10 @@ def brisbane_now():
 
 def hourly_snapshot(connection, source=None, now=None):
     now = (now or brisbane_now()).astimezone(BRISBANE)
+    kind_column='tyre_type' if any(r[1]=='tyre_type' for r in connection.execute('PRAGMA table_info(counts)')) else 'NULL'
     start = now.replace(hour=START_HOUR, minute=0, second=0, microsecond=0)
     cutoff = now.replace(hour=END_HOUR, minute=END_MINUTE, second=0, microsecond=0)
-    query = 'SELECT ts, metric_utc FROM counts WHERE (metric_utc>=? OR (metric_utc IS NULL AND ts>=?))'
+    query = f'SELECT ts, metric_utc,{kind_column} FROM counts WHERE (metric_utc>=? OR (metric_utc IS NULL AND ts>=?))'
     params = [start.timestamp(), start.replace(tzinfo=None).isoformat()]
     if source is not None:
         query += ' AND source=?'
@@ -22,9 +24,9 @@ def hourly_snapshot(connection, source=None, now=None):
     for index in range(13):
         begin=start+timedelta(hours=index)
         end=min(begin+timedelta(hours=1),cutoff)
-        slots.append(dict(number=index+1,start=begin,end=end,count=0,
+        slots.append(dict(number=index+1,start=begin,end=end,count=0,estimated_kg=0,unknown_weight=0,
                           completed=bool(now>=end)))
-    for ts, epoch in connection.execute(query,params):
+    for ts, epoch,kind in connection.execute(query,params):
         try:
             event = datetime.fromtimestamp(epoch,BRISBANE) if epoch is not None else datetime.fromisoformat(ts)
             if event.tzinfo is None:
@@ -33,6 +35,7 @@ def hourly_snapshot(connection, source=None, now=None):
             if start<=event<cutoff and event<=now:
                 idx=min(12,int((event-start).total_seconds()//3600))
                 slots[idx]['count']+=1
+                add_weight(slots[idx],kind)
         except (TypeError,ValueError,OverflowError):
             continue
     completed=[slot for slot in slots if slot['completed']]

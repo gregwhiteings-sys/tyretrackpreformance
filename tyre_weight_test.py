@@ -19,9 +19,9 @@ with DatabaseTemporaryDirectory() as tmp:
  m.DATA=Path(tmp);m.DB=Path(tmp)/'test.db';m.init_db();w=m.Main();w.clock.stop();w.show()
  before=m.get_state('celebration_sound')
  w.refresh_weight_totals({'passenger':10,'4x4':3,'truck':2,'unknown':1})
- assert w.passenger_lbl.text()=='10' and w.suv_lbl.text()=='3' and w.truck_lbl.text()=='2'
- assert [w.weight_labels[k].text() for k in ('passenger','4x4','truck')]==['80 kg','48 kg','90 kg']
- assert '218 kg' in w.total_weight_lbl.text() and '26 EPU' in w.total_weight_lbl.text()
+ assert w.passenger_lbl.text()=='11' and w.suv_lbl.text()=='3' and w.truck_lbl.text()=='2'
+ assert [w.weight_labels[k].text() for k in ('passenger','4x4','truck')]==['88 kg','48 kg','90 kg']
+ assert '226 kg' in w.total_weight_lbl.text() and '27 EPU' in w.total_weight_lbl.text()
  assert '1 unclassified' in w.total_weight_lbl.toolTip()
  for style in ('Fusion','Windows'):
   qt.setStyle(style)
