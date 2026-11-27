@@ -8,6 +8,7 @@ stub=types.ModuleType('ultralytics');stub.YOLO=object;sys.modules['ultralytics']
 import TyreTrack_Production_Monitor as m
 import oak_rvc2
 import candidate_trial
+from test_resources import DatabaseTemporaryDirectory
 real_trial=candidate_trial.Trial
 class CandidateFixture:
  def __init__(self,path):pass
@@ -38,7 +39,7 @@ class Source:
   return True,image,self.index
  def release(self):pass
 m.OakSource=Source;m.oak_in_operating_hours=lambda:True;m.log_count=lambda *a:counts.append(a)
-with tempfile.TemporaryDirectory() as tmp:
+with DatabaseTemporaryDirectory() as tmp:
  m.DATA=Path(tmp);m.DB=m.DATA/'counts.db';m.init_db();m.set_state('candidate_observe_enabled','1')
  import hashlib
  original_db=hashlib.sha256(m.DB.read_bytes()).hexdigest()
