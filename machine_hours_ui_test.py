@@ -11,7 +11,7 @@ host=QWidget();layout=QVBoxLayout(host);panel=HoursPanel(lambda:None);layout.add
 panel.show_result({'day':'2026-11-26','hours':9.7,'tyres':970,'rate':100,'tonnes_rate':1.2,'month_tonnes_rate':1.35,'unknown_weight':1,'month_unknown_weight':2,'status':'Recorded tyres / actual running hours'})
 assert panel.values['hours'].text()=='9.7 h' and panel.values['rate'].text()=='100.0'
 assert panel.values['tonnes_rate'].text()=='1.20 t/h' and panel.values['month_tonnes_rate'].text()=='1.35 t/h'
-assert 'tyres excluded' in panel.note.text()
+assert 'Passenger weight default' in panel.note.text()
 for width in [640,720,880]:
  host.resize(width,166)
  for _ in range(5):app.processEvents()
