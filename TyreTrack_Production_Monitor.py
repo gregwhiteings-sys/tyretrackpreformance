@@ -2870,9 +2870,9 @@ class Main(QMainWindow):
                 logo_label = QLabel()
                 logo_label.setObjectName("tyrecycleLogo")
                 logo_label.setPixmap(logo_pixmap.scaled(
-                    136, 52, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    136, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation
                 ))
-                logo_label.setFixedSize(140, 54)
+                logo_label.setFixedSize(140, 62)
                 logo_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
                 header.addWidget(logo_label)
         header.addLayout(title_column)

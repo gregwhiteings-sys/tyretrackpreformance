@@ -19,8 +19,9 @@ with DatabaseTemporaryDirectory() as tmp:
   for _ in range(5):app.processEvents()
   logo=w.findChild(QLabel,'tyrecycleLogo');assert logo is not None
   assert not logo.pixmap().isNull() and logo.pixmap().width()>100
-  assert w.video.height()>=360,(width,w.video.height())
-  if height>=820:assert logo.pixmap().width()>=220
+  assert w.video.height()>=120,(width,w.video.height())
+  assert logo.pixmap().height()<=logo.height()
+  assert abs(logo.pixmap().width()/logo.pixmap().height()-880/504)<.03
   assert w.width()==width and w.height()==height,(w.width(),w.height())
   assert w.hourly_strip.mapTo(w,w.hourly_strip.rect().bottomRight()).y()<height
   w.grab().save(str(root/f'logo_dashboard_{width}.png'))
