@@ -2388,7 +2388,7 @@ class PeriodWeightLabel(QLabel):
             self.ensurePolished();area=self.contentsRect();width=max(1,area.width()-4);height=max(1,area.height()-4)
             for scale in (1.,.95,.9,.85,.8,.75,.7,.65,.6):
                 text=re.sub(r'font-size:(\d+)px',lambda m:'font-size:'+str(max(6,round(int(m[1])*scale)))+'px',original)
-                text='<div style="font-family:Segoe UI;font-size:10px;font-weight:700">'+text+'</div>'
+                text='<div style="font-family:Segoe UI;font-size:'+str(max(6,round(10*scale)))+'px;font-weight:700"><nobr>'+text.replace('<br>','</nobr><br><nobr>')+'</nobr></div>'
                 doc=QTextDocument();doc.documentLayout().setPaintDevice(self);doc.setDocumentMargin(0);doc.setDefaultFont(self.font());doc.setHtml(text);doc.setTextWidth(width)
                 if doc.size().height()<=height and doc.idealWidth()<=width:break
             if self.text()!=text:super().setText(text)
@@ -5843,7 +5843,7 @@ class Main(QMainWindow):
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
                 tile_period=(period[:2]+"–"+("17:05" if index==12 else period[6:8]))
-                block.setText(f'<span style="font-size:10px;font-weight:700">{tile_period}</span><br><span style="font-size:16px;font-weight:900">{amount}</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
+                block.setText(f'<span style="font-size:10px;font-weight:700">{tile_period}</span><br><span style="font-size:16px;font-weight:900">{amount}</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. —"}</span>')
                 if completed or current:
                     below=slot['count']<average
                     on_average=math.isclose(slot['count'],average,rel_tol=0.0,abs_tol=1e-9)
