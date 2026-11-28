@@ -2388,7 +2388,7 @@ class PeriodWeightLabel(QLabel):
             self.ensurePolished();area=self.contentsRect();width=max(1,area.width()-4);height=max(1,area.height()-4)
             for scale in (1.,.95,.9,.85,.8,.75,.7,.65,.6):
                 text=re.sub(r'font-size:(\d+)px',lambda m:'font-size:'+str(max(6,round(int(m[1])*scale)))+'px',original)
-                text='<div style="font-family:Segoe UI;font-size:10px;font-weight:700">'+text+'</div>'
+                text='<div style="font-family:Segoe UI;font-size:'+str(max(6,round(10*scale)))+'px;font-weight:700"><nobr>'+text.replace('<br>','</nobr><br><nobr>')+'</nobr></div>'
                 doc=QTextDocument();doc.documentLayout().setPaintDevice(self);doc.setDocumentMargin(0);doc.setDefaultFont(self.font());doc.setHtml(text);doc.setTextWidth(width)
                 if doc.size().height()<=height and doc.idealWidth()<=width:break
             if self.text()!=text:super().setText(text)
@@ -2852,7 +2852,7 @@ class Main(QMainWindow):
 
         brand = QLabel("TYRETRACK")
         brand.setObjectName("brand")
-        subtitle = QLabel("TYRECYCLE  /  OZCOM")
+        subtitle = QLabel("PRODUCTION INTELLIGENCE  /  OZCOM")
         subtitle.setObjectName("subtitle")
 
         title_column.addWidget(brand)
@@ -2870,19 +2870,15 @@ class Main(QMainWindow):
                 logo_label = QLabel()
                 logo_label.setObjectName("tyrecycleLogo")
                 logo_label.setPixmap(logo_pixmap.scaled(
-                    136, 52, Qt.KeepAspectRatio, Qt.SmoothTransformation
+                    136, 60, Qt.KeepAspectRatio, Qt.SmoothTransformation
                 ))
-                logo_label.setFixedSize(140, 54)
+                logo_label.setFixedSize(140, 62)
                 logo_label.setAlignment(Qt.AlignVCenter | Qt.AlignLeft)
                 header.addWidget(logo_label)
         header.addLayout(title_column)
         header.addStretch()
-        design_badge=QLabel("05 / INDUSTRIAL CLARITY")
-        design_badge.setAlignment(Qt.AlignCenter)
-        design_badge.setStyleSheet("background:#303a41;border:1px solid #67737b;border-radius:5px;color:#f1b82d;font-size:13px;font-weight:900;letter-spacing:1px;padding:8px 14px;")
         live_dashboard_tag=QLabel("OPERATOR DASHBOARD")
         live_dashboard_tag.setStyleSheet("color:#d4dbe0;font-size:12px;font-weight:800;letter-spacing:1px;padding:4px 10px;")
-        header.addWidget(design_badge)
         header.addWidget(live_dashboard_tag)
 
         self.counters_btn = QPushButton("Hide counters")
@@ -2974,7 +2970,7 @@ class Main(QMainWindow):
 
         # Match the reference composition: the main Today card shares the top
         # row with the three class totals.
-        daily=metric_card("TODAY",self.day_lbl,"#f1b82d")
+        daily=metric_card("TODAY",self.day_lbl,"#f1f4f7")
         daily.setFixedHeight(218)
         self.today_metric_card=daily
         self.total_weight_lbl=QLabel("ESTIMATED WEIGHT: 0 kg · 0 EPU")
@@ -2985,7 +2981,7 @@ class Main(QMainWindow):
         self.alltime_dates_lbl = QLabel("No production dates recorded")
         self.alltime_dates_lbl.setStyleSheet("color:#a3b9cf;font:600 12px 'Segoe UI';")
         self.alltime_metric_card.layout().addWidget(self.alltime_dates_lbl)
-        daily.layout().addWidget(self.alltime_metric_card)
+        # All-time is a peer of Today, rather than a nested card.
         # Match the main total's numeral size to the Passenger/SUV/Truck
         # totals beside it, so the class figures read as first-class KPIs.
         self.day_lbl.setStyleSheet("color:#f7f8fa;font:900 54px 'Consolas';")
@@ -2999,7 +2995,7 @@ class Main(QMainWindow):
             label.setFixedHeight(88)
             label.setAlignment(Qt.AlignCenter)
             label.setWordWrap(True)
-            label.setStyleSheet("color:#f4f7f9;background:#17251f;border:1px solid #42c879;border-radius:8px;font:900 24px 'Segoe UI';padding:6px;")
+            label.setStyleSheet("color:#f4f7f9;background:#11151a;border:1px solid #9aa6b0;border-radius:8px;font:900 24px 'Segoe UI';padding:6px;")
             projection_row.addWidget(label,1)
             self.projection_labels[period]=label
         self.forecast_label=self.projection_labels['month']  # Compatibility for dashboard consumers.
@@ -3008,33 +3004,43 @@ class Main(QMainWindow):
 
         # Class totals use the established large count type and sit with the
         # right-hand production statistics.
-        classes=QVBoxLayout();classes.setSpacing(4);classes.setContentsMargins(0,0,0,0)
+        classes=QHBoxLayout();classes.setSpacing(5);classes.setContentsMargins(0,0,0,0)
         self.class_summary=QFrame();self.class_summary.setObjectName("classSummary")
         self.class_summary.setLayout(classes)
         self.class_summary.setFixedHeight(218)
         self.truck_lbl=QLabel("0")
         self.weight_labels={}
-        for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#edbc72",45,5)):
+        for key,name,label,colour,kg,epu in (("passenger","PASSENGER",self.passenger_lbl,"#38D996",8,1),("4x4","SUV / 4X4",self.suv_lbl,"#42B7FF",16,2),("truck","TRUCK",self.truck_lbl,"#f1f4f7",45,5)):
             card=metric_card(name,label,colour);card.setFixedHeight(70)
-            card.layout().setDirection(QBoxLayout.LeftToRight)
+            card.layout().setDirection(QBoxLayout.TopToBottom)
             card.layout().setContentsMargins(8,2,8,2)
             label.setStyleSheet("color:"+colour+";font:900 54px 'Consolas';")
-            card.findChild(QLabel,"metricName").setStyleSheet("color:"+colour+";font-size:12px;font-weight:800;min-width:82px;")
+            card.findChild(QLabel,"metricName").setStyleSheet("color:#f1f4f7;font-size:12px;font-weight:800;")
             weight=QLabel("0 kg");weight.setStyleSheet("color:"+colour+";font:700 13px 'Consolas';")
             card.layout().addWidget(weight);self.weight_labels[key]=weight
             card.setToolTip(f"Today’s counted {name} tyres × {kg} kg; {epu} EPU per tyre. Estimated weight, not a scale reading."+(" Current model has Passenger and SUV classes only; truck detection requires a truck-capable model." if key=="truck" else ""))
-            classes.addWidget(card)
+            classes.addWidget(card,1)
         today_row=QHBoxLayout();today_row.setSpacing(5)
-        today_row.addWidget(daily,3)
-        today_row.addWidget(self.class_summary,2)
+        for card in (daily,self.alltime_metric_card):
+            card.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed);card.setMinimumWidth(0)
+        today_row.addWidget(daily,1)
+        today_row.addWidget(self.alltime_metric_card,1)
         counters_layout.addLayout(today_row)
+        counters_layout.addWidget(self.class_summary)
+        for label in (self.day_lbl,self.total_lbl,self.passenger_lbl,self.suv_lbl,self.truck_lbl):
+            label.setAlignment(Qt.AlignCenter)
+        for card in (daily,self.alltime_metric_card)+tuple(self.weight_labels[k].parentWidget() for k in ('passenger','4x4','truck')):
+            card.findChild(QLabel,'metricName').setAlignment(Qt.AlignCenter)
+        self.total_weight_lbl.setAlignment(Qt.AlignCenter)
+        self.alltime_dates_lbl.setAlignment(Qt.AlignCenter)
+        self.alltime_dates_lbl.setWordWrap(True)
         grid=QGridLayout();grid.setSpacing(5)
         hour=metric_card("THIS HOUR",self.hour_lbl,"#edf5ff")
         self.current_hour_card=hour
-        self.best_hour_card=metric_card("BEST HOUR",self.session_lbl,"#f1b82d")
+        self.best_hour_card=metric_card("BEST HOUR",self.session_lbl,"#f1f4f7")
         self.best_hour_card.setToolTip("Highest completed production hour, Brisbane time")
         self.best_daily_lbl=QLabel("0 tyres")
-        self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#f1b82d")
+        self.best_daily_card=metric_card("BEST DAY",self.best_daily_lbl,"#f1f4f7")
         self.best_daily_lbl.setStyleSheet("color:#f7f8fa;font:900 48px 'Consolas';")
         self.best_daily_lbl.setWordWrap(True)
         for c,card in enumerate((hour,self.best_hour_card,self.best_daily_card)):
@@ -3046,20 +3052,20 @@ class Main(QMainWindow):
         counters_layout.addLayout(grid)
         self.record_progress=ScrollingRecordLabel("Build the next best hour")
         self.record_progress.setStyleSheet("color:#55f1d7;font:800 18px 'Segoe UI';")
-        flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#40ead7")
+        flow_card=metric_card("FLOW / TYRES PER MINUTE",self.flow_lbl,"#38d996")
         flow_card.setFixedHeight(57)
         self.dashboard_flow_lbl=QLabel("0.0")
         self.dashboard_flow_lbl.setObjectName("metricValue")
         self.dashboard_flow_lbl.setAlignment(Qt.AlignLeft|Qt.AlignVCenter)
-        self.dashboard_flow_lbl.setStyleSheet("color:#40ead7;font:900 30px 'Consolas';")
-        dashboard_flow_card=metric_card("TYRES PER MINUTE",self.dashboard_flow_lbl,"#40ead7")
+        self.dashboard_flow_lbl.setStyleSheet("color:#38d996;font:900 30px 'Consolas';")
+        dashboard_flow_card=metric_card("TYRES PER MINUTE",self.dashboard_flow_lbl,"#38d996")
         dashboard_flow_card.setFixedHeight(88)
         self.dashboard_flow_card=dashboard_flow_card
         self.production_average=QLabel("0 / hour\n0 / minute")
         averages=metric_card("PRODUCTION AVERAGES",self.production_average,"#91bfff")
         averages.setFixedHeight(88)
         self.averages_metric_card=averages
-        self.production_average.setStyleSheet("color:#f1b82d;font:700 13px 'Consolas';")
+        self.production_average.setStyleSheet("color:#f1f4f7;font:700 13px 'Consolas';")
         for card in (averages,dashboard_flow_card):
             card.setSizePolicy(QSizePolicy.Ignored,QSizePolicy.Fixed)
             card.setMinimumWidth(0)
@@ -3073,7 +3079,7 @@ class Main(QMainWindow):
         self.dashboard_record_progress=QLabel("Build the next best hour")
         self.dashboard_record_progress.setAlignment(Qt.AlignCenter)
         self.dashboard_record_progress.setFixedHeight(42)
-        self.dashboard_record_progress.setStyleSheet("background:#17251f;border:1px solid #3d9c69;border-radius:5px;color:#55f1d7;font:900 24px 'Segoe UI';padding:2px 8px;")
+        self.dashboard_record_progress.setStyleSheet("background:#11151a;border:1px solid #9aa6b0;border-radius:5px;color:#55f1d7;font:900 24px 'Segoe UI';padding:2px 8px;")
         secondary_metric_cards=[]
         for name,label in (("NO-COUNT ALERTS",self.no_count_lbl),("SHIFT STATUS",self.production_status_lbl)):
             card=metric_card(name,label);card.setFixedHeight(46)
@@ -3113,9 +3119,9 @@ class Main(QMainWindow):
         strip_layout.setContentsMargins(0,0,0,0);strip_layout.setSpacing(3)
         hour_header=QHBoxLayout();hour_header.setSpacing(4)
         hour_heading=QLabel("▏  HOURLY · BRISBANE · 05:00–17:05")
-        hour_heading.setStyleSheet("color:#f1b82d;font-size:12px;font-weight:900;letter-spacing:0.3px;")
+        hour_heading.setStyleSheet("color:#f1f4f7;font-size:12px;font-weight:900;letter-spacing:0.3px;")
         hour_header.addWidget(hour_heading,3)
-        hour_legend=QLabel("RED < AVG · ORANGE = AVG · GREEN > AVG")
+        hour_legend=QLabel("RED < AVG · SILVER = AVG · GREEN > AVG")
         hour_legend.setStyleSheet("color:#d4dbe0;font-size:10px;font-weight:800;")
         hour_header.addWidget(hour_legend,3)
         strip_layout.addLayout(hour_header)
@@ -3138,7 +3144,7 @@ class Main(QMainWindow):
         daily_layout=QVBoxLayout(self.weekday_strip)
         daily_layout.setContentsMargins(0,0,0,0);daily_layout.setSpacing(2)
         self.weekday_heading=QLabel("▏  DAILY TOTALS · THIS WEEK · BRISBANE")
-        self.weekday_heading.setStyleSheet("color:#f1b82d;font-size:12px;font-weight:900;letter-spacing:1px;")
+        self.weekday_heading.setStyleSheet("color:#f1f4f7;font-size:12px;font-weight:900;letter-spacing:1px;")
         daily_layout.addWidget(self.weekday_heading)
         daily_blocks=QHBoxLayout();daily_blocks.setSpacing(4)
         self.dashboard_day_blocks=[]
@@ -3162,7 +3168,7 @@ class Main(QMainWindow):
         week_layout=QVBoxLayout(self.month_week_strip)
         week_layout.setContentsMargins(0,0,0,0);week_layout.setSpacing(2)
         self.month_week_heading=QLabel("WEEKLY TOTALS · THIS MONTH · BRISBANE")
-        self.month_week_heading.setStyleSheet("color:#f1b82d;font-size:12px;font-weight:900;")
+        self.month_week_heading.setStyleSheet("color:#f1f4f7;font-size:12px;font-weight:900;")
         week_layout.addWidget(self.month_week_heading)
         week_blocks=QHBoxLayout();week_blocks.setSpacing(4)
         self.dashboard_week_blocks=[]
@@ -3178,7 +3184,7 @@ class Main(QMainWindow):
         counters_layout.addWidget(self.month_week_strip)
         from machine_hours_ui import HoursPanel
         self.machine_hours_panel=HoursPanel(self.open_machine_hours,self)
-        counters_layout.addWidget(self.machine_hours_panel)
+        # Shift-end entry and readings are available in Admin > Performance.
 
         # Use the open footer area for the record-pace prompt, keeping the
         # hourly and daily totals visually uncluttered.
@@ -3250,7 +3256,7 @@ class Main(QMainWindow):
         self.fod_badge=QLabel("●  FOD: OFF")
         self.fod_badge.setAlignment(Qt.AlignCenter)
         self.fod_badge.setFixedHeight(34)
-        self.fod_badge.setStyleSheet("background:#20282e;border:1px solid #596771;border-radius:6px;color:#c8d0d6;font-weight:800;padding:3px 8px;")
+        self.fod_badge.setStyleSheet("background:#171c22;border:1px solid #8a949e;border-radius:6px;color:#c8d0d6;font-weight:800;padding:3px 8px;")
         left.addWidget(self.fod_badge)
         # Windows font metrics can make status/control rows taller. Let this
         # secondary area scroll instead of taking height from the live video.
@@ -3406,6 +3412,7 @@ class Main(QMainWindow):
         reviews_tab.addStretch()
         reports_tab = tab_page("REPORTS")
         hours_tab = tab_page("PERFORMANCE")
+        hours_tab.addWidget(self.machine_hours_panel)
         hours_tab.addWidget(self.history_frame)
         hours_tab.addWidget(self.celebration_mute)
         self.celebration_mute.show()
@@ -4148,43 +4155,44 @@ class Main(QMainWindow):
 
     def apply_2070_theme(self):
         self.setStyleSheet(self.styleSheet()+"""
-            QMainWindow,QWidget {background:#151b20;color:#edf1f4;font-family:'Segoe UI';font-size:12px;}
+            QMainWindow,QWidget {background:#0c0f13;color:#edf1f4;font-family:'Segoe UI';font-size:12px;}
             #brand {color:#f7f8fa;font-size:24px;font-weight:900;letter-spacing:3px;}
             #subtitle {color:#b0bbc4;font-size:10px;letter-spacing:2px;}
             #metricRail {background:transparent;border:none;}
             #railHeading {font-size:9px;letter-spacing:2px;color:#aab5be;padding:2px;}
-            #metric {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #242c32,stop:1 #1b2228);border:1px solid #53616b;border-radius:9px;}
-            #metricName {font-size:11px;color:#f1b82d;letter-spacing:1px;font-weight:800;background:transparent;}
+            #metric {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #242c32,stop:1 #1b2228);border:1px solid #8a949e;border-radius:9px;}
+            #metricName {font-size:11px;color:#f1f4f7;letter-spacing:1px;font-weight:800;background:transparent;}
             #metricValue {font:700 23px 'Consolas';color:#f7f8fa;background:transparent;}
             #cameraViewport {border:1px solid #58636c;border-radius:10px;background:#090c0f;}
             #transport {color:#e8edf1;letter-spacing:2px;font:700 10px 'Consolas';padding:3px 0;}
             #geometryBadge {color:#ad95ff;font:700 11px 'Consolas';padding:5px;}
-            #status {background:#20282e;color:#d9e0e5;border:1px solid #56636d;border-radius:6px;font-size:11px;padding:5px;}
+            #status {background:#171c22;color:#d9e0e5;border:1px solid #56636d;border-radius:6px;font-size:11px;padding:5px;}
             #health {background:#17291e;border:1px solid #3ba95b;border-radius:7px;color:#76e48d;padding:7px 12px;font-size:11px;}
             QPushButton {background:#2b353d;color:#edf1f4;border:1px solid #687781;border-radius:6px;padding:7px 10px;font-size:12px;font-weight:700;}
-            QPushButton:hover {background:#3a4851;border-color:#f1b82d;color:#ffffff;}
+            QPushButton:hover {background:#3a4851;border-color:#f1f4f7;color:#ffffff;}
             #start {background:#15863e;border:1px solid #53ce72;color:#ffffff;font-size:14px;padding:8px 12px;}
             #stop {background:#a3292e;border:1px solid #e25458;color:#ffffff;font-size:14px;padding:8px 12px;}
             QProgressBar {border:0;background:#252d33;border-radius:2px;}
-            QProgressBar::chunk {background:#f1b82d;border-radius:2px;}
-            QLineEdit,QComboBox {background:#20282e;border:1px solid #66747e;border-radius:5px;padding:7px;color:#edf1f4;}
+            QProgressBar::chunk {background:#f1f4f7;border-radius:2px;}
+            QLineEdit,QComboBox {background:#171c22;border:1px solid #66747e;border-radius:5px;padding:7px;color:#edf1f4;}
         """)
 
         self.counters_panel.setStyleSheet("""
-            QFrame#metric {background:#20282e;border:1px solid #596771;border-radius:9px;}
+            QFrame#metric {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #252b32,stop:1 #11151a);border:1px solid #8a949e;border-radius:9px;}
             QLabel {background:transparent;border:none;}
-            QLabel#metricName {color:#f1b82d;font-size:12px;letter-spacing:1px;font-weight:800;}
+            QLabel#metricName {color:#f1f4f7;font-size:12px;letter-spacing:1px;font-weight:800;}
             QLabel#railHeading {color:#aab5be;font-size:9px;letter-spacing:2px;}
         """)
+        self.stats_scroll.viewport().setStyleSheet("background:#0c0f13;")
         self.stats_scroll.setStyleSheet("""
-            QScrollArea {border:none;background:#151b20;}
-            #metricRail {background:#151b20;border:none;}
-            QFrame#metric {background:#20282e;border:1px solid #596771;border-radius:9px;}
+            QScrollArea {border:none;background:#0c0f13;}
+            #metricRail {background:#0c0f13;border:none;}
+            QFrame#metric {background:qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #252b32,stop:1 #11151a);border:1px solid #8a949e;border-radius:9px;}
             QLabel {background:transparent;border:none;color:#edf1f4;}
-            #metricName {font-size:11px;color:#f1b82d;letter-spacing:1px;font-weight:800;}
+            #metricName {font-size:11px;color:#f1f4f7;letter-spacing:1px;font-weight:800;}
             #metricValue {font:700 23px 'Consolas';color:#f7f8fa;}
             #railHeading {font-size:9px;letter-spacing:2px;color:#aab5be;}
-            QScrollBar:vertical {background:#20282e;width:9px;}
+            QScrollBar:vertical {background:#171c22;width:9px;}
             QScrollBar::handle:vertical {background:#687781;min-height:24px;border-radius:4px;}
             QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical {height:0;}
         """)
@@ -5835,17 +5843,17 @@ class Main(QMainWindow):
                     period=f"{slot['start']:%H:%M}–{slot['end']:%H:%M}"
                 amount=f"{slot['count']:,}" if completed or current else "—"
                 tile_period=(period[:2]+"–"+("17:05" if index==12 else period[6:8]))
-                block.setText(f'<span style="font-size:10px;font-weight:700">{tile_period}</span><br><span style="font-size:16px;font-weight:900">{amount}</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. weight —"}</span>')
+                block.setText(f'<span style="font-size:10px;font-weight:700">{tile_period}</span><br><span style="font-size:16px;font-weight:900">{amount}</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(slot,compact=True) if not test_mode and (completed or current) else "Est. —"}</span>')
                 if completed or current:
                     below=slot['count']<average
                     on_average=math.isclose(slot['count'],average,rel_tol=0.0,abs_tol=1e-9)
                     pace_colour=("#ff5c68" if below else
-                                 "#ffb84d" if on_average else "#38d996")
+                                 "#c5cdd5" if on_average else "#38d996")
                     pace_label=("below" if below else "on" if on_average else "above")
                 else:
                     pace_colour="#b5c4ce"
                     pace_label="upcoming"
-                tile_bg=("#48262a" if pace_label=="below" else "#47391f" if pace_label=="on" else "#1b3b2a" if pace_label=="above" else "#252d33")
+                tile_bg=("#48262a" if pace_label=="below" else "#252b32" if pace_label=="on" else "#17251f" if pace_label=="above" else "#252d33")
                 block.setStyleSheet(f"background:{tile_bg};border:2px solid {pace_colour};border-radius:6px;color:#f7f8fa;font:8px 'Segoe UI';")
                 baseline_note=(f" · {slot['count']:,} is {pace_label} the {average:,.1f} tyre average" if completed or current else "")
                 block.setToolTip((tyre_weight.weight_note(slot)+f"; {slot.get('unknown_weight',0)} source records use passenger 8 kg default.\n" if not test_mode else "")+("VIDEO TEST · " if test_mode else "Brisbane · ")+period+(" · live" if current else " · completed" if completed else " · upcoming")+baseline_note)
@@ -5862,7 +5870,7 @@ class Main(QMainWindow):
             amount="—" if day['future'] else f"{day['count']:,}"
             tag=" · TODAY" if day['current'] else ""
             block.setText(f'<span style="font-size:10px;font-weight:700">{day["date"]:%a · %d %b}{tag}</span><br><span style="font-size:16px;font-weight:900">{amount}</span> <span style="font-size:10px;font-weight:700">tyres</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(day) if not day["future"] else "Est. weight —"}</span>')
-            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};font:8px 'Segoe UI';")
+            block.setStyleSheet(f"background:#252d33;border:1px solid #8a949e;border-radius:6px;color:{colour};font:8px 'Segoe UI';")
             block.setToolTip(tyre_weight.weight_note(day)+f"; {day.get('unknown_weight',0)} source records use passenger 8 kg default.\n{day['date']:%A %d %B %Y} · Brisbane 05:00–17:05 · Production OAK counts only; video/manual test counts excluded")
 
     def refresh_month_week_totals(self):
@@ -5877,7 +5885,7 @@ class Main(QMainWindow):
             amount="—" if week['future'] else f"{week['count']:,}"
             tag=" · LIVE" if week['current'] else ""
             block.setText(f'<span style="font-size:10px;font-weight:700">WEEK {i+1} · {week["start"]:%d}–{last:%d %b}{tag}</span><br><span style="font-size:16px;font-weight:900">{amount}</span> <span style="font-size:10px;font-weight:700">tyres</span><br><span style="font-size:10px;font-weight:700">{tyre_weight.weight_note(week) if not week["future"] else "Est. weight —"}</span>')
-            block.setStyleSheet(f"background:#252d33;border:1px solid {colour};border-radius:6px;color:{colour};font:8px 'Segoe UI';")
+            block.setStyleSheet(f"background:#252d33;border:1px solid #8a949e;border-radius:6px;color:{colour};font:8px 'Segoe UI';")
             block.setToolTip(tyre_weight.weight_note(week)+f"; {week.get('unknown_weight',0)} source records use passenger 8 kg default.\n{week['start']:%d %b}–{last:%d %b %Y} · Monday–Sunday week clipped to this month. Original OAK production counts, weekdays 05:00–17:05 only. Replay/test counts and review adjustments excluded.")
 
     def update_production_forecast(self):
@@ -6173,7 +6181,7 @@ class Main(QMainWindow):
                 self.flow_lbl.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "")
             dashboard_flow_lbl=getattr(self,"dashboard_flow_lbl",None)
             if dashboard_flow_lbl is not None:
-                dashboard_flow_lbl.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "color:#40ead7;font:900 30px 'Consolas';")
+                dashboard_flow_lbl.setStyleSheet("color:#FF5C68;font:900 30px 'Consolas';" if low else "color:#38d996;font:900 30px 'Consolas';")
             self.flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Flow: tyres per minute")
             if getattr(self,"dashboard_flow_lbl",None) is not None:
                 self.dashboard_flow_lbl.setToolTip("Low flow: below 5 tyres per minute" if low else "Live production rate from the recent five-minute window")
@@ -6448,19 +6456,28 @@ class Main(QMainWindow):
         tight = available_height < 610
         self._dashboard_expanded=expanded
         self._dashboard_tight=tight
-        top_card_height=194 if expanded else 152
-        class_row_height=62 if expanded else 48
+        top_card_height=104 if expanded else 84
+        class_row_height=80 if expanded else 64
         total_font_size=48 if expanded else 38
         self.dashboard_top_spacer.setFixedHeight(0)
         self.today_metric_card.setFixedHeight(top_card_height)
-        self.class_summary.setFixedHeight(top_card_height)
+        self.alltime_metric_card.setFixedHeight(top_card_height)
+        self.class_summary.setFixedHeight(class_row_height)
+        self.total_lbl.setStyleSheet(f"color:#f7f8fa;font:900 {total_font_size}px 'Consolas';")
+        self.total_weight_lbl.setStyleSheet("color:#dce3ea;font:700 11px 'Segoe UI';")
+        self.alltime_dates_lbl.setStyleSheet("color:#dce3ea;font:700 10px 'Segoe UI';")
         self.day_lbl.setStyleSheet(f"color:#f7f8fa;font:900 {total_font_size}px 'Consolas';")
         for key,label,colour in (("passenger",self.passenger_lbl,"#38D996"),
                                  ("4x4",self.suv_lbl,"#42B7FF"),
-                                 ("truck",self.truck_lbl,"#edbc72")):
+                                 ("truck",self.truck_lbl,"#f1f4f7")):
             card=self.weight_labels[key].parentWidget()
             card.setFixedHeight(class_row_height)
-            label.setStyleSheet(f"color:{colour};font:900 {total_font_size}px 'Consolas';")
+            label.setStyleSheet(f"color:{colour};font:900 {36 if expanded else 30}px 'Consolas';")
+            self.weight_labels[key].setAlignment(Qt.AlignCenter)
+            self.weight_labels[key].setStyleSheet(f"color:{colour};font:700 11px 'Segoe UI';")
+        self.hour_lbl.setStyleSheet("color:#38d996;font:900 44px 'Consolas';")
+        self.session_lbl.setStyleSheet("color:#42b7ff;font:900 44px 'Consolas';")
+        self.best_daily_lbl.setStyleSheet("color:#42b7ff;font:900 40px 'Consolas';")
         self.dashboard_flow_card.setFixedHeight(110 if expanded else 84 if tight else 88)
         for card in (self.current_hour_card,self.best_hour_card,self.best_daily_card):
             card.setFixedHeight(116 if expanded else 96 if tight else 108)
@@ -6471,7 +6488,7 @@ class Main(QMainWindow):
         for label in self.projection_labels.values():
             label.setFixedHeight(110 if expanded else 84 if tight else 88)
             label.setStyleSheet(
-                "color:#f4f7f9;background:#17251f;border:1px solid #42c879;"
+                "color:#f4f7f9;background:#11151a;border:1px solid #9aa6b0;"
                 "border-radius:8px;font:900 " + projection_font + " 'Segoe UI';padding:" + projection_padding + ";"
             )
         self.hourly_strip.setFixedHeight(96 if expanded else 76)

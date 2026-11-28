@@ -33,12 +33,24 @@ assert w.line_angle.value()==0 and w.line_length.value()==100
 for width,height in ((1450,850),(1366,768),(1280,720)):
  w.resize(width,height)
  for _ in range(5):app.processEvents()
- expected_top=194 if w._dashboard_expanded else 152
- expected_class_row=62 if w._dashboard_expanded else 48
+ expected_top=104 if w._dashboard_expanded else 84
+ expected_class_row=80 if w._dashboard_expanded else 64
  expected_font=48 if w._dashboard_expanded else 38
- assert w.today_metric_card.height()==w.class_summary.height()==expected_top,(height,w.today_metric_card.height(),w.class_summary.height())
+ assert w.today_metric_card.height()==w.alltime_metric_card.height()==expected_top,(height,w.today_metric_card.height(),w.class_summary.height())
  assert all(w.class_summary.layout().itemAt(i).widget().height()==expected_class_row for i in range(3))
- assert all(f'{expected_font}px' in label.styleSheet() for label in (w.day_lbl,w.passenger_lbl,w.suv_lbl,w.truck_lbl))
+ assert f'{expected_font}px' in w.day_lbl.styleSheet()
+ assert w.class_summary.height()==expected_class_row
+ today_pos=w.today_metric_card.mapTo(w,w.today_metric_card.rect().topLeft())
+ alltime_pos=w.alltime_metric_card.mapTo(w,w.alltime_metric_card.rect().topLeft())
+ assert today_pos.y()==alltime_pos.y() and today_pos.x()<alltime_pos.x()
+ assert abs(w.today_metric_card.width()-w.alltime_metric_card.width())<=1
+ cards=[w.class_summary.layout().itemAt(i).widget() for i in range(3)]
+ assert len({card.y() for card in cards})==1
+ assert max(card.width() for card in cards)-min(card.width() for card in cards)<=1
+ assert w.class_summary.mapTo(w,w.class_summary.rect().topLeft()).y()>today_pos.y()
+ assert not w.machine_hours_panel.isVisibleTo(w.counters_panel)
+ assert w.machine_hours_panel.parentWidget() is not w.counters_panel
+
  for label,value in ((w.day_lbl,6026),(w.hour_lbl,227),(w.session_lbl,671)):
   label.setText(m.tyre_total_text(value))
  w.passenger_lbl.setText('5181');w.suv_lbl.setText('845')
@@ -61,9 +73,10 @@ assert w.record_progress.toolTip()=="Fixed message"
 assert w.dashboard_flow_card.isVisible() and w.dashboard_record_progress.isVisible()
 assert w.dashboard_flow_card.height()==w.averages_metric_card.height()==list(w.projection_labels.values())[0].height()
 assert w.dashboard_record_progress.mapTo(w,w.dashboard_record_progress.rect().topLeft()).y() >= w.weekday_strip.mapTo(w,w.weekday_strip.rect().bottomLeft()).y()
-assert w.today_metric_card.height()==w.class_summary.height()==152
-assert all(w.class_summary.layout().itemAt(i).widget().height()==48 for i in range(3))
-assert all('38px' in label.styleSheet() for label in (w.day_lbl,w.passenger_lbl,w.suv_lbl,w.truck_lbl))
+assert w.today_metric_card.height()==w.alltime_metric_card.height()==84
+assert all(w.class_summary.layout().itemAt(i).widget().height()==64 for i in range(3))
+assert '38px' in w.day_lbl.styleSheet()
+assert all('30px' in label.styleSheet() for label in (w.passenger_lbl,w.suv_lbl,w.truck_lbl))
 w.set_flow_rate(4.9)
 assert w.dashboard_flow_lbl.text()=='4.9' and '#FF5C68' in w.dashboard_flow_lbl.styleSheet()
 w.set_flow_rate(5)

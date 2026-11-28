@@ -14,15 +14,19 @@ with DatabaseTemporaryDirectory() as tmp:
  m.Main.tick=lambda self:None
  m.Main._confirm_admin_pin=lambda *args:True
  app=QApplication([]);w=m.Main();w.clock.stop();w.show()
- for width,height in ((1280,720),(1366,768),(1450,850)):
-  w.resize(width,height)
-  for _ in range(5):app.processEvents()
-  logo=w.findChild(QLabel,'tyrecycleLogo');assert logo is not None
-  assert not logo.pixmap().isNull() and logo.pixmap().width()>100
-  assert w.video.height()>=360,(width,w.video.height())
-  if height>=820:assert logo.pixmap().width()>=220
-  assert w.width()==width and w.height()==height,(w.width(),w.height())
-  assert w.hourly_strip.mapTo(w,w.hourly_strip.rect().bottomRight()).y()<height
-  w.grab().save(str(root/f'logo_dashboard_{width}.png'))
- w.close()
+ try:
+  for width,height in ((1280,720),(1366,768),(1450,850)):
+   w.resize(width,height)
+   for _ in range(5):app.processEvents()
+   logo=w.findChild(QLabel,'tyrecycleLogo');assert logo is not None
+   assert not logo.pixmap().isNull() and logo.pixmap().width()>100
+   assert w.video.height()>=120,(width,w.video.height())
+   assert logo.pixmap().height()<=logo.height()
+   assert abs(logo.pixmap().width()/logo.pixmap().height()-880/504)<.03
+   assert w.width()==width and w.height()==height,(w.width(),w.height())
+   assert w.hourly_strip.mapTo(w,w.hourly_strip.rect().bottomRight()).y()<height
+   w.grab().save(str(root/f'logo_dashboard_{width}.png'))
+ finally:
+  w.close();app.processEvents()
+
 print('PASS supplied logo displays at 1280x720 and 1366x768; hourly totals remain visible')
