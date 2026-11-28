@@ -2852,7 +2852,7 @@ class Main(QMainWindow):
 
         brand = QLabel("TYRETRACK")
         brand.setObjectName("brand")
-        subtitle = QLabel("TYRECYCLE  /  OZCOM")
+        subtitle = QLabel("PRODUCTION INTELLIGENCE  /  OZCOM")
         subtitle.setObjectName("subtitle")
 
         title_column.addWidget(brand)
@@ -2877,12 +2877,8 @@ class Main(QMainWindow):
                 header.addWidget(logo_label)
         header.addLayout(title_column)
         header.addStretch()
-        design_badge=QLabel("PRODUCTION INTELLIGENCE")
-        design_badge.setAlignment(Qt.AlignCenter)
-        design_badge.setStyleSheet("background:#303a41;border:1px solid #67737b;border-radius:5px;color:#f1f4f7;font-size:13px;font-weight:900;letter-spacing:1px;padding:8px 14px;")
         live_dashboard_tag=QLabel("OPERATOR DASHBOARD")
         live_dashboard_tag.setStyleSheet("color:#d4dbe0;font-size:12px;font-weight:800;letter-spacing:1px;padding:4px 10px;")
-        header.addWidget(design_badge)
         header.addWidget(live_dashboard_tag)
 
         self.counters_btn = QPushButton("Hide counters")
